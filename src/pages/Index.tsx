@@ -1,7 +1,7 @@
-import { TravelQuestionnaire } from '@/components/questionnaire/TravelQuestionnaire';
+import Home from './Home';
 
 const Index = () => {
-  return <TravelQuestionnaire />;
+  return <Home />;
 };
 
 export default Index;
