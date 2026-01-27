@@ -24,12 +24,15 @@ export const CityHeader = ({ city, country }: CityHeaderProps) => {
             Back
           </Button>
           <div className="h-6 w-px bg-border" />
-          <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <div className="w-8 h-8 rounded-full gradient-sunset flex items-center justify-center">
               <Plane className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="font-display font-semibold">Wanderlust</span>
-          </div>
+          </button>
         </div>
         <div className="text-sm text-muted-foreground hidden sm:block">
           {city}, {country}
