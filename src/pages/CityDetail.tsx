@@ -7,6 +7,7 @@ import { getCityHighlights } from "@/lib/cityHighlights";
 import { CityHeader } from "@/components/city/CityHeader";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
 import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
+import { SeasonalTab } from "@/components/seasonal/SeasonalTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LocationState {
@@ -88,11 +89,10 @@ const CityDetail = () => {
                 Itinerary
               </TabsTrigger>
               <TabsTrigger
-                value="festivals"
+                value="seasonal"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                disabled
               >
-                Festivals
+                Seasonal
               </TabsTrigger>
               <TabsTrigger
                 value="weather"
@@ -126,10 +126,12 @@ const CityDetail = () => {
           <ItineraryTab city={city} profile={profile} highlights={highlights} />
         </TabsContent>
 
-        <TabsContent value="festivals">
-          <div className="max-w-6xl mx-auto px-4 py-12 text-center text-muted-foreground">
-            Festivals tab coming soon...
-          </div>
+        <TabsContent value="seasonal" className="mt-0">
+          <SeasonalTab
+            city={city.city}
+            country={city.country}
+            travelMonth={profile.travelMonth}
+          />
         </TabsContent>
 
         <TabsContent value="weather">
