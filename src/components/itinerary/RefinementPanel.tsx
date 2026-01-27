@@ -219,37 +219,38 @@ export const RefinementPanel = ({
   return (
     <>
       {/* Mobile: Sheet trigger */}
-      <div className="lg:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Settings2 className="w-4 h-4" />
-              Customize
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[340px] overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>Customize Itinerary</SheetTitle>
-              <SheetDescription>
-                Adjust settings to regenerate your trip plan
-              </SheetDescription>
-            </SheetHeader>
-            <div className="mt-6">
-              <PanelContent />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* Desktop: Side panel */}
-      <div className="hidden lg:block w-80 flex-shrink-0">
-        <div className="sticky top-[120px] bg-card rounded-xl border border-border/50 p-5">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" className="gap-2 lg:hidden shadow-sm">
             <Settings2 className="w-4 h-4" />
             Customize
-          </h3>
-          <PanelContent />
-        </div>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[340px] overflow-y-auto bg-card">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Settings2 className="w-4 h-4 text-primary" />
+              Customize Itinerary
+            </SheetTitle>
+            <SheetDescription>
+              Adjust settings to regenerate your trip plan
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <PanelContent />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop: Side panel content (wrapper handled by parent) */}
+      <div className="hidden lg:block bg-card rounded-xl border border-border/50 p-5 shadow-sm">
+        <h3 className="font-semibold mb-5 flex items-center gap-2.5 text-foreground">
+          <div className="p-1.5 rounded-lg bg-primary/10">
+            <Settings2 className="w-4 h-4 text-primary" />
+          </div>
+          Customize Trip
+        </h3>
+        <PanelContent />
       </div>
     </>
   );

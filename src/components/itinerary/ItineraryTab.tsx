@@ -97,56 +97,20 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-display font-semibold">
-            Your {profile.tripDuration}-Day Itinerary
+          <h2 className="text-2xl md:text-3xl font-display font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            Your {profile.tripDuration}-Day Adventure
           </h2>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1.5 flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-primary/60" />
             Personalized for your {settings.tripStyle} travel style
           </p>
         </div>
-        <RefinementPanel
-          settings={settings}
-          onSettingsChange={setSettings}
-          onUpdate={fetchItinerary}
-          isUpdating={isLoading}
-          interests={interests}
-          highlightExperiences={highlightExperiences}
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex gap-8">
-        {/* Itinerary Days */}
-        <div className="flex-1 space-y-6">
-          {itinerary.days.map((day) => (
-            <DayCard key={day.dayNumber} day={day} />
-          ))}
-
-          {/* Tips Section */}
-          {itinerary.tips && itinerary.tips.length > 0 && (
-            <div className="bg-muted/50 rounded-xl p-6 border border-border/50">
-              <h3 className="font-semibold flex items-center gap-2 mb-4">
-                <Lightbulb className="w-5 h-5 text-amber-500" />
-                Travel Tips
-              </h3>
-              <ul className="space-y-2">
-                {itinerary.tips.map((tip, index) => (
-                  <li key={index} className="text-sm text-muted-foreground flex gap-2">
-                    <span className="text-foreground">•</span>
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Refinement Panel */}
-        <div className="hidden lg:block">
+        {/* Mobile Only Customize Button */}
+        <div className="lg:hidden">
           <RefinementPanel
             settings={settings}
             onSettingsChange={setSettings}
@@ -155,6 +119,56 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             interests={interests}
             highlightExperiences={highlightExperiences}
           />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex gap-6 lg:gap-8">
+        {/* Itinerary Days */}
+        <div className="flex-1 min-w-0 space-y-5">
+          {itinerary.days.map((day, index) => (
+            <div
+              key={day.dayNumber}
+              className="animate-in fade-in slide-in-from-bottom-4"
+              style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
+            >
+              <DayCard day={day} />
+            </div>
+          ))}
+
+          {/* Tips Section */}
+          {itinerary.tips && itinerary.tips.length > 0 && (
+            <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-xl p-5 md:p-6 border border-amber-500/20 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${itinerary.days.length * 100}ms` }}>
+              <h3 className="font-semibold flex items-center gap-2.5 mb-4 text-amber-700 dark:text-amber-400">
+                <div className="p-1.5 rounded-lg bg-amber-500/10">
+                  <Lightbulb className="w-4 h-4" />
+                </div>
+                Local Tips & Insights
+              </h3>
+              <ul className="space-y-2.5">
+                {itinerary.tips.map((tip, index) => (
+                  <li key={index} className="text-sm text-muted-foreground flex gap-3 items-start">
+                    <span className="text-amber-500 mt-1.5 text-xs">◆</span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Refinement Panel - Single Instance */}
+        <div className="hidden lg:block w-80 flex-shrink-0">
+          <div className="sticky top-[120px]">
+            <RefinementPanel
+              settings={settings}
+              onSettingsChange={setSettings}
+              onUpdate={fetchItinerary}
+              isUpdating={isLoading}
+              interests={interests}
+              highlightExperiences={highlightExperiences}
+            />
+          </div>
         </div>
       </div>
     </div>
