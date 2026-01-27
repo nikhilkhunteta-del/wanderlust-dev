@@ -108,7 +108,10 @@ export const TextInputQuestion = ({
               <button
                 key={city}
                 type="button"
-                onClick={() => handleSelectCity(city)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelectCity(city);
+                }}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={cn(
                   "w-full px-4 py-3 text-left flex items-center gap-3 transition-colors",
