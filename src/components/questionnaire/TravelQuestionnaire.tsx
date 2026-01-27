@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plane, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Header } from '@/components/shared/Header';
 import { ProgressIndicator } from './ProgressIndicator';
 import { QuestionCard } from './QuestionCard';
 import { MultiSelectQuestion } from './MultiSelectQuestion';
@@ -114,19 +115,11 @@ export const TravelQuestionnaire = () => {
   return (
     <div className="min-h-screen flex flex-col gradient-warm">
       {/* Header */}
-      <header className="py-6 px-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full gradient-sunset flex items-center justify-center">
-              <Plane className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-display text-xl font-semibold">Wanderlust</span>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            ~{Math.ceil((QUESTIONS.length - currentStep) * 9)} sec remaining
-          </div>
-        </div>
-      </header>
+      <Header
+        rightContent={
+          <span>~{Math.ceil((QUESTIONS.length - currentStep) * 9)} sec remaining</span>
+        }
+      />
 
       {/* Progress */}
       <div className="px-4 pb-8">

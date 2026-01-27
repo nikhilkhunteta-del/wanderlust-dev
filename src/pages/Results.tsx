@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { getDestinationRecommendations } from "@/lib/recommendations";
-import { ResultsHeader } from "@/components/results/ResultsHeader";
+import { Header } from "@/components/shared/Header";
 import { ResultsLoading } from "@/components/results/ResultsLoading";
 import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
@@ -72,7 +72,7 @@ const Results = () => {
 
   return (
     <div className="min-h-screen gradient-warm">
-      <ResultsHeader />
+      <Header rightContent="Your Destinations" />
 
       <main className="max-w-6xl mx-auto px-4 py-12">
         {/* Intro Section */}
