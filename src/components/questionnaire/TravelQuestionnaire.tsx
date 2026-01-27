@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Plane, Check } from 'lucide-react';
 import { ProgressIndicator } from './ProgressIndicator';
@@ -9,7 +10,6 @@ import { SliderQuestion } from './SliderQuestion';
 import { DropdownQuestion } from './DropdownQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { QUESTIONS, TravelPreferences } from '@/types/questionnaire';
-import { TravelProfile } from '@/types/travelProfile';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
@@ -26,10 +26,9 @@ const initialPreferences: TravelPreferences = {
 };
 
 export const TravelQuestionnaire = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
-  const [isComplete, setIsComplete] = useState(false);
-  const [travelProfile, setTravelProfile] = useState<TravelProfile | null>(null);
 
   const currentQuestion = QUESTIONS[currentStep];
   const isLastStep = currentStep === QUESTIONS.length - 1;
@@ -52,9 +51,9 @@ export const TravelQuestionnaire = () => {
   const handleNext = () => {
     if (isLastStep) {
       const profile = buildTravelProfile(preferences);
-      setTravelProfile(profile);
-      setIsComplete(true);
       console.log('Travel Profile:', profile);
+      // Navigate to results page with the profile
+      navigate('/results', { state: { profile } });
     } else {
       setCurrentStep((prev) => prev + 1);
     }
@@ -112,51 +111,6 @@ export const TravelQuestionnaire = () => {
         return null;
     }
   };
-
-  if (isComplete && travelProfile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 gradient-warm">
-        <div className="question-card text-center animate-scale-in max-w-lg">
-          <div className="w-20 h-20 rounded-full gradient-sunset flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-primary-foreground" />
-          </div>
-          <h2 className="text-3xl font-display font-semibold mb-4">
-            You're All Set!
-          </h2>
-          
-          {/* Personalized Summary */}
-          <p className="text-foreground text-lg mb-4 leading-relaxed">
-            {travelProfile.summary}
-          </p>
-          
-          {/* Style Tags */}
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {travelProfile.styleTags.slice(0, 4).map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
-              >
-                {tag.replace(/-/g, ' ')}
-              </span>
-            ))}
-          </div>
-          
-          <Button
-            onClick={() => {
-              setIsComplete(false);
-              setCurrentStep(0);
-              setPreferences(initialPreferences);
-              setTravelProfile(null);
-            }}
-            className="gradient-sunset text-primary-foreground border-0 px-8 py-6 text-lg"
-          >
-            Start Over
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col gradient-warm">
       {/* Header */}

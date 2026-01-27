@@ -1,0 +1,123 @@
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { TravelProfile } from "@/types/travelProfile";
+import { CityRecommendation } from "@/types/recommendations";
+import { getDestinationRecommendations } from "@/lib/recommendations";
+import { ResultsHeader } from "@/components/results/ResultsHeader";
+import { ResultsLoading } from "@/components/results/ResultsLoading";
+import { ResultsError } from "@/components/results/ResultsError";
+import { DestinationCard } from "@/components/results/DestinationCard";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, RefreshCw } from "lucide-react";
+
+const Results = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [recommendations, setRecommendations] = useState<CityRecommendation[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const profile = location.state?.profile as TravelProfile | undefined;
+
+  const fetchRecommendations = async () => {
+    if (!profile) {
+      setError("No travel profile found. Please complete the questionnaire first.");
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const results = await getDestinationRecommendations(profile);
+      setRecommendations(results);
+    } catch (err) {
+      console.error("Failed to fetch recommendations:", err);
+      setError(err instanceof Error ? err.message : "Failed to get recommendations");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecommendations();
+  }, []);
+
+  const handleExploreCity = (city: CityRecommendation) => {
+    // Future: Navigate to city detail page
+    console.log("Explore city:", city);
+  };
+
+  const handleStartOver = () => {
+    navigate("/");
+  };
+
+  if (isLoading) {
+    return <ResultsLoading />;
+  }
+
+  if (error) {
+    return (
+      <ResultsError
+        message={error}
+        onRetry={profile ? fetchRecommendations : handleStartOver}
+      />
+    );
+  }
+
+  if (!recommendations) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen gradient-warm">
+      <ResultsHeader />
+
+      <main className="max-w-6xl mx-auto px-4 py-12">
+        {/* Intro Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4">
+            Your Perfect Destinations
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            {profile?.summary || "Based on your preferences, we've curated three destinations that match your travel style."}
+          </p>
+        </div>
+
+        {/* Destination Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {recommendations.map((rec) => (
+            <DestinationCard
+              key={`${rec.city}-${rec.country}`}
+              recommendation={rec}
+              onExplore={() => handleExploreCity(rec)}
+            />
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button
+            variant="outline"
+            onClick={handleStartOver}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Start Over
+          </Button>
+          <Button
+            variant="outline"
+            onClick={fetchRecommendations}
+            className="gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Get New Suggestions
+          </Button>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Results;
