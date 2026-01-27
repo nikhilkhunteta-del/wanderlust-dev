@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { MessageSquare, Map, CalendarDays } from "lucide-react";
+import { motion } from "framer-motion";
 
 const steps = [
   {
@@ -22,32 +23,86 @@ const steps = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const headerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6 },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.1, 0.25, 1] as const,
+    },
+  },
+};
+
 export const HowItWorksSection = forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <section ref={ref} className="py-24 md:py-32 bg-card">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-4">
             How it works
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             Three simple steps to finding your perfect destination.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <motion.div
+          className="grid md:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {steps.map((item, index) => (
-            <div
+            <motion.div
               key={item.step}
               className="relative"
-              style={{ animationDelay: `${index * 100}ms` }}
+              variants={cardVariants}
             >
               {/* Connector line */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-px bg-border" />
+                <motion.div
+                  className="hidden md:block absolute top-10 left-[60%] w-[80%] h-px bg-border"
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.4 + index * 0.2 }}
+                  style={{ transformOrigin: "left" }}
+                />
               )}
 
-              <div className="relative bg-background rounded-2xl p-8 border border-border/50 hover:border-primary/30 transition-colors">
+              <motion.div
+                className="relative bg-background rounded-2xl p-8 border border-border/50"
+                whileHover={{ borderColor: "hsl(var(--primary) / 0.3)", y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
                 <div className="flex items-center gap-4 mb-6">
                   <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary">
                     <item.icon className="w-5 h-5" />
@@ -62,10 +117,10 @@ export const HowItWorksSection = forwardRef<HTMLDivElement>((_, ref) => {
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {item.description}
                 </p>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
