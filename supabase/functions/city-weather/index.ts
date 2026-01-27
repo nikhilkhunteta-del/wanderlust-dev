@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// City Weather Edge Function
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -98,10 +98,11 @@ Important:
     return new Response(JSON.stringify(weatherData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error generating weather data:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate weather data";
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to generate weather data" }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
