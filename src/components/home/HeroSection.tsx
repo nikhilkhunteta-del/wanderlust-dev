@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
+import { Header } from "@/components/shared/Header";
 import heroImage from "@/assets/hero-santorini.jpg";
 
 interface HeroSectionProps {
@@ -10,7 +11,9 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onStartExploring, onHowItWorks }: HeroSectionProps) => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col overflow-hidden">
+      {/* Header */}
+      <Header variant="transparent" />
       {/* Background Image with parallax effect */}
       <motion.div
         className="absolute inset-0"
@@ -27,7 +30,8 @@ export const HeroSection = ({ onStartExploring, onHowItWorks }: HeroSectionProps
       </motion.div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+      <div className="relative z-10 flex-1 flex items-center justify-center">
+        <div className="max-w-4xl mx-auto px-6 text-center">
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -66,6 +70,7 @@ export const HeroSection = ({ onStartExploring, onHowItWorks }: HeroSectionProps
             How it works
           </button>
         </motion.div>
+        </div>
       </div>
 
       {/* Scroll indicator */}

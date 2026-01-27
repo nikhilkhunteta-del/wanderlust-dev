@@ -4,7 +4,7 @@ import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { CityHighlights } from "@/types/cityHighlights";
 import { getCityHighlights } from "@/lib/cityHighlights";
-import { CityHeader } from "@/components/city/CityHeader";
+import { Header } from "@/components/shared/Header";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
 import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
 import { SeasonalTab } from "@/components/seasonal/SeasonalTab";
@@ -71,10 +71,10 @@ const CityDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <CityHeader city={city.city} country={city.country} />
+      <Header rightContent={`${city.city}, ${city.country}`} />
 
       <Tabs defaultValue="highlights" className="w-full">
-        <div className="sticky top-[57px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
+        <div className="sticky top-[65px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
           <div className="max-w-6xl mx-auto px-4">
             <TabsList className="h-12 bg-transparent gap-0 p-0">
               <TabsTrigger
