@@ -6,6 +6,7 @@ import { WeatherStats } from "./WeatherStats";
 import { WeatherCharts } from "./WeatherCharts";
 import { WeeklyInsights } from "./WeeklyInsights";
 import { PackingTips } from "./PackingTips";
+import { TemperatureToggle, TemperatureUnit } from "./TemperatureToggle";
 import { Loader2, CloudOff } from "lucide-react";
 
 interface WeatherTabProps {
@@ -18,6 +19,7 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
   const [weather, setWeather] = useState<CityWeather | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tempUnit, setTempUnit] = useState<TemperatureUnit>("celsius");
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -67,11 +69,18 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-8">
-      {/* Verdict */}
-      <WeatherVerdict verdict={weather.verdict} month={travelMonth} city={city} />
+      {/* Verdict with Temperature Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex-1">
+          <WeatherVerdict verdict={weather.verdict} month={travelMonth} city={city} />
+        </div>
+        <div className="flex justify-end sm:pt-4">
+          <TemperatureToggle unit={tempUnit} onUnitChange={setTempUnit} />
+        </div>
+      </div>
 
       {/* Key Stats */}
-      <WeatherStats stats={weather.stats} />
+      <WeatherStats stats={weather.stats} unit={tempUnit} />
 
       {/* Charts and Insights Grid */}
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
@@ -81,6 +90,7 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
             dailyData={weather.dailyData}
             weeklyData={weather.weeklyData}
             month={travelMonth}
+            unit={tempUnit}
           />
         </div>
 
