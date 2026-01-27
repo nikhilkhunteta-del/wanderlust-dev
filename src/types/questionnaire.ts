@@ -14,7 +14,7 @@ export interface TravelPreferences {
 export interface QuestionConfig {
   id: keyof TravelPreferences;
   questionText: string;
-  inputType: 'multi-select' | 'single-select' | 'slider' | 'dropdown';
+  inputType: 'multi-select' | 'single-select' | 'slider' | 'dropdown' | 'text-input';
   options?: { value: string; label: string; icon?: string }[];
   sliderConfig?: {
     min: number;
@@ -23,6 +23,7 @@ export interface QuestionConfig {
     labels: string[];
     unit?: string;
   };
+  placeholder?: string;
   defaultValue: string | string[] | number;
 }
 
@@ -77,29 +78,8 @@ export const QUESTIONS: QuestionConfig[] = [
   {
     id: 'departureCity',
     questionText: "Where will your journey begin?",
-    inputType: 'dropdown',
-    options: [
-      { value: 'nyc', label: 'New York (NYC)' },
-      { value: 'lax', label: 'Los Angeles (LAX)' },
-      { value: 'sfo', label: 'San Francisco (SFO)' },
-      { value: 'ord', label: 'Chicago (ORD)' },
-      { value: 'mia', label: 'Miami (MIA)' },
-      { value: 'atl', label: 'Atlanta (ATL)' },
-      { value: 'dfw', label: 'Dallas (DFW)' },
-      { value: 'sea', label: 'Seattle (SEA)' },
-      { value: 'bos', label: 'Boston (BOS)' },
-      { value: 'den', label: 'Denver (DEN)' },
-      { value: 'lhr', label: 'London (LHR)' },
-      { value: 'cdg', label: 'Paris (CDG)' },
-      { value: 'fra', label: 'Frankfurt (FRA)' },
-      { value: 'ams', label: 'Amsterdam (AMS)' },
-      { value: 'sin', label: 'Singapore (SIN)' },
-      { value: 'hkg', label: 'Hong Kong (HKG)' },
-      { value: 'nrt', label: 'Tokyo (NRT)' },
-      { value: 'syd', label: 'Sydney (SYD)' },
-      { value: 'dxb', label: 'Dubai (DXB)' },
-      { value: 'other', label: 'Other' },
-    ],
+    inputType: 'text-input',
+    placeholder: 'e.g., Tokyo, Paris, New York...',
     defaultValue: '',
   },
   {

@@ -7,6 +7,7 @@ import { MultiSelectQuestion } from './MultiSelectQuestion';
 import { SingleSelectQuestion } from './SingleSelectQuestion';
 import { SliderQuestion } from './SliderQuestion';
 import { DropdownQuestion } from './DropdownQuestion';
+import { TextInputQuestion } from './TextInputQuestion';
 import { QUESTIONS, TravelPreferences } from '@/types/questionnaire';
 import { cn } from '@/lib/utils';
 
@@ -93,6 +94,14 @@ export const TravelQuestionnaire = () => {
             options={currentQuestion.options!}
             value={value as string}
             onChange={updatePreference}
+          />
+        );
+      case 'text-input':
+        return (
+          <TextInputQuestion
+            value={value as string}
+            onChange={updatePreference}
+            placeholder={currentQuestion.placeholder}
           />
         );
       default:
