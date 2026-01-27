@@ -19,7 +19,6 @@ const initialPreferences: TravelPreferences = {
   continentPreference: [],
   weatherPreference: 50,
   tripDuration: 7,
-  budgetRange: 150,
   travelCompanions: '',
   travelPace: 50,
 };

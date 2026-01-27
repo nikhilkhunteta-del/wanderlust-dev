@@ -6,7 +6,6 @@ export interface TravelPreferences {
   continentPreference: string[];
   weatherPreference: number;
   tripDuration: number;
-  budgetRange: number;
   travelCompanions: string;
   travelPace: number;
 }
@@ -140,19 +139,6 @@ export const QUESTIONS: QuestionConfig[] = [
       labels: ['Cold & Snowy', 'Cool & Mild', 'Warm & Pleasant', 'Hot & Tropical'],
     },
     defaultValue: 50,
-  },
-  {
-    id: 'budgetRange',
-    questionText: "What's your daily budget per person?",
-    inputType: 'slider',
-    sliderConfig: {
-      min: 50,
-      max: 500,
-      step: 50,
-      labels: ['Budget', 'Moderate', 'Comfortable', 'Luxury'],
-      unit: 'USD',
-    },
-    defaultValue: 150,
   },
   {
     id: 'travelPace',
