@@ -1,16 +1,20 @@
 import { WeatherStats as WeatherStatsType } from "@/types/weather";
 import { Thermometer, ThermometerSnowflake, Sun, CloudRain } from "lucide-react";
+import { TemperatureUnit, formatTempValue } from "./TemperatureToggle";
 
 interface WeatherStatsProps {
   stats: WeatherStatsType;
+  unit: TemperatureUnit;
 }
 
-export const WeatherStats = ({ stats }: WeatherStatsProps) => {
+export const WeatherStats = ({ stats, unit }: WeatherStatsProps) => {
+  const tempSymbol = unit === "fahrenheit" ? "°F" : "°C";
+
   const statItems = [
     {
       icon: Thermometer,
       label: "Avg High",
-      value: `${stats.avgHighTemp}°`,
+      value: `${formatTempValue(stats.avgHighTemp, unit)}${tempSymbol}`,
       color: "text-orange-500",
       bgColor: "bg-orange-50 dark:bg-orange-950/30",
       borderColor: "border-orange-200/50 dark:border-orange-800/30",
@@ -18,7 +22,7 @@ export const WeatherStats = ({ stats }: WeatherStatsProps) => {
     {
       icon: ThermometerSnowflake,
       label: "Avg Low",
-      value: `${stats.avgLowTemp}°`,
+      value: `${formatTempValue(stats.avgLowTemp, unit)}${tempSymbol}`,
       color: "text-blue-500",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
       borderColor: "border-blue-200/50 dark:border-blue-800/30",
@@ -48,7 +52,7 @@ export const WeatherStats = ({ stats }: WeatherStatsProps) => {
       {statItems.map((item) => (
         <div
           key={item.label}
-          className={`rounded-xl ${item.bgColor} border ${item.borderColor} p-4 md:p-5 text-center`}
+          className={`rounded-xl ${item.bgColor} border ${item.borderColor} p-4 md:p-5 text-center transition-all duration-300`}
         >
           <div className={`inline-flex p-2 rounded-lg ${item.bgColor} mb-3`}>
             <item.icon className={`w-5 h-5 ${item.color}`} />

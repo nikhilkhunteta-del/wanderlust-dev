@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { DailyWeather, WeeklyWeather } from "@/types/weather";
 import {
   LineChart,
@@ -14,14 +15,35 @@ import {
   Area,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TemperatureUnit, formatTempValue } from "./TemperatureToggle";
 
 interface WeatherChartsProps {
   dailyData: DailyWeather[];
   weeklyData: WeeklyWeather[];
   month: string;
+  unit: TemperatureUnit;
 }
 
-export const WeatherCharts = ({ dailyData, weeklyData, month }: WeatherChartsProps) => {
+export const WeatherCharts = ({ dailyData, weeklyData, month, unit }: WeatherChartsProps) => {
+  const tempSymbol = unit === "fahrenheit" ? "°F" : "°C";
+
+  // Convert data based on unit
+  const convertedDailyData = useMemo(() => {
+    return dailyData.map((day) => ({
+      ...day,
+      high: formatTempValue(day.high, unit),
+      low: formatTempValue(day.low, unit),
+    }));
+  }, [dailyData, unit]);
+
+  const convertedWeeklyData = useMemo(() => {
+    return weeklyData.map((week) => ({
+      ...week,
+      avgHigh: formatTempValue(week.avgHigh, unit),
+      avgLow: formatTempValue(week.avgLow, unit),
+    }));
+  }, [weeklyData, unit]);
+
   return (
     <div className="space-y-6">
       {/* Temperature Chart */}
@@ -35,7 +57,7 @@ export const WeatherCharts = ({ dailyData, weeklyData, month }: WeatherChartsPro
         <CardContent>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dailyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <ComposedChart data={convertedDailyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
@@ -64,7 +86,7 @@ export const WeatherCharts = ({ dailyData, weeklyData, month }: WeatherChartsPro
                     borderRadius: "8px",
                     fontSize: "12px",
                   }}
-                  formatter={(value: number) => [`${value}°C`]}
+                  formatter={(value: number) => [`${value}${tempSymbol}`]}
                   labelFormatter={(label) => `Day ${label}`}
                 />
                 <Legend wrapperStyle={{ fontSize: "12px" }} />
@@ -153,7 +175,7 @@ export const WeatherCharts = ({ dailyData, weeklyData, month }: WeatherChartsPro
         <CardContent>
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={weeklyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <ComposedChart data={convertedWeeklyData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
                 <XAxis
                   dataKey="weekLabel"
@@ -185,6 +207,10 @@ export const WeatherCharts = ({ dailyData, weeklyData, month }: WeatherChartsPro
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
                     fontSize: "12px",
+                  }}
+                  formatter={(value: number, name: string) => {
+                    if (name.includes("Rainfall")) return [`${value} mm`, name];
+                    return [`${value}${tempSymbol}`, name];
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: "12px" }} />
