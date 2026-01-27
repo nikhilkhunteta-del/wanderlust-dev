@@ -45,8 +45,8 @@ const Results = () => {
   }, []);
 
   const handleExploreCity = (city: CityRecommendation) => {
-    // Future: Navigate to city detail page
-    console.log("Explore city:", city);
+    const citySlug = city.city.toLowerCase().replace(/\s+/g, "-");
+    navigate(`/city/${citySlug}`, { state: { city, profile } });
   };
 
   const handleStartOver = () => {
