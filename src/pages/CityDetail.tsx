@@ -8,6 +8,7 @@ import { CityHeader } from "@/components/city/CityHeader";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
 import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
 import { SeasonalTab } from "@/components/seasonal/SeasonalTab";
+import { WeatherTab } from "@/components/weather/WeatherTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LocationState {
@@ -97,7 +98,6 @@ const CityDetail = () => {
               <TabsTrigger
                 value="weather"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                disabled
               >
                 Weather
               </TabsTrigger>
@@ -134,10 +134,12 @@ const CityDetail = () => {
           />
         </TabsContent>
 
-        <TabsContent value="weather">
-          <div className="max-w-6xl mx-auto px-4 py-12 text-center text-muted-foreground">
-            Weather tab coming soon...
-          </div>
+        <TabsContent value="weather" className="mt-0">
+          <WeatherTab
+            city={city.city}
+            country={city.country}
+            travelMonth={profile.travelMonth}
+          />
         </TabsContent>
 
         <TabsContent value="travel">
