@@ -9,6 +9,8 @@ import { SliderQuestion } from './SliderQuestion';
 import { DropdownQuestion } from './DropdownQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { QUESTIONS, TravelPreferences } from '@/types/questionnaire';
+import { TravelProfile } from '@/types/travelProfile';
+import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
 const initialPreferences: TravelPreferences = {
@@ -27,6 +29,7 @@ export const TravelQuestionnaire = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
   const [isComplete, setIsComplete] = useState(false);
+  const [travelProfile, setTravelProfile] = useState<TravelProfile | null>(null);
 
   const currentQuestion = QUESTIONS[currentStep];
   const isLastStep = currentStep === QUESTIONS.length - 1;
@@ -48,8 +51,10 @@ export const TravelQuestionnaire = () => {
 
   const handleNext = () => {
     if (isLastStep) {
+      const profile = buildTravelProfile(preferences);
+      setTravelProfile(profile);
       setIsComplete(true);
-      console.log('Final Preferences:', preferences);
+      console.log('Travel Profile:', profile);
     } else {
       setCurrentStep((prev) => prev + 1);
     }
@@ -108,7 +113,7 @@ export const TravelQuestionnaire = () => {
     }
   };
 
-  if (isComplete) {
+  if (isComplete && travelProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 gradient-warm">
         <div className="question-card text-center animate-scale-in max-w-lg">
@@ -118,14 +123,30 @@ export const TravelQuestionnaire = () => {
           <h2 className="text-3xl font-display font-semibold mb-4">
             You're All Set!
           </h2>
-          <p className="text-muted-foreground text-lg mb-6">
-            We're crafting personalized destination recommendations just for you.
+          
+          {/* Personalized Summary */}
+          <p className="text-foreground text-lg mb-4 leading-relaxed">
+            {travelProfile.summary}
           </p>
+          
+          {/* Style Tags */}
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
+            {travelProfile.styleTags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+              >
+                {tag.replace(/-/g, ' ')}
+              </span>
+            ))}
+          </div>
+          
           <Button
             onClick={() => {
               setIsComplete(false);
               setCurrentStep(0);
               setPreferences(initialPreferences);
+              setTravelProfile(null);
             }}
             className="gradient-sunset text-primary-foreground border-0 px-8 py-6 text-lg"
           >
