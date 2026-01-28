@@ -7,6 +7,51 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function scrapeCdcPage(country: string): Promise<string | null> {
+  const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+  
+  if (!FIRECRAWL_API_KEY) {
+    console.warn("FIRECRAWL_API_KEY not configured, skipping CDC scrape");
+    return null;
+  }
+
+  // Build CDC URL from country name
+  const countrySlug = country.toLowerCase().replace(/\s+/g, "-");
+  const cdcUrl = `https://wwwnc.cdc.gov/travel/destinations/traveler/none/${countrySlug}`;
+  
+  console.log(`Scraping CDC page: ${cdcUrl}`);
+
+  try {
+    const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${FIRECRAWL_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url: cdcUrl,
+        formats: ["markdown"],
+        onlyMainContent: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.warn(`CDC scrape failed (${response.status}):`, errorData);
+      return null;
+    }
+
+    const data = await response.json();
+    const markdown = data.data?.markdown || "";
+    
+    console.log(`CDC scrape successful, content length: ${markdown.length} characters`);
+    return markdown;
+  } catch (error) {
+    console.warn("CDC scrape error:", error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -26,9 +71,69 @@ serve(async (req) => {
 
     console.log(`Fetching health notices for ${city}, ${country} in ${travelMonth}`);
 
-    const prompt = `You are a travel health information analyst. Generate health travel information for ${city}, ${country} for travelers visiting in ${travelMonth || "any month"}.
+    // Step 1: Try to scrape real CDC data
+    const cdcContent = await scrapeCdcPage(country);
+    const hasCdcData = cdcContent && cdcContent.length > 100;
 
-Use information typically available from official sources like WHO, CDC, and NaTHNaC/TravelHealthPro.
+    // Step 2: Build prompt based on whether we have real CDC data
+    let prompt: string;
+    
+    if (hasCdcData) {
+      console.log("Using real CDC data for health notices");
+      prompt = `You are a travel health information analyst. Analyze this REAL CDC travel health page data for ${country} and extract health information for travelers visiting ${city} in ${travelMonth || "any month"}.
+
+--- CDC TRAVEL HEALTH PAGE DATA START ---
+${cdcContent}
+--- CDC TRAVEL HEALTH PAGE DATA END ---
+
+IMPORTANT: Extract the ACTUAL health notices, warnings, and outbreaks mentioned in the CDC data above. Do NOT generate fictional alerts. If the CDC page mentions Level 1, 2, or 3 Travel Health Notices, include them. If it mentions specific disease outbreaks (like Oropouche, Dengue, etc.), include those as current notices.
+
+Return a JSON object with this exact structure:
+{
+  "hasActiveAlerts": boolean (true if CDC data shows any Travel Health Notices or active outbreaks),
+  "alertSummary": "One-line summary of the most important alert from CDC, or empty string if none",
+  "currentNotices": [
+    {
+      "title": "Exact notice title from CDC (e.g., 'Level 1 Travel Health Notice' or outbreak name)",
+      "source": "CDC",
+      "summary": "Brief summary of what CDC says about this",
+      "url": "https://wwwnc.cdc.gov/travel/destinations/traveler/none/${country.toLowerCase().replace(/\s+/g, "-")}"
+    }
+  ],
+  "vaccines": [
+    {
+      "vaccine": "Vaccine name from CDC recommendations",
+      "recommendation": "CDC's recommendation (Required, Recommended, Consider based on activities, etc.)"
+    }
+  ],
+  "preventionGuidance": ["Prevention tips from CDC data"],
+  "waterSafety": {
+    "level": "safe" | "caution" | "not_recommended" (based on CDC guidance),
+    "description": "Brief explanation based on CDC data"
+  },
+  "foodSafetyTips": ["Food safety tips relevant to ${country}"],
+  "medicalFacilities": {
+    "standard": "high" | "moderate" | "limited",
+    "pharmacyAvailability": "Brief note on pharmacy access",
+    "emergencyNumber": "Emergency number for ${country}"
+  },
+  "packingList": ["Health items from CDC packing recommendations if present, otherwise general travel health items"],
+  "travelInsuranceNote": "Brief recommendation about travel medical insurance",
+  "contextualInsights": [
+    {
+      "type": "air_quality" | "altitude" | "heat" | "mosquito" | "other",
+      "title": "Insight title",
+      "description": "Description based on CDC data or known conditions for ${city} in ${travelMonth}"
+    }
+  ]
+}
+
+Extract ALL Travel Health Notices and disease outbreaks from the CDC data. Be accurate to the source.`;
+    } else {
+      console.log("No CDC data available, using AI-generated content");
+      prompt = `You are a travel health information analyst. Generate health travel information for ${city}, ${country} for travelers visiting in ${travelMonth || "any month"}.
+
+NOTE: Real-time CDC data was not available. Use general knowledge about travel health for this destination.
 
 Return a JSON object with this exact structure:
 {
@@ -72,22 +177,15 @@ Return a JSON object with this exact structure:
 
 Guidelines:
 - currentNotices: Include up to 3 notices. Use real official source URLs. If no current alerts, use empty array.
-- vaccines: List typical vaccine recommendations for travelers to this region (e.g., Hepatitis A, Typhoid, etc.)
-- preventionGuidance: 2-3 general health prevention tips
-- waterSafety level: "safe" for developed countries with treated water, "caution" for mixed quality, "not_recommended" for areas where bottled water is advised
-- foodSafetyTips: 2-3 concise tips
+- vaccines: List typical vaccine recommendations for travelers to this region
+- waterSafety level: "safe" for developed countries, "caution" for mixed quality, "not_recommended" where bottled water is advised
 - medicalFacilities standard: "high" for developed countries, "moderate" for mixed, "limited" for remote/developing areas
-- packingList: 5-7 health-related travel items
-- contextualInsights: Include ONLY if relevant to ${city} or ${travelMonth}:
-  - air_quality: If seasonal pollution, wildfire smoke, or dust storms are known issues
-  - altitude: If city is above 2500m elevation
-  - heat: If travel month has extreme heat risk
-  - mosquito: If vector-borne diseases are seasonal concerns
-  - Use empty array if none apply
+- contextualInsights: Include ONLY if relevant to ${city} or ${travelMonth}
 
-Be factual and neutral. No alarmist language. No personalized medical advice.
+Be factual and neutral. No alarmist language. No personalized medical advice.`;
+    }
 
-Return ONLY valid JSON, no markdown or explanation.`;
+    prompt += "\n\nReturn ONLY valid JSON, no markdown or explanation.";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -100,7 +198,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
         messages: [
           {
             role: "system",
-            content: "You are a travel health data API. Return only valid JSON.",
+            content: "You are a travel health data API. Return only valid JSON. When provided with real CDC data, extract actual notices and alerts accurately.",
           },
           {
             role: "user",
@@ -128,10 +226,15 @@ Return ONLY valid JSON, no markdown or explanation.`;
     const cleanedContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const healthData = JSON.parse(cleanedContent);
 
-    // Add last updated timestamp
+    // Add metadata
     healthData.lastUpdated = new Date().toISOString().split("T")[0];
+    healthData.dataSource = hasCdcData ? "CDC (real-time)" : "AI-generated";
 
-    console.log(`Generated health notices for ${city}, ${country}:`, healthData.hasActiveAlerts);
+    console.log(`Generated health notices for ${city}, ${country}:`, {
+      hasActiveAlerts: healthData.hasActiveAlerts,
+      noticesCount: healthData.currentNotices?.length || 0,
+      dataSource: healthData.dataSource,
+    });
 
     return new Response(JSON.stringify(healthData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
