@@ -1,225 +1,131 @@
 
-# Travel Preference Profile System
 
-## Overview
+# Plan: Integrate Real CDC Health Data via Firecrawl
 
-Build a preference processing layer that transforms raw questionnaire responses into a structured, normalized profile for destination matching. This system will:
-1. Convert responses to weighted interest scores (0-1)
-2. Infer travel style tags from answer patterns
-3. Validate completeness and generate follow-up questions if needed
-4. Generate personalized summary text after completion
+## Problem
 
----
+The current Health Notices tab uses AI-generated content based on the model's training data. This means it misses **real-time health alerts** from the CDC. For example, Brazil currently has:
+- Level 1 Travel Health Notice
+- Two active disease outbreaks (Oropouche and Dengue)
 
-## Architecture
+But the app shows "No major current health alerts."
+
+## Solution Overview
+
+Integrate **Firecrawl** (a web scraping API) to fetch real health data from the CDC Travel Health page, then have the AI synthesize the scraped content into our structured format.
 
 ```text
-+---------------------+     +------------------------+     +-------------------+
-| TravelPreferences   | --> | buildTravelProfile()   | --> | TravelProfile     |
-| (raw questionnaire) |     | (processing utility)   |     | (normalized JSON) |
-+---------------------+     +------------------------+     +-------------------+
-                                      |
-                                      v
-                            +-------------------+
-                            | Travel Style Tags |
-                            | + Summary Text    |
-                            +-------------------+
++------------------+     +------------------+     +------------------+
+|   Frontend       | --> | health-notices   | --> |   Firecrawl      |
+|   (React)        |     |   Edge Function  |     |   Scrape API     |
++------------------+     +------------------+     +------------------+
+                                |                         |
+                                v                         v
+                         +------------------+     +------------------+
+                         |   Lovable AI     | <-- |   CDC Page       |
+                         |   (Synthesize)   |     |   (Markdown)     |
+                         +------------------+     +------------------+
 ```
 
----
+## Implementation Steps
 
-## New Types
+### Step 1: Connect Firecrawl
 
-### `TravelProfile` Interface
+Enable the Firecrawl connector to provide the `FIRECRAWL_API_KEY` as an environment variable in edge functions.
+
+### Step 2: Create Firecrawl Scrape Function
+
+Create a new edge function `supabase/functions/firecrawl-scrape/index.ts` to handle CDC page scraping:
+- Accept a URL parameter
+- Call Firecrawl API to scrape the page as markdown
+- Return the cleaned content
+
+### Step 3: Update Health Notices Edge Function
+
+Modify `supabase/functions/health-notices/index.ts` to:
+
+1. **Build CDC URL**: Construct the CDC travel page URL using the country name:
+   - Pattern: `https://wwwnc.cdc.gov/travel/destinations/traveler/none/{country-slug}`
+   - Example: `https://wwwnc.cdc.gov/travel/destinations/traveler/none/brazil`
+
+2. **Scrape CDC Page**: Call Firecrawl to fetch the page content as markdown
+
+3. **Feed Real Data to AI**: Include the scraped CDC content in the AI prompt so it synthesizes **actual current alerts** rather than generating from training data
+
+4. **Graceful Fallback**: If scraping fails, fall back to AI-generated content (current behavior) with a note that data may not be current
+
+### Step 4: Update Config
+
+Add the new edge function to `supabase/config.toml`.
+
+## Technical Details
+
+### CDC URL Construction
+
+The CDC uses lowercase, hyphenated country slugs:
+```typescript
+const countrySlug = country.toLowerCase().replace(/\s+/g, '-');
+const cdcUrl = `https://wwwnc.cdc.gov/travel/destinations/traveler/none/${countrySlug}`;
+```
+
+### Enhanced AI Prompt
+
+The AI prompt will be updated to include the real CDC data:
 
 ```typescript
-interface TravelProfile {
-  // Normalized interest scores (0-1)
-  interestScores: {
-    culture: number;
-    nature: number;
-    beach: number;
-    food: number;
-    nightlife: number;
-    shopping: number;
-    photography: number;
-    wellness: number;
-  };
+const prompt = `You are a travel health analyst. Analyze this CDC travel health page for ${country}:
 
-  // Adventure intensity (0-1)
-  adventureLevel: number;
-  adventureTypes: string[];
+--- CDC DATA START ---
+${cdcScrapedMarkdown}
+--- CDC DATA END ---
 
-  // Travel constraints
-  departureCity: string;
-  travelMonth: string;
-  preferredRegions: string[];
-  isFlexibleOnRegion: boolean;
+Extract and structure the health information...`;
+```
 
-  // Normalized preferences (0-1)
-  weatherPreference: number;      // 0=cold, 1=tropical
-  tripDuration: number;           // actual days
-  travelPace: number;             // 0=relaxed, 1=packed
+### Data to Extract from CDC
 
-  // Companion context
-  travelCompanions: string;
-  groupType: 'solo' | 'couple' | 'family' | 'friends' | 'group';
+The CDC travel pages typically contain:
+- **Travel Health Notices**: Warning levels (Level 1-3), outbreak names
+- **Vaccines & Medicines**: Required and recommended vaccinations
+- **Healthy Travel Packing List**: CDC's official recommendations
+- **Travel Health Notices**: Active alerts with severity levels
 
-  // Inferred tags
-  styleTags: TravelStyleTag[];
+### Fallback Strategy
 
-  // Personalization summary
-  summary: string;
-
-  // Completeness
-  completenessScore: number;
-  followUpQuestion: string | null;
+```typescript
+let cdcContent = "";
+try {
+  const scrapeResult = await scrapeCdc(countrySlug);
+  cdcContent = scrapeResult.markdown;
+} catch (error) {
+  console.warn("CDC scrape failed, using AI-only mode:", error);
 }
 
-type TravelStyleTag =
-  | 'culture-focused'
-  | 'nature-lover'
-  | 'beach-seeker'
-  | 'foodie'
-  | 'adventure-seeker'
-  | 'adventure-light'
-  | 'relaxation-focused'
-  | 'family-friendly'
-  | 'nightlife-seeker'
-  | 'photography-enthusiast'
-  | 'wellness-oriented'
-  | 'active-explorer'
-  | 'slow-traveler';
+// AI prompt includes CDC content if available
+const prompt = cdcContent 
+  ? `Analyze this real CDC data: ${cdcContent}...`
+  : `Generate health info based on your knowledge...`;
 ```
-
----
-
-## Processing Logic
-
-### 1. Interest Score Normalization
-
-Multi-select answers are converted to weighted scores:
-
-| Selection State | Score |
-|----------------|-------|
-| Selected as primary (1st-2nd pick) | 1.0 |
-| Selected (3rd+ pick) | 0.7 |
-| Not selected | 0.0 |
-
-**Note:** Since multi-select doesn't capture order, all selected items receive equal weight of 1.0, unselected receive 0.0.
-
-### 2. Travel Style Tag Inference Rules
-
-| Condition | Tag Assigned |
-|-----------|--------------|
-| interests includes 'culture' | `culture-focused` |
-| interests includes 'nature' | `nature-lover` |
-| interests includes 'beach' | `beach-seeker` |
-| interests includes 'food' | `foodie` |
-| interests includes 'nightlife' | `nightlife-seeker` |
-| interests includes 'wellness' | `wellness-oriented` |
-| interests includes 'photography' | `photography-enthusiast` |
-| adventureExperiences has 3+ items (excluding 'none') | `adventure-seeker` |
-| adventureExperiences has 1-2 items (excluding 'none') | `adventure-light` |
-| adventureExperiences includes 'none' only | `relaxation-focused` |
-| travelCompanions === 'family' | `family-friendly` |
-| travelPace >= 75 | `active-explorer` |
-| travelPace <= 25 | `slow-traveler` |
-
-### 3. Completeness Validation
-
-Check critical fields that significantly impact recommendation quality:
-
-| Field | Impact Level | Follow-up Question |
-|-------|-------------|-------------------|
-| interests (empty) | Critical | "What type of experiences interest you most on a trip?" |
-| departureCity (empty) | High | "Where will you be departing from?" |
-| travelMonth (empty) | Medium | "When are you planning to travel?" |
-| continentPreference (empty) | Low | (acceptable - use 'anywhere') |
-
-Logic: Return first missing critical/high-impact field as follow-up, or `'complete'`.
-
-### 4. Summary Generation
-
-Template-based generation combining key preferences:
-
-```
-"We'll find destinations perfect for a {companions} trip focused on 
-{top2Interests}. Looking for {weatherDescription} weather in {month}, 
-with a {paceDescription} {duration}-day itinerary{regionNote}."
-```
-
-Example output:
-> "We'll find destinations perfect for a couple's trip focused on culture and food. Looking for warm weather in September, with a balanced 10-day itinerary exploring Asia."
-
----
 
 ## Files to Create/Modify
 
-### 1. Create `src/types/travelProfile.ts`
-- Define `TravelProfile` interface
-- Define `TravelStyleTag` type
-- Define `InterestScores` interface
+| File | Action | Description |
+|------|--------|-------------|
+| `supabase/functions/firecrawl-scrape/index.ts` | Create | Generic Firecrawl scrape endpoint |
+| `supabase/functions/health-notices/index.ts` | Modify | Add CDC scraping before AI synthesis |
+| `supabase/config.toml` | Modify | Register new edge function |
 
-### 2. Create `src/lib/profileBuilder.ts`
-- `buildTravelProfile(preferences: TravelPreferences): TravelProfile`
-- `normalizeInterestScores(interests: string[]): InterestScores`
-- `inferStyleTags(preferences: TravelPreferences): TravelStyleTag[]`
-- `calculateAdventureLevel(experiences: string[]): number`
-- `checkCompleteness(preferences: TravelPreferences): { score: number; followUp: string | null }`
-- `generateSummary(profile: Partial<TravelProfile>): string`
+## Expected Outcome
 
-### 3. Update `src/components/questionnaire/TravelQuestionnaire.tsx`
-- Import `buildTravelProfile` utility
-- Call profile builder on questionnaire completion
-- Display personalized summary in completion screen
-- Handle optional follow-up question flow
+After implementation, the Health Notices tab for Brazil will show:
+- **Active health notice banner**: "Level 1 Travel Health Notice"
+- **Current Notices**: Oropouche outbreak, Dengue outbreak with CDC links
+- **Real vaccine recommendations** from CDC
+- **Accurate severity levels** matching official sources
 
----
+## Considerations
 
-## Integration Flow
+1. **Rate Limiting**: Firecrawl has usage limits; consider caching scraped results
+2. **URL Patterns**: Some countries may have different CDC URL patterns; the function should handle 404s gracefully
+3. **Content Changes**: CDC page structure may change; the AI handles this by interpreting markdown rather than parsing specific HTML
 
-1. User completes questionnaire
-2. On final submit, call `buildTravelProfile(preferences)`
-3. If `followUpQuestion` is not null, show follow-up question UI
-4. Display `summary` in completion screen
-5. Pass `TravelProfile` to recommendation engine (future)
-
----
-
-## Example Output JSON
-
-```json
-{
-  "interestScores": {
-    "culture": 1.0,
-    "nature": 0.0,
-    "beach": 1.0,
-    "food": 1.0,
-    "nightlife": 0.0,
-    "shopping": 0.0,
-    "photography": 0.0,
-    "wellness": 0.0
-  },
-  "adventureLevel": 0.25,
-  "adventureTypes": ["diving"],
-  "departureCity": "London",
-  "travelMonth": "sep",
-  "preferredRegions": ["asia", "europe"],
-  "isFlexibleOnRegion": false,
-  "weatherPreference": 0.75,
-  "tripDuration": 14,
-  "travelPace": 0.5,
-  "travelCompanions": "couple",
-  "groupType": "couple",
-  "styleTags": [
-    "culture-focused",
-    "beach-seeker",
-    "foodie",
-    "adventure-light"
-  ],
-  "summary": "We'll find destinations perfect for a romantic getaway focused on culture and beach relaxation. Looking for warm weather in September, with a balanced 14-day itinerary exploring Asia and Europe.",
-  "completenessScore": 1.0,
-  "followUpQuestion": null
-}
-```
