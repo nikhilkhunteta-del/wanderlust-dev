@@ -34,7 +34,7 @@ export const DayCard = ({ day }: DayCardProps) => {
 
       {/* Time Slots */}
       <div className="p-4 md:p-5 space-y-4">
-        {day.slots.map((slot) => (
+        {Array.isArray(day.slots) && day.slots.map((slot) => (
           <TimeSlotCard key={slot.period} slot={slot} />
         ))}
       </div>
