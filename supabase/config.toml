@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.situational-awareness]
 verify_jwt = false
+
+[functions.flight-insights]
+verify_jwt = false
