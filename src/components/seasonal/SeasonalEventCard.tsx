@@ -1,5 +1,5 @@
 import { SeasonalHighlight, SeasonalCategory } from "@/types/seasonalHighlights";
-import { getSeasonalImageUrl } from "@/lib/seasonalHighlights";
+import { UnsplashImageDisplay } from "@/components/shared/UnsplashImage";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Search, Calendar, Sparkles, Leaf, Utensils, Church, Music, Star } from "lucide-react";
 
@@ -41,20 +41,19 @@ const categoryConfig: Record<SeasonalCategory, { label: string; icon: React.Reac
 };
 
 export const SeasonalEventCard = ({ highlight }: SeasonalEventCardProps) => {
-  const imageUrl = getSeasonalImageUrl(highlight.imageQuery);
   const category = categoryConfig[highlight.category] || categoryConfig.other;
 
   return (
     <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
       {/* Image */}
       <div className="relative aspect-[16/9] overflow-hidden">
-        <img
-          src={imageUrl}
+        <UnsplashImageDisplay
+          query={highlight.imageQuery}
           alt={highlight.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
+          className="w-full h-full group-hover:scale-105 transition-transform duration-500"
+          showAttribution
         />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 z-10">
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${category.color}`}>
             {category.icon}
             {category.label}

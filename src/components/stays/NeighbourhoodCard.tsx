@@ -1,26 +1,24 @@
 import { Neighbourhood } from "@/types/stayInsights";
+import { UnsplashImageDisplay } from "@/components/shared/UnsplashImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getNeighbourhoodImageUrl } from "@/lib/stayInsights";
 
 interface NeighbourhoodCardProps {
   neighbourhood: Neighbourhood;
 }
 
 export const NeighbourhoodCard = ({ neighbourhood }: NeighbourhoodCardProps) => {
-  const imageUrl = getNeighbourhoodImageUrl(neighbourhood.imageQuery);
-
   return (
     <Card className="overflow-hidden group">
       <div className="aspect-[4/3] relative overflow-hidden">
-        <img
-          src={imageUrl}
+        <UnsplashImageDisplay
+          query={neighbourhood.imageQuery}
           alt={neighbourhood.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
+          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+          showAttribution
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute bottom-3 left-3 right-3">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute bottom-3 left-3 right-3 z-10">
           <h4 className="text-lg font-semibold text-white mb-1">{neighbourhood.name}</h4>
         </div>
       </div>
