@@ -90,47 +90,64 @@ Generate:
 
     console.log("Sending prompt to AI gateway...");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+    // Try with primary model, fallback to stable model if needed
+    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite"];
+    let content: string | null = null;
+    let lastError: string | null = null;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+    for (const model of models) {
+      console.log(`Trying model: ${model}`);
+      
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
 
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`AI gateway error with ${model}:`, response.status, errorText);
+
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        lastError = `AI gateway returned ${response.status}`;
+        continue;
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
 
-      throw new Error(`AI gateway returned ${response.status}`);
+      const aiResponse = await response.json();
+      console.log(`AI response received from ${model}`);
+
+      content = aiResponse.choices?.[0]?.message?.content;
+      if (content) {
+        break;
+      } else {
+        console.warn(`No content from ${model}, trying next model...`);
+        lastError = "No content in AI response";
+      }
     }
 
-    const aiResponse = await response.json();
-    console.log("AI response received");
-
-    const content = aiResponse.choices?.[0]?.message?.content;
     if (!content) {
-      throw new Error("No content in AI response");
+      throw new Error(lastError || "No content in AI response after trying all models");
     }
 
     // Parse the JSON from the AI response
