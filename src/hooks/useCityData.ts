@@ -6,6 +6,7 @@ import { getTravelAdvisory } from "@/lib/travelAdvisory";
 import { getHealthNotices } from "@/lib/healthNotices";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
 import { getFlightInsights } from "@/lib/flightInsights";
+import { getStayInsights } from "@/lib/stayInsights";
 import { CityHighlightsRequest } from "@/types/cityHighlights";
 import { FlightInsightsRequest } from "@/types/flightInsights";
 
@@ -73,6 +74,15 @@ export function useFlightInsights(request: FlightInsightsRequest | null) {
     queryKey: ["flight-insights", request?.departureCity, request?.destinationCity, request?.travelMonth],
     queryFn: () => getFlightInsights(request!),
     enabled: !!request && !!request.departureCity,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  });
+}
+
+export function useStayInsights(city: string, country: string, travelMonth: string) {
+  return useQuery({
+    queryKey: ["stay-insights", city, country, travelMonth],
+    queryFn: () => getStayInsights({ city, country, travelMonth }),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });
