@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.stay-insights]
 verify_jwt = false
+
+[functions.unsplash-images]
+verify_jwt = false

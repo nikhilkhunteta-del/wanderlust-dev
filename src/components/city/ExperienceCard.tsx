@@ -1,5 +1,5 @@
 import { SignatureExperience } from "@/types/cityHighlights";
-import { getExperienceImageUrl } from "@/lib/cityHighlights";
+import { UnsplashImageDisplay } from "@/components/shared/UnsplashImage";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 
@@ -8,17 +8,15 @@ interface ExperienceCardProps {
 }
 
 export const ExperienceCard = ({ experience }: ExperienceCardProps) => {
-  const imageUrl = getExperienceImageUrl(experience.imageQuery);
-
   return (
     <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
       {/* Image */}
       <div className="aspect-[3/2] overflow-hidden">
-        <img
-          src={imageUrl}
+        <UnsplashImageDisplay
+          query={experience.imageQuery}
           alt={experience.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
+          className="w-full h-full group-hover:scale-105 transition-transform duration-500"
+          showAttribution
         />
       </div>
       
