@@ -11,6 +11,7 @@ import { WeatherTab } from "@/components/weather/WeatherTab";
 import { TravelAdvisoryTab } from "@/components/travel/TravelAdvisoryTab";
 import { HealthNoticesTab } from "@/components/health/HealthNoticesTab";
 import { SituationalTab } from "@/components/situational/SituationalTab";
+import { FlightsTab } from "@/components/flights/FlightsTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LocationState {
@@ -57,8 +58,8 @@ const CityDetail = () => {
 
       <Tabs defaultValue="highlights" className="w-full">
         <div className="sticky top-[65px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
-          <div className="max-w-6xl mx-auto px-4">
-            <TabsList className="h-12 bg-transparent gap-0 p-0">
+          <div className="max-w-6xl mx-auto px-4 overflow-x-auto">
+            <TabsList className="h-12 bg-transparent gap-0 p-0 w-max">
               <TabsTrigger
                 value="highlights"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
@@ -84,16 +85,22 @@ const CityDetail = () => {
                 Weather
               </TabsTrigger>
               <TabsTrigger
+                value="flights"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              >
+                Flights
+              </TabsTrigger>
+              <TabsTrigger
                 value="travel"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
               >
-                Travel Advisory
+                Advisory
               </TabsTrigger>
               <TabsTrigger
                 value="health"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
               >
-                Health Notices
+                Health
               </TabsTrigger>
               <TabsTrigger
                 value="situational"
@@ -131,6 +138,15 @@ const CityDetail = () => {
           <WeatherTab
             city={city.city}
             country={city.country}
+            travelMonth={profile.travelMonth}
+          />
+        </TabsContent>
+
+        <TabsContent value="flights" className="mt-0">
+          <FlightsTab
+            departureCity={profile.departureCity}
+            destinationCity={city.city}
+            destinationCountry={city.country}
             travelMonth={profile.travelMonth}
           />
         </TabsContent>

@@ -5,7 +5,9 @@ import { getCityWeather } from "@/lib/weather";
 import { getTravelAdvisory } from "@/lib/travelAdvisory";
 import { getHealthNotices } from "@/lib/healthNotices";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
+import { getFlightInsights } from "@/lib/flightInsights";
 import { CityHighlightsRequest } from "@/types/cityHighlights";
+import { FlightInsightsRequest } from "@/types/flightInsights";
 
 // Cache for 10 minutes, consider stale after 5 minutes
 const STALE_TIME = 5 * 60 * 1000;
@@ -61,6 +63,16 @@ export function useSituationalAwareness(city: string, country: string, travelMon
   return useQuery({
     queryKey: ["situational-awareness", city, country, travelMonth],
     queryFn: () => getSituationalAwareness({ city, country, travelMonth }),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  });
+}
+
+export function useFlightInsights(request: FlightInsightsRequest | null) {
+  return useQuery({
+    queryKey: ["flight-insights", request?.departureCity, request?.destinationCity, request?.travelMonth],
+    queryFn: () => getFlightInsights(request!),
+    enabled: !!request && !!request.departureCity,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });
