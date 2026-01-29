@@ -73,7 +73,7 @@ export const HealthNoticesTab = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 space-y-10">
       {/* Health Status Banner */}
       <HealthStatusBanner
         hasActiveAlerts={healthData.hasActiveAlerts}
@@ -81,44 +81,62 @@ export const HealthNoticesTab = ({
       />
 
       {/* Current Notices */}
-      <CurrentNotices notices={healthData.currentNotices} />
+      {healthData.currentNotices.length > 0 && (
+        <section>
+          <CurrentNotices notices={healthData.currentNotices} />
+        </section>
+      )}
 
-      {/* Vaccine & Prevention */}
-      <VaccineGuidance
-        vaccines={healthData.vaccines}
-        preventionGuidance={healthData.preventionGuidance}
-      />
+      {/* Two-column grid for compact sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Vaccines */}
+        <section>
+          <VaccineGuidance vaccines={healthData.vaccines} />
+        </section>
 
-      {/* Water & Food Safety */}
-      <WaterFoodSafety
-        waterSafety={healthData.waterSafety}
-        foodSafetyTips={healthData.foodSafetyTips}
-      />
+        {/* Water & Food Safety */}
+        <section>
+          <WaterFoodSafety
+            waterSafety={healthData.waterSafety}
+            foodSafetyTips={healthData.foodSafetyTips}
+          />
+        </section>
+      </div>
 
-      {/* Medical Facilities */}
-      <MedicalFacilities
-        standard={healthData.medicalFacilities.standard}
-        pharmacyAvailability={healthData.medicalFacilities.pharmacyAvailability}
-        emergencyNumber={healthData.medicalFacilities.emergencyNumber}
-      />
+      {/* Medical Facilities - full width */}
+      <section>
+        <MedicalFacilities
+          standard={healthData.medicalFacilities.standard}
+          pharmacyAvailability={healthData.medicalFacilities.pharmacyAvailability}
+          emergencyNumber={healthData.medicalFacilities.emergencyNumber}
+        />
+      </section>
 
       {/* Contextual Insights */}
-      <ContextualHealthInsights insights={healthData.contextualInsights} />
+      {healthData.contextualInsights.length > 0 && (
+        <section>
+          <ContextualHealthInsights insights={healthData.contextualInsights} />
+        </section>
+      )}
 
-      {/* Packing List */}
-      <HealthPackingList items={healthData.packingList} />
-
-      {/* Travel Insurance */}
-      <TravelInsuranceNote note={healthData.travelInsuranceNote} />
+      {/* Two-column for packing and insurance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section>
+          <HealthPackingList items={healthData.packingList} />
+        </section>
+        <section>
+          <TravelInsuranceNote note={healthData.travelInsuranceNote} />
+        </section>
+      </div>
 
       {/* Footer */}
-      <div className="pt-6 border-t border-border/50">
-        <p className="text-xs text-muted-foreground/70">
+      <footer className="pt-8 border-t border-border/40">
+        <p className="text-xs text-muted-foreground/60 leading-relaxed">
           Health information is synthesized from official sources including WHO, CDC, and NaTHNaC. 
           This is general guidance only. Consult a travel health professional for personalized medical advice.
-          Last updated: {healthData.lastUpdated}
+          <span className="block mt-1">Last updated: {healthData.lastUpdated}</span>
         </p>
-      </div>
+      </footer>
     </div>
   );
 };
