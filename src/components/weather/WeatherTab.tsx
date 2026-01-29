@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { CityWeather } from "@/types/weather";
-import { getCityWeather } from "@/lib/weather";
+import { useState } from "react";
+import { useCityWeather } from "@/hooks/useCityData";
 import { WeatherVerdict } from "./WeatherVerdict";
 import { WeatherStats } from "./WeatherStats";
 import { WeatherCharts } from "./WeatherCharts";
@@ -16,29 +15,8 @@ interface WeatherTabProps {
 }
 
 export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
-  const [weather, setWeather] = useState<CityWeather | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [tempUnit, setTempUnit] = useState<TemperatureUnit>("celsius");
-
-  useEffect(() => {
-    const fetchWeather = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await getCityWeather({ city, country, travelMonth });
-        setWeather(data);
-      } catch (err) {
-        console.error("Failed to fetch weather:", err);
-        setError(err instanceof Error ? err.message : "Failed to load weather data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchWeather();
-  }, [city, country, travelMonth]);
+  const { data: weather, isLoading, error } = useCityWeather(city, country, travelMonth);
 
   if (isLoading) {
     return (
@@ -57,7 +35,9 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
         <div className="text-center max-w-md">
           <CloudOff className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-destructive mb-2 font-medium">Unable to load weather data</p>
-          <p className="text-muted-foreground text-sm">{error}</p>
+          <p className="text-muted-foreground text-sm">
+            {error instanceof Error ? error.message : "Failed to load weather data"}
+          </p>
         </div>
       </div>
     );

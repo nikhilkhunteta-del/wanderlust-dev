@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { SituationalAwarenessData } from "@/types/situationalAwareness";
-import { getSituationalAwareness } from "@/lib/situationalAwareness";
+import { useSituationalAwareness } from "@/hooks/useCityData";
 import { StatusBanner } from "./StatusBanner";
 import { IssueCard } from "./IssueCard";
 import { SeasonalPatterns } from "./SeasonalPatterns";
@@ -14,32 +12,7 @@ interface SituationalTabProps {
 }
 
 export const SituationalTab = ({ city, country, travelMonth }: SituationalTabProps) => {
-  const [data, setData] = useState<SituationalAwarenessData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const result = await getSituationalAwareness({
-          city,
-          country,
-          travelMonth,
-        });
-        setData(result);
-      } catch (err) {
-        console.error("Failed to fetch situational awareness:", err);
-        setError(err instanceof Error ? err.message : "Failed to load situational awareness");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [city, country, travelMonth]);
+  const { data, isLoading, error } = useSituationalAwareness(city, country, travelMonth);
 
   if (isLoading) {
     return (
@@ -59,7 +32,9 @@ export const SituationalTab = ({ city, country, travelMonth }: SituationalTabPro
       <div className="flex items-center justify-center py-24">
         <div className="text-center max-w-md">
           <p className="text-destructive mb-2">Failed to load situational awareness</p>
-          <p className="text-muted-foreground text-sm">{error}</p>
+          <p className="text-muted-foreground text-sm">
+            {error instanceof Error ? error.message : "Failed to load situational awareness"}
+          </p>
         </div>
       </div>
     );

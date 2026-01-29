@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { SeasonalHighlightsData } from "@/types/seasonalHighlights";
-import { getSeasonalHighlights } from "@/lib/seasonalHighlights";
+import { useSeasonalHighlights } from "@/hooks/useCityData";
 import { SeasonalEventCard } from "./SeasonalEventCard";
 import { Loader2, CalendarDays } from "lucide-react";
 
@@ -27,34 +25,8 @@ const MONTH_DISPLAY: Record<string, string> = {
 };
 
 export const SeasonalTab = ({ city, country, travelMonth }: SeasonalTabProps) => {
-  const [data, setData] = useState<SeasonalHighlightsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const { data, isLoading, error } = useSeasonalHighlights(city, country, travelMonth);
   const monthDisplay = MONTH_DISPLAY[travelMonth] || travelMonth;
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const result = await getSeasonalHighlights({
-          city,
-          country,
-          travelMonth,
-        });
-        setData(result);
-      } catch (err) {
-        console.error("Failed to fetch seasonal highlights:", err);
-        setError(err instanceof Error ? err.message : "Failed to load seasonal highlights");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [city, country, travelMonth]);
 
   if (isLoading) {
     return (
@@ -74,7 +46,9 @@ export const SeasonalTab = ({ city, country, travelMonth }: SeasonalTabProps) =>
       <div className="flex items-center justify-center py-24">
         <div className="text-center max-w-md">
           <p className="text-destructive mb-2">Failed to load seasonal highlights</p>
-          <p className="text-muted-foreground text-sm">{error}</p>
+          <p className="text-muted-foreground text-sm">
+            {error instanceof Error ? error.message : "Failed to load seasonal highlights"}
+          </p>
         </div>
       </div>
     );
