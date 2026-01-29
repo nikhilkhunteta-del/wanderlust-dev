@@ -1,16 +1,11 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-interface StayInsightsRequest {
-  city: string;
-  country: string;
-  travelMonth: string;
-}
 
 const MONTH_NAMES: Record<string, string> = {
   jan: "January", feb: "February", mar: "March", apr: "April",
@@ -19,19 +14,24 @@ const MONTH_NAMES: Record<string, string> = {
   flexible: "any month",
 };
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { city, country, travelMonth } = (await req.json()) as StayInsightsRequest;
+    const { city, country, travelMonth } = await req.json();
 
     if (!city || !country) {
       return new Response(
         JSON.stringify({ error: "City and country are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     console.log(`Generating stay insights for ${city}, ${country} in ${travelMonth}`);
@@ -114,11 +114,11 @@ Important guidelines:
 
 Return ONLY valid JSON, no markdown or explanation.`;
 
-    const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
@@ -133,12 +133,25 @@ Return ONLY valid JSON, no markdown or explanation.`;
       }),
     });
 
-    if (!aiResponse.ok) {
-      console.error("AI API error:", await aiResponse.text());
-      throw new Error("Failed to generate stay insights");
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+      throw new Error(`AI gateway returned ${response.status}`);
     }
 
-    const aiData = await aiResponse.json();
+    const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
 
     if (!content) {
@@ -148,8 +161,11 @@ Return ONLY valid JSON, no markdown or explanation.`;
     // Parse the JSON response
     let insights;
     try {
-      const cleanedContent = content.replace(/```json\n?|\n?```/g, "").trim();
-      insights = JSON.parse(cleanedContent);
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("Could not parse JSON from AI response");
+      }
+      insights = JSON.parse(jsonMatch[0]);
     } catch (parseError) {
       console.error("Failed to parse AI response:", content);
       throw new Error("Failed to parse stay insights");
@@ -195,7 +211,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
   } catch (error) {
     console.error("Error in stay-insights function:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to generate stay insights" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to generate stay insights" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
