@@ -1,9 +1,11 @@
+import { useRef } from "react";
 import { useFlightInsights } from "@/hooks/useCityData";
 import { RouteOverview } from "./RouteOverview";
 import { PriceSnapshotCard } from "./PriceSnapshotCard";
 import { TimingInsightCard } from "./TimingInsightCard";
 import { AirportComparisonCard } from "./AirportComparisonCard";
 import { SmartInsights } from "./SmartInsights";
+import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plane, ExternalLink, Info } from "lucide-react";
 
@@ -24,8 +26,14 @@ export const FlightsTab = ({
     ? { departureCity, destinationCity, destinationCountry, travelMonth }
     : null;
 
-  const { data, isLoading, error } = useFlightInsights(request);
-
+  const { data, isLoading, isFetching, error, dataUpdatedAt } = useFlightInsights(request);
+  const initialLoadTime = useRef<number | null>(null);
+  
+  // Track if data came from cache (loaded instantly)
+  if (data && !initialLoadTime.current) {
+    initialLoadTime.current = Date.now();
+  }
+  const isFromCache = data && !isLoading && dataUpdatedAt < Date.now() - 100;
   if (!departureCity) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -74,11 +82,14 @@ export const FlightsTab = ({
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-10">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Plane className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Plane className="w-5 h-5 text-primary" />
+            </div>
+            <h2 className="text-2xl font-display font-semibold">Flight Insights</h2>
           </div>
-          <h2 className="text-2xl font-display font-semibold">Flight Insights</h2>
+          <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
         </div>
         <p className="text-muted-foreground">
           Indicative pricing and route information for your trip

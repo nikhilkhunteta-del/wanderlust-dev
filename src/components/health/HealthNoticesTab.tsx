@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useHealthNotices } from "@/hooks/useCityData";
 import { HealthStatusBanner } from "./HealthStatusBanner";
 import { CurrentNotices } from "./CurrentNotices";
@@ -7,6 +8,7 @@ import { MedicalFacilities } from "./MedicalFacilities";
 import { HealthPackingList } from "./HealthPackingList";
 import { TravelInsuranceNote } from "./TravelInsuranceNote";
 import { ContextualHealthInsights } from "./ContextualHealthInsights";
+import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, HeartPulse } from "lucide-react";
 
 interface HealthNoticesTabProps {
@@ -20,7 +22,13 @@ export const HealthNoticesTab = ({
   country,
   travelMonth,
 }: HealthNoticesTabProps) => {
-  const { data: healthData, isLoading, error } = useHealthNotices(city, country, travelMonth);
+  const { data: healthData, isLoading, isFetching, error, dataUpdatedAt } = useHealthNotices(city, country, travelMonth);
+  const initialLoadTime = useRef<number | null>(null);
+  
+  if (healthData && !initialLoadTime.current) {
+    initialLoadTime.current = Date.now();
+  }
+  const isFromCache = healthData && !isLoading && dataUpdatedAt < Date.now() - 100;
 
   if (isLoading) {
     return (
@@ -53,6 +61,10 @@ export const HealthNoticesTab = ({
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 space-y-10">
+      <div className="flex justify-end">
+        <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
+      </div>
+      
       {/* Health Status Banner */}
       <HealthStatusBanner
         hasActiveAlerts={healthData.hasActiveAlerts}

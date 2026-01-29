@@ -1,9 +1,11 @@
+import { useRef } from "react";
 import { useTravelAdvisory } from "@/hooks/useCityData";
 import { AdvisoryBanner } from "./AdvisoryBanner";
 import { SafetySummary } from "./SafetySummary";
 import { AreasToAvoid } from "./AreasToAvoid";
 import { EmergencyInfo } from "./EmergencyInfo";
 import { SourcesFooter } from "./SourcesFooter";
+import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, ShieldAlert } from "lucide-react";
 
 interface TravelAdvisoryTabProps {
@@ -12,7 +14,13 @@ interface TravelAdvisoryTabProps {
 }
 
 export const TravelAdvisoryTab = ({ city, country }: TravelAdvisoryTabProps) => {
-  const { data: advisory, isLoading, error } = useTravelAdvisory(city, country);
+  const { data: advisory, isLoading, isFetching, error, dataUpdatedAt } = useTravelAdvisory(city, country);
+  const initialLoadTime = useRef<number | null>(null);
+  
+  if (advisory && !initialLoadTime.current) {
+    initialLoadTime.current = Date.now();
+  }
+  const isFromCache = advisory && !isLoading && dataUpdatedAt < Date.now() - 100;
 
   if (isLoading) {
     return (
@@ -45,6 +53,9 @@ export const TravelAdvisoryTab = ({ city, country }: TravelAdvisoryTabProps) => 
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 space-y-8">
+      <div className="flex justify-end">
+        <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
+      </div>
       <AdvisoryBanner
         level={advisory.level}
         levelLabel={advisory.levelLabel}
