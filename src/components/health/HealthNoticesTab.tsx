@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { HealthNoticesData } from "@/types/healthNotices";
-import { getHealthNotices } from "@/lib/healthNotices";
+import { useHealthNotices } from "@/hooks/useCityData";
 import { HealthStatusBanner } from "./HealthStatusBanner";
 import { CurrentNotices } from "./CurrentNotices";
 import { VaccineGuidance } from "./VaccineGuidance";
@@ -22,28 +20,7 @@ export const HealthNoticesTab = ({
   country,
   travelMonth,
 }: HealthNoticesTabProps) => {
-  const [healthData, setHealthData] = useState<HealthNoticesData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchHealthData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await getHealthNotices({ city, country, travelMonth });
-        setHealthData(data);
-      } catch (err) {
-        console.error("Failed to fetch health notices:", err);
-        setError(err instanceof Error ? err.message : "Failed to load health information");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHealthData();
-  }, [city, country, travelMonth]);
+  const { data: healthData, isLoading, error } = useHealthNotices(city, country, travelMonth);
 
   if (isLoading) {
     return (
@@ -62,7 +39,9 @@ export const HealthNoticesTab = ({
         <div className="text-center max-w-md">
           <HeartPulse className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-destructive mb-2 font-medium">Unable to load health information</p>
-          <p className="text-muted-foreground text-sm">{error}</p>
+          <p className="text-muted-foreground text-sm">
+            {error instanceof Error ? error.message : "Failed to load health information"}
+          </p>
         </div>
       </div>
     );

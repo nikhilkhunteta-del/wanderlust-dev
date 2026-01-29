@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
-import { CityHighlights } from "@/types/cityHighlights";
-import { getCityHighlights } from "@/lib/cityHighlights";
+import { useCityHighlights } from "@/hooks/useCityData";
 import { Header } from "@/components/shared/Header";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
 import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
@@ -22,50 +21,30 @@ interface LocationState {
 const CityDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [highlights, setHighlights] = useState<CityHighlights | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const state = location.state as LocationState | undefined;
   const city = state?.city;
   const profile = state?.profile;
 
+  // Build highlights request
+  const highlightsRequest = city && profile ? {
+    city: city.city,
+    country: city.country,
+    rationale: city.rationale,
+    userInterests: Object.entries(profile.interestScores)
+      .filter(([_, score]) => score > 0)
+      .map(([interest]) => interest),
+    adventureTypes: profile.adventureTypes,
+    travelMonth: profile.travelMonth,
+    styleTags: profile.styleTags,
+  } : null;
+
+  const { data: highlights, isLoading, error } = useCityHighlights(highlightsRequest);
+
   useEffect(() => {
     if (!city || !profile) {
       navigate("/");
-      return;
     }
-
-    const fetchHighlights = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        // Get top interests from the profile
-        const topInterests = Object.entries(profile.interestScores)
-          .filter(([_, score]) => score > 0)
-          .map(([interest]) => interest);
-
-        const highlightsData = await getCityHighlights({
-          city: city.city,
-          country: city.country,
-          rationale: city.rationale,
-          userInterests: topInterests,
-          adventureTypes: profile.adventureTypes,
-          travelMonth: profile.travelMonth,
-          styleTags: profile.styleTags,
-        });
-
-        setHighlights(highlightsData);
-      } catch (err) {
-        console.error("Failed to fetch highlights:", err);
-        setError(err instanceof Error ? err.message : "Failed to load highlights");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHighlights();
   }, [city, profile, navigate]);
 
   if (!city || !profile) {
@@ -130,14 +109,14 @@ const CityDetail = () => {
           <HighlightsTab
             city={city.city}
             country={city.country}
-            highlights={highlights}
+            highlights={highlights ?? null}
             isLoading={isLoading}
-            error={error}
+            error={error instanceof Error ? error.message : error ? String(error) : null}
           />
         </TabsContent>
 
         <TabsContent value="itinerary" className="mt-0">
-          <ItineraryTab city={city} profile={profile} highlights={highlights} />
+          <ItineraryTab city={city} profile={profile} highlights={highlights ?? null} />
         </TabsContent>
 
         <TabsContent value="seasonal" className="mt-0">
