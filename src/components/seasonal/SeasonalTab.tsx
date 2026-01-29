@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import { useSeasonalHighlights } from "@/hooks/useCityData";
 import { SeasonalEventCard } from "./SeasonalEventCard";
+import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, CalendarDays } from "lucide-react";
 
 interface SeasonalTabProps {
@@ -25,8 +27,14 @@ const MONTH_DISPLAY: Record<string, string> = {
 };
 
 export const SeasonalTab = ({ city, country, travelMonth }: SeasonalTabProps) => {
-  const { data, isLoading, error } = useSeasonalHighlights(city, country, travelMonth);
+  const { data, isLoading, isFetching, error, dataUpdatedAt } = useSeasonalHighlights(city, country, travelMonth);
   const monthDisplay = MONTH_DISPLAY[travelMonth] || travelMonth;
+  const initialLoadTime = useRef<number | null>(null);
+  
+  if (data && !initialLoadTime.current) {
+    initialLoadTime.current = Date.now();
+  }
+  const isFromCache = data && !isLoading && dataUpdatedAt < Date.now() - 100;
 
   if (isLoading) {
     return (
@@ -62,18 +70,21 @@ export const SeasonalTab = ({ city, country, travelMonth }: SeasonalTabProps) =>
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
       {/* Header */}
       <div className="mb-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full gradient-sunset flex items-center justify-center">
-            <CalendarDays className="w-6 h-6 text-primary-foreground" />
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full gradient-sunset flex items-center justify-center">
+              <CalendarDays className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-display font-semibold">
+                Seasonal Highlights
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Special experiences in {monthDisplay}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-display font-semibold">
-              Seasonal Highlights
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              Special experiences in {monthDisplay}
-            </p>
-          </div>
+          <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
         </div>
         <p className="text-lg text-foreground/80 leading-relaxed max-w-3xl">
           {data.openingStatement}

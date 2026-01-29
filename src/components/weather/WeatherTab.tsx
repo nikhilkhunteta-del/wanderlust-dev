@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCityWeather } from "@/hooks/useCityData";
 import { WeatherVerdict } from "./WeatherVerdict";
 import { WeatherStats } from "./WeatherStats";
@@ -6,6 +6,7 @@ import { WeatherCharts } from "./WeatherCharts";
 import { WeeklyInsights } from "./WeeklyInsights";
 import { PackingTips } from "./PackingTips";
 import { TemperatureToggle, TemperatureUnit } from "./TemperatureToggle";
+import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, CloudOff } from "lucide-react";
 
 interface WeatherTabProps {
@@ -16,7 +17,13 @@ interface WeatherTabProps {
 
 export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
   const [tempUnit, setTempUnit] = useState<TemperatureUnit>("celsius");
-  const { data: weather, isLoading, error } = useCityWeather(city, country, travelMonth);
+  const { data: weather, isLoading, isFetching, error, dataUpdatedAt } = useCityWeather(city, country, travelMonth);
+  const initialLoadTime = useRef<number | null>(null);
+  
+  if (weather && !initialLoadTime.current) {
+    initialLoadTime.current = Date.now();
+  }
+  const isFromCache = weather && !isLoading && dataUpdatedAt < Date.now() - 100;
 
   if (isLoading) {
     return (
@@ -54,7 +61,8 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
         <div className="flex-1">
           <WeatherVerdict verdict={weather.verdict} month={travelMonth} city={city} />
         </div>
-        <div className="flex justify-end sm:pt-4">
+        <div className="flex items-center gap-3 sm:pt-4">
+          <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
           <TemperatureToggle unit={tempUnit} onUnitChange={setTempUnit} />
         </div>
       </div>

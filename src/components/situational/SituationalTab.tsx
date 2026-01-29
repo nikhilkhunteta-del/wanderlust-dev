@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import { useSituationalAwareness } from "@/hooks/useCityData";
 import { StatusBanner } from "./StatusBanner";
 import { IssueCard } from "./IssueCard";
 import { SeasonalPatterns } from "./SeasonalPatterns";
 import { PracticalImpact } from "./PracticalImpact";
+import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, Radar, Info } from "lucide-react";
 
 interface SituationalTabProps {
@@ -12,7 +14,13 @@ interface SituationalTabProps {
 }
 
 export const SituationalTab = ({ city, country, travelMonth }: SituationalTabProps) => {
-  const { data, isLoading, error } = useSituationalAwareness(city, country, travelMonth);
+  const { data, isLoading, isFetching, error, dataUpdatedAt } = useSituationalAwareness(city, country, travelMonth);
+  const initialLoadTime = useRef<number | null>(null);
+  
+  if (data && !initialLoadTime.current) {
+    initialLoadTime.current = Date.now();
+  }
+  const isFromCache = data && !isLoading && dataUpdatedAt < Date.now() - 100;
 
   if (isLoading) {
     return (
@@ -48,11 +56,14 @@ export const SituationalTab = ({ city, country, travelMonth }: SituationalTabPro
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-10">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Radar className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Radar className="w-5 h-5 text-primary" />
+            </div>
+            <h2 className="text-2xl font-display font-semibold">Situational Awareness</h2>
           </div>
-          <h2 className="text-2xl font-display font-semibold">Situational Awareness</h2>
+          <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
         </div>
         <p className="text-muted-foreground">
           Current and emerging conditions that may affect your visit
