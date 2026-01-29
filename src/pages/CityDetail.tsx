@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { useCityHighlights } from "@/hooks/useCityData";
+import { useTabPrefetch } from "@/hooks/useTabPrefetch";
 import { Header } from "@/components/shared/Header";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
 import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
@@ -22,6 +23,7 @@ interface LocationState {
 const CityDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("highlights");
 
   const state = location.state as LocationState | undefined;
   const city = state?.city;
@@ -40,7 +42,43 @@ const CityDetail = () => {
     styleTags: profile.styleTags,
   } : null;
 
+  // Build flight request for prefetching
+  const flightRequest = city && profile && profile.departureCity ? {
+    departureCity: profile.departureCity,
+    destinationCity: city.city,
+    destinationCountry: city.country,
+    travelMonth: profile.travelMonth,
+  } : null;
+
   const { data: highlights, isLoading, error } = useCityHighlights(highlightsRequest);
+
+  // Tab prefetching
+  const { prefetchAdjacentTabs } = useTabPrefetch({
+    city: city?.city ?? "",
+    country: city?.country ?? "",
+    travelMonth: profile?.travelMonth ?? "",
+    highlightsRequest,
+    flightRequest,
+  });
+
+  // Handle tab change with prefetching
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setActiveTab(value);
+      // Prefetch adjacent tabs after a small delay to prioritize current tab
+      setTimeout(() => {
+        prefetchAdjacentTabs(value);
+      }, 100);
+    },
+    [prefetchAdjacentTabs]
+  );
+
+  // Prefetch adjacent tabs on initial load
+  useEffect(() => {
+    if (city && profile) {
+      prefetchAdjacentTabs("highlights");
+    }
+  }, [city, profile, prefetchAdjacentTabs]);
 
   useEffect(() => {
     if (!city || !profile) {
@@ -56,7 +94,7 @@ const CityDetail = () => {
     <div className="min-h-screen bg-background">
       <Header rightContent={`${city.city}, ${city.country}`} />
 
-      <Tabs defaultValue="highlights" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="sticky top-[65px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
           <div className="max-w-6xl mx-auto px-4 overflow-x-auto">
             <TabsList className="h-12 bg-transparent gap-0 p-0 w-max">
