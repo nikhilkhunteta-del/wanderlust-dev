@@ -7,6 +7,7 @@ import { getTravelAdvisory } from "@/lib/travelAdvisory";
 import { getHealthNotices } from "@/lib/healthNotices";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
 import { getFlightInsights } from "@/lib/flightInsights";
+import { getStayInsights } from "@/lib/stayInsights";
 import { CityHighlightsRequest } from "@/types/cityHighlights";
 import { FlightInsightsRequest } from "@/types/flightInsights";
 
@@ -17,6 +18,7 @@ const TAB_ORDER = [
   "seasonal",
   "weather",
   "flights",
+  "stays",
   "travel",
   "health",
   "situational",
@@ -92,6 +94,14 @@ export function useTabPrefetch(params: PrefetchParams) {
               staleTime: STALE_TIME,
             });
           }
+          break;
+
+        case "stays":
+          queryClient.prefetchQuery({
+            queryKey: ["stay-insights", city, country, travelMonth],
+            queryFn: () => getStayInsights({ city, country, travelMonth }),
+            staleTime: STALE_TIME,
+          });
           break;
 
         case "travel":

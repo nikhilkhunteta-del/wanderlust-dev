@@ -13,6 +13,7 @@ import { TravelAdvisoryTab } from "@/components/travel/TravelAdvisoryTab";
 import { HealthNoticesTab } from "@/components/health/HealthNoticesTab";
 import { SituationalTab } from "@/components/situational/SituationalTab";
 import { FlightsTab } from "@/components/flights/FlightsTab";
+import { StaysTab } from "@/components/stays/StaysTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LocationState {
@@ -129,6 +130,12 @@ const CityDetail = () => {
                 Flights
               </TabsTrigger>
               <TabsTrigger
+                value="stays"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              >
+                Stays
+              </TabsTrigger>
+              <TabsTrigger
                 value="travel"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
               >
@@ -185,6 +192,14 @@ const CityDetail = () => {
             departureCity={profile.departureCity}
             destinationCity={city.city}
             destinationCountry={city.country}
+            travelMonth={profile.travelMonth}
+          />
+        </TabsContent>
+
+        <TabsContent value="stays" className="mt-0">
+          <StaysTab
+            city={city.city}
+            country={city.country}
             travelMonth={profile.travelMonth}
           />
         </TabsContent>
