@@ -51,7 +51,6 @@ export const HighlightsTab = ({
       <HighlightsHero
         city={city}
         country={country}
-        heroImageQuery={highlights.heroImageQuery}
         matchStatement={highlights.matchStatement}
       />
 
@@ -72,7 +71,7 @@ export const HighlightsTab = ({
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {highlights.experiences.map((experience, index) => (
-              <ExperienceCard key={index} experience={experience} />
+              <ExperienceCard key={index} experience={experience} city={city} country={country} />
             ))}
           </div>
         </section>

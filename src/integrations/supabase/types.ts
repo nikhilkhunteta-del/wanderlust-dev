@@ -14,13 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      image_cache: {
+        Row: {
+          attribution_required: boolean
+          cache_key: string
+          city: string
+          country: string
+          created_at: string
+          entity_name: string | null
+          expires_at: string
+          height: number | null
+          hit_count: number
+          id: string
+          image_type: string
+          image_url: string
+          photographer: string | null
+          photographer_url: string | null
+          small_url: string | null
+          source: string
+          source_url: string | null
+          thumb_url: string | null
+          width: number | null
+        }
+        Insert: {
+          attribution_required?: boolean
+          cache_key: string
+          city: string
+          country: string
+          created_at?: string
+          entity_name?: string | null
+          expires_at: string
+          height?: number | null
+          hit_count?: number
+          id?: string
+          image_type: string
+          image_url: string
+          photographer?: string | null
+          photographer_url?: string | null
+          small_url?: string | null
+          source: string
+          source_url?: string | null
+          thumb_url?: string | null
+          width?: number | null
+        }
+        Update: {
+          attribution_required?: boolean
+          cache_key?: string
+          city?: string
+          country?: string
+          created_at?: string
+          entity_name?: string | null
+          expires_at?: string
+          height?: number | null
+          hit_count?: number
+          id?: string
+          image_type?: string
+          image_url?: string
+          photographer?: string | null
+          photographer_url?: string | null
+          small_url?: string | null
+          source?: string
+          source_url?: string | null
+          thumb_url?: string | null
+          width?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_image_cache: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never

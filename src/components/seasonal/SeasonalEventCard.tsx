@@ -1,10 +1,12 @@
 import { SeasonalHighlight, SeasonalCategory } from "@/types/seasonalHighlights";
-import { UnsplashImageDisplay } from "@/components/shared/UnsplashImage";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Search, Calendar, Sparkles, Leaf, Utensils, Church, Music, Star } from "lucide-react";
+import { ResolvedImage } from "@/components/shared/ResolvedImage";
 
 interface SeasonalEventCardProps {
   highlight: SeasonalHighlight;
+  city: string;
+  country: string;
 }
 
 const categoryConfig: Record<SeasonalCategory, { label: string; icon: React.ReactNode; color: string }> = {
@@ -40,18 +42,24 @@ const categoryConfig: Record<SeasonalCategory, { label: string; icon: React.Reac
   },
 };
 
-export const SeasonalEventCard = ({ highlight }: SeasonalEventCardProps) => {
+export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCardProps) => {
   const category = categoryConfig[highlight.category] || categoryConfig.other;
 
   return (
     <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
-      {/* Image */}
+      {/* Image using new image system */}
       <div className="relative aspect-[16/9] overflow-hidden">
-        <UnsplashImageDisplay
-          query={highlight.imageQuery}
+        <ResolvedImage
+          request={{
+            type: 'seasonal',
+            city,
+            country,
+            entityName: highlight.title,
+          }}
           alt={highlight.title}
           className="w-full h-full group-hover:scale-105 transition-transform duration-500"
           showAttribution
+          fallbackCategory="cultural"
         />
         <div className="absolute top-3 left-3 z-10">
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${category.color}`}>

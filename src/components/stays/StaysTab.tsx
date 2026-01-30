@@ -92,7 +92,7 @@ export const StaysTab = ({ city, country, travelMonth }: StaysTabProps) => {
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {data.neighbourhoods.map((neighbourhood, index) => (
-              <NeighbourhoodCard key={index} neighbourhood={neighbourhood} />
+              <NeighbourhoodCard key={index} neighbourhood={neighbourhood} city={city} country={country} />
             ))}
           </div>
         </section>

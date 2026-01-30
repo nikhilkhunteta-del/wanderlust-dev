@@ -20,3 +20,12 @@ verify_jwt = false
 
 [functions.unsplash-images]
 verify_jwt = false
+
+[functions.resolve-image]
+verify_jwt = false
+
+[functions.prefetch-images]
+verify_jwt = false
+
+[functions.get-image-pack]
+verify_jwt = false
