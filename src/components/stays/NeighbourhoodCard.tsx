@@ -1,21 +1,29 @@
 import { Neighbourhood } from "@/types/stayInsights";
-import { UnsplashImageDisplay } from "@/components/shared/UnsplashImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ResolvedImage } from "@/components/shared/ResolvedImage";
 
 interface NeighbourhoodCardProps {
   neighbourhood: Neighbourhood;
+  city: string;
+  country: string;
 }
 
-export const NeighbourhoodCard = ({ neighbourhood }: NeighbourhoodCardProps) => {
+export const NeighbourhoodCard = ({ neighbourhood, city, country }: NeighbourhoodCardProps) => {
   return (
     <Card className="overflow-hidden group">
       <div className="aspect-[4/3] relative overflow-hidden">
-        <UnsplashImageDisplay
-          query={neighbourhood.imageQuery}
+        <ResolvedImage
+          request={{
+            type: 'neighborhood',
+            city,
+            country,
+            entityName: neighbourhood.name,
+          }}
           alt={neighbourhood.name}
           className="w-full h-full transition-transform duration-500 group-hover:scale-105"
           showAttribution
+          fallbackCategory="neighborhood"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-3 left-3 right-3 z-10">

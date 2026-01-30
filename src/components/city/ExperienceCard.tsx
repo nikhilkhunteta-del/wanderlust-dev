@@ -1,22 +1,30 @@
 import { SignatureExperience } from "@/types/cityHighlights";
-import { UnsplashImageDisplay } from "@/components/shared/UnsplashImage";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { ResolvedImage } from "@/components/shared/ResolvedImage";
 
 interface ExperienceCardProps {
   experience: SignatureExperience;
+  city: string;
+  country: string;
 }
 
-export const ExperienceCard = ({ experience }: ExperienceCardProps) => {
+export const ExperienceCard = ({ experience, city, country }: ExperienceCardProps) => {
   return (
     <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-      {/* Image */}
+      {/* Image using new image system */}
       <div className="aspect-[3/2] overflow-hidden">
-        <UnsplashImageDisplay
-          query={experience.imageQuery}
+        <ResolvedImage
+          request={{
+            type: 'attraction',
+            city,
+            country,
+            entityName: experience.title,
+          }}
           alt={experience.title}
           className="w-full h-full group-hover:scale-105 transition-transform duration-500"
           showAttribution
+          fallbackCategory="culture"
         />
       </div>
       

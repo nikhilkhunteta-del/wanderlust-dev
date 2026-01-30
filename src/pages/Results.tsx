@@ -9,6 +9,7 @@ import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw } from "lucide-react";
+import { usePrefetchCityImages } from "@/hooks/useImagePack";
 
 const Results = () => {
   const location = useLocation();
@@ -43,6 +44,17 @@ const Results = () => {
   useEffect(() => {
     fetchRecommendations();
   }, []);
+
+  // Prefetch images for recommended cities
+  const citiesToPrefetch = recommendations?.map(r => ({ city: r.city, country: r.country })) || null;
+  // Extract top interests from profile's interestScores
+  const userInterests = profile?.interestScores 
+    ? Object.entries(profile.interestScores)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([key]) => key)
+    : [];
+  usePrefetchCityImages(citiesToPrefetch, userInterests);
 
   const handleExploreCity = (city: CityRecommendation) => {
     const citySlug = city.city.toLowerCase().replace(/\s+/g, "-");

@@ -94,7 +94,7 @@ export const SeasonalTab = ({ city, country, travelMonth }: SeasonalTabProps) =>
       {/* Event Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {data.highlights.map((highlight, index) => (
-          <SeasonalEventCard key={index} highlight={highlight} />
+          <SeasonalEventCard key={index} highlight={highlight} city={city} country={country} />
         ))}
       </div>
 
