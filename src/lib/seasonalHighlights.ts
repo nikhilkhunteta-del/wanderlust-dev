@@ -22,8 +22,3 @@ export async function getSeasonalHighlights(
 
   return data;
 }
-
-export function getSeasonalImageUrl(imageQuery: string): string {
-  const encoded = encodeURIComponent(imageQuery);
-  return `https://source.unsplash.com/600x400/?${encoded}`;
-}
