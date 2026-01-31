@@ -87,52 +87,150 @@ function buildSearchQuery(req: ResolveImageRequest): string {
 
 // Known landmark name variations for better Wikimedia searches
 const LANDMARK_SYNONYMS: Record<string, string[]> = {
+  // Western Europe
   'eiffel tower': ['Tour Eiffel', 'Eiffel Tower Paris'],
   'colosseum': ['Colosseo', 'Roman Colosseum', 'Flavian Amphitheatre'],
-  'taj mahal': ['Taj Mahal Agra', 'ताज महल'],
-  'machu picchu': ['Machu Picchu Peru', 'Machupicchu'],
-  'great wall': ['Great Wall of China', 'Chinese Wall', '万里长城'],
   'sagrada familia': ['Sagrada Família', 'Basílica de la Sagrada Família'],
   'big ben': ['Elizabeth Tower', 'Big Ben London'],
+  'notre dame': ['Notre-Dame de Paris', 'Cathédrale Notre-Dame'],
+  'louvre': ['Musée du Louvre', 'Louvre Museum Paris', 'Louvre Pyramid'],
+  'tower of london': ['Tower of London', 'Her Majesty\'s Royal Palace'],
+  'buckingham palace': ['Buckingham Palace London', 'Royal Palace London'],
+  'leaning tower': ['Leaning Tower of Pisa', 'Torre pendente di Pisa'],
+  'neuschwanstein': ['Neuschwanstein Castle', 'Schloss Neuschwanstein'],
+  'brandenburg gate': ['Brandenburger Tor', 'Brandenburg Gate Berlin'],
+  'alhambra': ['Alhambra Granada', 'Alhambra Palace'],
+  'stonehenge': ['Stonehenge Wiltshire', 'Stonehenge monument'],
+  'edinburgh castle': ['Edinburgh Castle Scotland'],
+  'mont saint-michel': ['Mont Saint-Michel', 'Le Mont-Saint-Michel'],
+  'versailles': ['Palace of Versailles', 'Château de Versailles'],
+  'westminster abbey': ['Westminster Abbey London'],
+  'arc de triomphe': ['Arc de Triomphe Paris', 'Triumphal Arch Paris'],
+  
+  // Americas
   'statue of liberty': ['Liberty Enlightening the World', 'Statue of Liberty New York'],
   'christ the redeemer': ['Cristo Redentor', 'Christ the Redeemer Rio'],
-  'petra': ['Petra Jordan', 'Al-Khazneh'],
-  'angkor wat': ['Angkor Wat Cambodia', 'អង្គរវត្ត'],
-  'burj khalifa': ['Burj Khalifa Dubai', 'Khalifa Tower'],
-  'sydney opera house': ['Sydney Opera House Australia'],
-  'acropolis': ['Acropolis of Athens', 'Parthenon Athens'],
+  'machu picchu': ['Machu Picchu Peru', 'Machupicchu'],
+  'chichen itza': ['Chichén Itzá', 'El Castillo Chichen Itza', 'Kukulcán Pyramid'],
+  'golden gate': ['Golden Gate Bridge', 'Golden Gate San Francisco'],
+  'times square': ['Times Square New York', 'Times Square Manhattan'],
+  'grand canyon': ['Grand Canyon Arizona', 'Grand Canyon National Park'],
+  'niagara falls': ['Niagara Falls', 'Niagara Falls Canada USA'],
+  'empire state': ['Empire State Building', 'Empire State Building New York'],
+  'central park': ['Central Park New York', 'Central Park Manhattan'],
+  
+  // Middle East & Africa
+  'pyramids': ['Pyramids of Giza', 'Great Pyramid of Giza', 'أهرامات الجيزة'],
+  'giza': ['Pyramids of Giza', 'Great Sphinx of Giza', 'Giza Necropolis'],
+  'sphinx': ['Great Sphinx of Giza', 'Sphinx Egypt'],
+  'petra': ['Petra Jordan', 'Al-Khazneh', 'Treasury Petra'],
+  'burj khalifa': ['Burj Khalifa Dubai', 'Khalifa Tower', 'برج خليفة'],
+  'burj al arab': ['Burj Al Arab Dubai', 'Burj Al Arab Hotel'],
   'hagia sophia': ['Ayasofya', 'Hagia Sophia Istanbul'],
-  'notre dame': ['Notre-Dame de Paris', 'Cathédrale Notre-Dame'],
+  'blue mosque': ['Sultan Ahmed Mosque', 'Blue Mosque Istanbul'],
+  'table mountain': ['Table Mountain Cape Town', 'Table Mountain South Africa'],
+  'victoria falls': ['Victoria Falls', 'Mosi-oa-Tunya'],
+  
+  // Asia
+  'taj mahal': ['Taj Mahal Agra', 'ताज महल'],
+  'great wall': ['Great Wall of China', 'Chinese Wall', '万里长城'],
+  'angkor wat': ['Angkor Wat Cambodia', 'អង្គរវត្ត'],
+  'forbidden city': ['Forbidden City Beijing', 'Imperial Palace Beijing', '故宫'],
+  'terracotta army': ['Terracotta Army', 'Terracotta Warriors Xi\'an', '兵马俑'],
+  'mount fuji': ['Mount Fuji Japan', 'Fujisan', '富士山'],
+  'tokyo tower': ['Tokyo Tower', '東京タワー'],
+  'sensoji': ['Sensō-ji Temple', 'Asakusa Temple Tokyo', '浅草寺'],
+  'fushimi inari': ['Fushimi Inari Shrine', 'Fushimi Inari Taisha', '伏見稲荷大社'],
+  'golden temple': ['Golden Temple Amritsar', 'Harmandir Sahib', 'ਹਰਿਮੰਦਰ ਸਾਹਿਬ'],
+  'bali temple': ['Tanah Lot', 'Uluwatu Temple Bali', 'Pura Besakih'],
+  'marina bay sands': ['Marina Bay Sands Singapore'],
+  'gardens by the bay': ['Gardens by the Bay Singapore', 'Supertree Grove'],
+  'borobudur': ['Borobudur Temple', 'Candi Borobudur'],
+  'ha long bay': ['Ha Long Bay Vietnam', 'Vịnh Hạ Long'],
+  
+  // Oceania
+  'sydney opera house': ['Sydney Opera House Australia'],
+  'uluru': ['Uluru', 'Ayers Rock Australia'],
+  'great barrier reef': ['Great Barrier Reef Australia'],
+  
+  // Eastern Europe & Russia
+  'acropolis': ['Acropolis of Athens', 'Parthenon Athens'],
+  'santorini': ['Santorini Greece', 'Oia Santorini', 'Santorini caldera'],
+  'charles bridge': ['Charles Bridge Prague', 'Karlův most'],
+  'st basil': ['Saint Basil\'s Cathedral', 'St Basil\'s Cathedral Moscow', 'Покровский собор'],
+  'kremlin': ['Moscow Kremlin', 'Kremlin Russia', 'Московский Кремль'],
+  'prague castle': ['Prague Castle', 'Pražský hrad'],
+  
+  // Natural wonders
+  'northern lights': ['Aurora Borealis', 'Northern Lights'],
+  'aurora': ['Aurora Borealis', 'Northern Lights Iceland', 'Aurora Norway'],
+  'iguazu': ['Iguazu Falls', 'Iguazú Falls', 'Cataratas del Iguazú'],
+  'amazon': ['Amazon Rainforest', 'Amazon River', 'Amazonia'],
 };
 
 // Festival-specific search terms for better results
 const FESTIVAL_KEYWORDS: Record<string, string[]> = {
+  // Major carnivals & parades
   'carnival': ['carnival parade', 'carnival celebration', 'carnival costume'],
-  'diwali': ['Diwali festival', 'Diwali lights', 'Deepavali celebration'],
+  'rio carnival': ['Carnaval do Rio', 'Rio de Janeiro Carnival samba', 'Rio Carnival parade'],
+  'venice carnival': ['Carnival of Venice', 'Carnevale di Venezia', 'Venice masks'],
+  'mardi gras': ['Mardi Gras New Orleans', 'Fat Tuesday parade', 'Mardi Gras beads'],
+  'notting hill': ['Notting Hill Carnival', 'Notting Hill Carnival London'],
+  
+  // Asian festivals
   'chinese new year': ['Chinese New Year celebration', 'Spring Festival China', 'Lunar New Year parade'],
-  'oktoberfest': ['Oktoberfest Munich', 'Oktoberfest beer festival'],
-  'holi': ['Holi festival colors', 'Holi celebration India'],
+  'diwali': ['Diwali festival', 'Diwali lights', 'Deepavali celebration', 'Festival of Lights India'],
+  'holi': ['Holi festival colors', 'Holi celebration India', 'Festival of Colors'],
   'cherry blossom': ['Hanami', 'Sakura festival', 'Cherry blossom Japan'],
-  'day of the dead': ['Día de los Muertos', 'Day of the Dead Mexico'],
-  'mardi gras': ['Mardi Gras New Orleans', 'Fat Tuesday parade'],
-  'la tomatina': ['La Tomatina Buñol', 'Tomato Festival Spain'],
-  'lantern festival': ['Yuan Xiao', 'Lantern Festival China'],
+  'lantern festival': ['Yuan Xiao', 'Lantern Festival China', 'Sky lantern festival'],
   'songkran': ['Songkran Thailand', 'Thai New Year water festival'],
-  'rio carnival': ['Carnaval do Rio', 'Rio de Janeiro Carnival samba'],
+  'loy krathong': ['Loy Krathong Thailand', 'Yi Peng lantern festival'],
+  'obon': ['Obon festival Japan', 'Bon Festival', 'お盆'],
+  
+  // European festivals
+  'oktoberfest': ['Oktoberfest Munich', 'Oktoberfest beer festival', 'Wiesn Munich'],
+  'la tomatina': ['La Tomatina Buñol', 'Tomato Festival Spain', 'Tomatina Valencia'],
+  'running of the bulls': ['San Fermín', 'Encierro Pamplona', 'Running of the Bulls Pamplona'],
+  'san fermin': ['San Fermín Pamplona', 'Encierro', 'Running of the Bulls Spain'],
+  'st patrick': ['St Patrick\'s Day', 'Saint Patrick\'s Day parade', 'St Patrick Dublin'],
+  'edinburgh festival': ['Edinburgh Festival Fringe', 'Edinburgh International Festival'],
+  'bastille day': ['Bastille Day Paris', '14 July France', 'Fête nationale française'],
+  'christmas market': ['Christkindlmarkt', 'Christmas market Germany', 'Weihnachtsmarkt'],
+  
+  // Latin American festivals
+  'day of the dead': ['Día de los Muertos', 'Day of the Dead Mexico', 'Día de Muertos'],
+  'inti raymi': ['Inti Raymi', 'Festival of the Sun Peru', 'Inti Raymi Cusco'],
+  
+  // Middle Eastern festivals
+  'eid': ['Eid al-Fitr', 'Eid al-Adha', 'Eid celebration'],
+  'ramadan': ['Ramadan', 'Ramadan iftar', 'Ramadan celebration'],
+  
+  // Music & arts festivals
+  'burning man': ['Burning Man', 'Burning Man Nevada', 'Black Rock City'],
+  'coachella': ['Coachella Festival', 'Coachella Valley Music'],
+  'glastonbury': ['Glastonbury Festival', 'Glastonbury UK'],
+  'tomorrowland': ['Tomorrowland festival', 'Tomorrowland Belgium'],
+  
+  // Light festivals
+  'vivid sydney': ['Vivid Sydney', 'Vivid Sydney lights'],
+  'festival of lights': ['Festival of Lights', 'Berlin Festival of Lights', 'Lyon Fête des Lumières'],
 };
 
 // Detect if entity is likely a festival
 function isFestivalEntity(entityName: string): boolean {
   const festivalKeywords = ['festival', 'carnival', 'celebration', 'parade', 'feast', 'fiesta', 
-    'diwali', 'holi', 'oktoberfest', 'eid', 'christmas market', 'new year', 'mardi gras'];
+    'diwali', 'holi', 'oktoberfest', 'eid', 'christmas market', 'new year', 'mardi gras',
+    'running of the bulls', 'san fermin', 'tomatina', 'burning man', 'coachella', 'vivid'];
   const lowerName = entityName.toLowerCase();
-  return festivalKeywords.some(keyword => lowerName.includes(keyword));
+  return festivalKeywords.some(keyword => lowerName.includes(keyword)) ||
+    Object.keys(FESTIVAL_KEYWORDS).some(festival => lowerName.includes(festival));
 }
 
 // Detect if entity is likely a landmark
 function isLandmarkEntity(entityName: string): boolean {
   const landmarkKeywords = ['tower', 'temple', 'palace', 'castle', 'cathedral', 'church', 'mosque',
-    'monument', 'statue', 'bridge', 'museum', 'gate', 'wall', 'ruins', 'fort', 'basilica', 'abbey'];
+    'monument', 'statue', 'bridge', 'museum', 'gate', 'wall', 'ruins', 'fort', 'basilica', 'abbey',
+    'pyramid', 'sphinx', 'falls', 'canyon', 'reef', 'mountain', 'bay'];
   const lowerName = entityName.toLowerCase();
   return landmarkKeywords.some(keyword => lowerName.includes(keyword)) ||
     Object.keys(LANDMARK_SYNONYMS).some(landmark => lowerName.includes(landmark));
