@@ -85,73 +85,333 @@ function buildSearchQuery(req: ResolveImageRequest): string {
   return parts.join(' ');
 }
 
-// Try Wikimedia Commons for named entities
-async function tryWikimedia(query: string, entityName?: string): Promise<ResolvedImage | null> {
+// Known landmark name variations for better Wikimedia searches
+const LANDMARK_SYNONYMS: Record<string, string[]> = {
+  'eiffel tower': ['Tour Eiffel', 'Eiffel Tower Paris'],
+  'colosseum': ['Colosseo', 'Roman Colosseum', 'Flavian Amphitheatre'],
+  'taj mahal': ['Taj Mahal Agra', 'ताज महल'],
+  'machu picchu': ['Machu Picchu Peru', 'Machupicchu'],
+  'great wall': ['Great Wall of China', 'Chinese Wall', '万里长城'],
+  'sagrada familia': ['Sagrada Família', 'Basílica de la Sagrada Família'],
+  'big ben': ['Elizabeth Tower', 'Big Ben London'],
+  'statue of liberty': ['Liberty Enlightening the World', 'Statue of Liberty New York'],
+  'christ the redeemer': ['Cristo Redentor', 'Christ the Redeemer Rio'],
+  'petra': ['Petra Jordan', 'Al-Khazneh'],
+  'angkor wat': ['Angkor Wat Cambodia', 'អង្គរវត្ត'],
+  'burj khalifa': ['Burj Khalifa Dubai', 'Khalifa Tower'],
+  'sydney opera house': ['Sydney Opera House Australia'],
+  'acropolis': ['Acropolis of Athens', 'Parthenon Athens'],
+  'hagia sophia': ['Ayasofya', 'Hagia Sophia Istanbul'],
+  'notre dame': ['Notre-Dame de Paris', 'Cathédrale Notre-Dame'],
+};
+
+// Festival-specific search terms for better results
+const FESTIVAL_KEYWORDS: Record<string, string[]> = {
+  'carnival': ['carnival parade', 'carnival celebration', 'carnival costume'],
+  'diwali': ['Diwali festival', 'Diwali lights', 'Deepavali celebration'],
+  'chinese new year': ['Chinese New Year celebration', 'Spring Festival China', 'Lunar New Year parade'],
+  'oktoberfest': ['Oktoberfest Munich', 'Oktoberfest beer festival'],
+  'holi': ['Holi festival colors', 'Holi celebration India'],
+  'cherry blossom': ['Hanami', 'Sakura festival', 'Cherry blossom Japan'],
+  'day of the dead': ['Día de los Muertos', 'Day of the Dead Mexico'],
+  'mardi gras': ['Mardi Gras New Orleans', 'Fat Tuesday parade'],
+  'la tomatina': ['La Tomatina Buñol', 'Tomato Festival Spain'],
+  'lantern festival': ['Yuan Xiao', 'Lantern Festival China'],
+  'songkran': ['Songkran Thailand', 'Thai New Year water festival'],
+  'rio carnival': ['Carnaval do Rio', 'Rio de Janeiro Carnival samba'],
+};
+
+// Detect if entity is likely a festival
+function isFestivalEntity(entityName: string): boolean {
+  const festivalKeywords = ['festival', 'carnival', 'celebration', 'parade', 'feast', 'fiesta', 
+    'diwali', 'holi', 'oktoberfest', 'eid', 'christmas market', 'new year', 'mardi gras'];
+  const lowerName = entityName.toLowerCase();
+  return festivalKeywords.some(keyword => lowerName.includes(keyword));
+}
+
+// Detect if entity is likely a landmark
+function isLandmarkEntity(entityName: string): boolean {
+  const landmarkKeywords = ['tower', 'temple', 'palace', 'castle', 'cathedral', 'church', 'mosque',
+    'monument', 'statue', 'bridge', 'museum', 'gate', 'wall', 'ruins', 'fort', 'basilica', 'abbey'];
+  const lowerName = entityName.toLowerCase();
+  return landmarkKeywords.some(keyword => lowerName.includes(keyword)) ||
+    Object.keys(LANDMARK_SYNONYMS).some(landmark => lowerName.includes(landmark));
+}
+
+// Generate enhanced search queries for Wikimedia
+function generateWikimediaSearchQueries(entityName: string, city: string): string[] {
+  const queries: string[] = [];
+  const lowerName = entityName.toLowerCase();
+  
+  // Check for known landmark synonyms
+  for (const [landmark, synonyms] of Object.entries(LANDMARK_SYNONYMS)) {
+    if (lowerName.includes(landmark)) {
+      queries.push(...synonyms);
+    }
+  }
+  
+  // Check for festival-specific terms
+  for (const [festival, terms] of Object.entries(FESTIVAL_KEYWORDS)) {
+    if (lowerName.includes(festival)) {
+      queries.push(...terms);
+    }
+  }
+  
+  // Add the exact entity name
+  queries.push(entityName);
+  
+  // Add entity + city combination
+  queries.push(`${entityName} ${city}`);
+  
+  // For landmarks, add "exterior" or "view" suffixes
+  if (isLandmarkEntity(entityName)) {
+    queries.push(`${entityName} exterior`);
+    queries.push(`${entityName} panorama`);
+  }
+  
+  // For festivals, add "celebration" suffix
+  if (isFestivalEntity(entityName)) {
+    queries.push(`${entityName} celebration`);
+    queries.push(`${entityName} crowd`);
+  }
+  
+  // Deduplicate
+  return [...new Set(queries)];
+}
+
+// Try to get image from Wikipedia article's main image
+async function tryWikipediaImage(entityName: string, city: string): Promise<ResolvedImage | null> {
   try {
-    // Search for images on Wikimedia Commons
-    const searchQuery = entityName || query;
-    const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&srnamespace=6&srlimit=5&format=json&origin=*`;
+    // Search Wikipedia for the article
+    const searchTerms = [`${entityName}`, `${entityName} ${city}`];
     
-    const searchResponse = await fetch(searchUrl);
-    if (!searchResponse.ok) return null;
-    
-    const searchData = await searchResponse.json();
-    const results = searchData.query?.search || [];
-    
-    for (const result of results) {
-      const title = result.title;
+    for (const searchTerm of searchTerms) {
+      const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&srlimit=3&format=json&origin=*`;
+      const searchResponse = await fetch(wikiSearchUrl);
+      if (!searchResponse.ok) continue;
       
-      // Get image info
-      const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=imageinfo&iiprop=url|size|extmetadata&format=json&origin=*`;
-      const infoResponse = await fetch(infoUrl);
-      if (!infoResponse.ok) continue;
+      const searchData = await searchResponse.json();
+      const results = searchData.query?.search || [];
       
-      const infoData = await infoResponse.json();
-      const pages = infoData.query?.pages || {};
-      const page = Object.values(pages)[0] as any;
-      const imageInfo = page?.imageinfo?.[0];
-      
-      if (!imageInfo) continue;
-      
-      // Quality filters
-      const width = imageInfo.width || 0;
-      const height = imageInfo.height || 0;
-      
-      // Skip if too small or portrait
-      if (width < 1200 || width < height * 1.2) continue;
-      
-      // Check if it's a photo (not illustration/diagram)
-      const mime = imageInfo.mime || '';
-      if (!mime.includes('jpeg') && !mime.includes('jpg') && !mime.includes('png')) continue;
-      
-      const extmetadata = imageInfo.extmetadata || {};
-      const artist = extmetadata.Artist?.value?.replace(/<[^>]*>/g, '') || 'Wikimedia Commons';
-      const license = extmetadata.LicenseShortName?.value || '';
-      
-      // Prefer Creative Commons or public domain
-      const isPermissive = license.includes('CC') || license.includes('Public domain') || license.includes('PD');
-      if (!isPermissive) continue;
-      
-      return {
-        id: `wm-${page.pageid}`,
-        cacheKey: '',
-        imageType: 'attraction',
-        city: '',
-        country: '',
-        url: imageInfo.url,
-        smallUrl: imageInfo.thumburl || imageInfo.url,
-        thumbUrl: imageInfo.thumburl || imageInfo.url,
-        source: 'wikimedia',
-        photographer: artist.substring(0, 100),
-        photographerUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(title)}`,
-        sourceUrl: imageInfo.descriptionurl,
-        attributionRequired: !license.includes('Public domain') && !license.includes('CC0'),
-        width,
-        height,
-      };
+      for (const result of results) {
+        const title = result.title;
+        
+        // Get the page's main image
+        const pageUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&piprop=original&format=json&origin=*`;
+        const pageResponse = await fetch(pageUrl);
+        if (!pageResponse.ok) continue;
+        
+        const pageData = await pageResponse.json();
+        const pages = pageData.query?.pages || {};
+        const page = Object.values(pages)[0] as any;
+        
+        if (!page?.original?.source) continue;
+        
+        const imageUrl = page.original.source;
+        const width = page.original.width || 0;
+        const height = page.original.height || 0;
+        
+        // Quality filters - prefer landscape, decent size
+        if (width < 1200 || width < height * 1.1) continue;
+        
+        // Get image info from Commons for attribution
+        const filename = imageUrl.split('/').pop();
+        const commonsInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(filename)}&prop=imageinfo&iiprop=extmetadata&format=json&origin=*`;
+        
+        let photographer = 'Wikipedia';
+        let attributionRequired = true;
+        
+        try {
+          const commonsResponse = await fetch(commonsInfoUrl);
+          if (commonsResponse.ok) {
+            const commonsData = await commonsResponse.json();
+            const commonsPages = commonsData.query?.pages || {};
+            const commonsPage = Object.values(commonsPages)[0] as any;
+            const extmetadata = commonsPage?.imageinfo?.[0]?.extmetadata || {};
+            
+            photographer = extmetadata.Artist?.value?.replace(/<[^>]*>/g, '') || 'Wikipedia';
+            const license = extmetadata.LicenseShortName?.value || '';
+            attributionRequired = !license.includes('Public domain') && !license.includes('CC0');
+          }
+        } catch {
+          // Use defaults
+        }
+        
+        console.log(`Found Wikipedia image for "${entityName}": ${width}x${height}`);
+        
+        return {
+          id: `wp-${page.pageid}`,
+          cacheKey: '',
+          imageType: 'attraction',
+          city: '',
+          country: '',
+          url: imageUrl,
+          smallUrl: imageUrl.replace(/\/\d+px-/, '/800px-'),
+          thumbUrl: imageUrl.replace(/\/\d+px-/, '/300px-'),
+          source: 'wikimedia',
+          photographer: photographer.substring(0, 100),
+          photographerUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+          sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+          attributionRequired,
+          width,
+          height,
+        };
+      }
     }
     
     return null;
+  } catch (error) {
+    console.error('Wikipedia image search error:', error);
+    return null;
+  }
+}
+
+// Score a Wikimedia image based on quality indicators
+function scoreWikimediaImage(result: any, imageInfo: any, entityName: string): number {
+  let score = 0;
+  const title = result.title.toLowerCase();
+  const lowerEntity = entityName.toLowerCase();
+  
+  // Size scoring
+  const width = imageInfo.width || 0;
+  if (width >= 2000) score += 30;
+  else if (width >= 1600) score += 20;
+  else if (width >= 1200) score += 10;
+  
+  // Aspect ratio - prefer landscape
+  const aspectRatio = width / (imageInfo.height || 1);
+  if (aspectRatio >= 1.5 && aspectRatio <= 2.0) score += 20; // Ideal landscape
+  else if (aspectRatio >= 1.2 && aspectRatio < 1.5) score += 10;
+  
+  // Title relevance
+  if (title.includes(lowerEntity.split(' ')[0])) score += 15;
+  
+  // Prefer "panorama", "view", "exterior" in title
+  if (title.includes('panorama') || title.includes('view') || title.includes('exterior')) score += 10;
+  
+  // Penalize "interior", "detail", "map", "diagram", "plan"
+  if (title.includes('interior') || title.includes('detail')) score -= 10;
+  if (title.includes('map') || title.includes('diagram') || title.includes('plan')) score -= 30;
+  if (title.includes('logo') || title.includes('icon') || title.includes('flag')) score -= 30;
+  
+  // Penalize night shots slightly (often harder to see)
+  if (title.includes('night')) score -= 5;
+  
+  // Prefer Featured or Quality images (indicated by categories sometimes in title)
+  if (title.includes('featured') || title.includes('quality')) score += 15;
+  
+  return score;
+}
+
+// Try Wikimedia Commons for named entities with enhanced search
+async function tryWikimedia(query: string, entityName?: string, city?: string): Promise<ResolvedImage | null> {
+  if (!entityName) return null;
+  
+  try {
+    // First, try Wikipedia's main image for famous landmarks/festivals
+    if (isLandmarkEntity(entityName) || isFestivalEntity(entityName)) {
+      console.log(`Trying Wikipedia main image for: ${entityName}`);
+      const wikiImage = await tryWikipediaImage(entityName, city || '');
+      if (wikiImage) return wikiImage;
+    }
+    
+    // Generate multiple search queries
+    const searchQueries = generateWikimediaSearchQueries(entityName, city || '');
+    console.log(`Wikimedia search queries: ${searchQueries.slice(0, 3).join(', ')}...`);
+    
+    interface ScoredImage {
+      result: any;
+      imageInfo: any;
+      score: number;
+    }
+    
+    const candidates: ScoredImage[] = [];
+    
+    // Try multiple queries
+    for (const searchQuery of searchQueries.slice(0, 5)) {
+      const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&srnamespace=6&srlimit=8&format=json&origin=*`;
+      
+      const searchResponse = await fetch(searchUrl);
+      if (!searchResponse.ok) continue;
+      
+      const searchData = await searchResponse.json();
+      const results = searchData.query?.search || [];
+      
+      for (const result of results) {
+        const title = result.title;
+        
+        // Get image info
+        const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=imageinfo&iiprop=url|size|extmetadata&format=json&origin=*`;
+        const infoResponse = await fetch(infoUrl);
+        if (!infoResponse.ok) continue;
+        
+        const infoData = await infoResponse.json();
+        const pages = infoData.query?.pages || {};
+        const page = Object.values(pages)[0] as any;
+        const imageInfo = page?.imageinfo?.[0];
+        
+        if (!imageInfo) continue;
+        
+        // Basic quality filters
+        const width = imageInfo.width || 0;
+        const height = imageInfo.height || 0;
+        
+        // Skip if too small
+        if (width < 1000) continue;
+        
+        // Check if it's a photo (not illustration/diagram)
+        const mime = imageInfo.mime || '';
+        if (!mime.includes('jpeg') && !mime.includes('jpg') && !mime.includes('png')) continue;
+        
+        const extmetadata = imageInfo.extmetadata || {};
+        const license = extmetadata.LicenseShortName?.value || '';
+        
+        // Prefer Creative Commons or public domain
+        const isPermissive = license.includes('CC') || license.includes('Public domain') || license.includes('PD');
+        if (!isPermissive) continue;
+        
+        // Score this image
+        const score = scoreWikimediaImage(result, imageInfo, entityName);
+        candidates.push({ result, imageInfo, score });
+      }
+    }
+    
+    // Sort by score and return best
+    candidates.sort((a, b) => b.score - a.score);
+    
+    if (candidates.length === 0) return null;
+    
+    const best = candidates[0];
+    const imageInfo = best.imageInfo;
+    const title = best.result.title;
+    
+    const extmetadata = imageInfo.extmetadata || {};
+    const artist = extmetadata.Artist?.value?.replace(/<[^>]*>/g, '') || 'Wikimedia Commons';
+    const license = extmetadata.LicenseShortName?.value || '';
+    
+    console.log(`Best Wikimedia image: "${title}" (score: ${best.score}, size: ${imageInfo.width}x${imageInfo.height})`);
+    
+    // Generate thumbnail URLs
+    const filename = title.replace('File:', '');
+    const thumbBase = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(filename)}`;
+    
+    return {
+      id: `wm-${Object.keys(best.result)[0] || Date.now()}`,
+      cacheKey: '',
+      imageType: 'attraction',
+      city: '',
+      country: '',
+      url: imageInfo.url,
+      smallUrl: `${thumbBase}?width=800`,
+      thumbUrl: `${thumbBase}?width=300`,
+      source: 'wikimedia',
+      photographer: artist.substring(0, 100),
+      photographerUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(title)}`,
+      sourceUrl: imageInfo.descriptionurl,
+      attributionRequired: !license.includes('Public domain') && !license.includes('CC0'),
+      width: imageInfo.width,
+      height: imageInfo.height,
+    };
   } catch (error) {
     console.error('Wikimedia search error:', error);
     return null;
@@ -444,7 +704,7 @@ serve(async (req) => {
     // For named entities, try Wikimedia first
     if (request.entityName) {
       console.log('Trying Wikimedia Commons...');
-      image = await tryWikimedia(searchQuery, request.entityName);
+      image = await tryWikimedia(searchQuery, request.entityName, request.city);
     }
 
     // Try Unsplash
