@@ -27,9 +27,3 @@ export async function getDestinationRecommendations(
 
   return data.recommendations;
 }
-
-// City image URLs using Unsplash with specific queries
-export function getCityImageUrl(imageQuery: string): string {
-  const encoded = encodeURIComponent(imageQuery);
-  return `https://source.unsplash.com/800x600/?${encoded}`;
-}

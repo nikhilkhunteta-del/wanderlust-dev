@@ -22,13 +22,3 @@ export async function getCityHighlights(
 
   return data;
 }
-
-export function getExperienceImageUrl(imageQuery: string): string {
-  const encoded = encodeURIComponent(imageQuery);
-  return `https://source.unsplash.com/600x400/?${encoded}`;
-}
-
-export function getHeroImageUrl(imageQuery: string): string {
-  const encoded = encodeURIComponent(imageQuery);
-  return `https://source.unsplash.com/1600x900/?${encoded}`;
-}

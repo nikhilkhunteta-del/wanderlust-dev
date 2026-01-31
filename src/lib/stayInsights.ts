@@ -41,8 +41,3 @@ export function buildBookingUrl(city: string, country: string, travelMonth: stri
   
   return `https://www.google.com/travel/hotels?q=${destination}&dates=${checkin}to${checkout}`;
 }
-
-export function getNeighbourhoodImageUrl(imageQuery: string): string {
-  const encoded = encodeURIComponent(imageQuery);
-  return `https://source.unsplash.com/400x300/?${encoded}`;
-}
