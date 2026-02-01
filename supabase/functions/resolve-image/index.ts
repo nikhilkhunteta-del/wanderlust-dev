@@ -107,19 +107,44 @@ const LANDMARK_SYNONYMS: Record<string, string[]> = {
   'westminster abbey': ['Westminster Abbey London'],
   'arc de triomphe': ['Arc de Triomphe Paris', 'Triumphal Arch Paris'],
   
-  // Americas
+  // North America
   'statue of liberty': ['Liberty Enlightening the World', 'Statue of Liberty New York'],
-  'christ the redeemer': ['Cristo Redentor', 'Christ the Redeemer Rio'],
-  'machu picchu': ['Machu Picchu Peru', 'Machupicchu'],
-  'chichen itza': ['Chichén Itzá', 'El Castillo Chichen Itza', 'Kukulcán Pyramid'],
   'golden gate': ['Golden Gate Bridge', 'Golden Gate San Francisco'],
   'times square': ['Times Square New York', 'Times Square Manhattan'],
   'grand canyon': ['Grand Canyon Arizona', 'Grand Canyon National Park'],
   'niagara falls': ['Niagara Falls', 'Niagara Falls Canada USA'],
   'empire state': ['Empire State Building', 'Empire State Building New York'],
   'central park': ['Central Park New York', 'Central Park Manhattan'],
+  'yellowstone': ['Yellowstone National Park', 'Yellowstone geyser', 'Old Faithful'],
+  'monument valley': ['Monument Valley', 'Monument Valley Navajo'],
+  'antelope canyon': ['Antelope Canyon Arizona', 'Antelope Canyon slot canyon'],
   
-  // Middle East & Africa
+  // South America
+  'christ the redeemer': ['Cristo Redentor', 'Christ the Redeemer Rio', 'Cristo Redentor Rio de Janeiro'],
+  'corcovado': ['Corcovado Rio de Janeiro', 'Corcovado Cristo Redentor', 'Corcovado mountain'],
+  'sugarloaf': ['Sugarloaf Mountain', 'Pão de Açúcar Rio', 'Sugarloaf Rio de Janeiro'],
+  'machu picchu': ['Machu Picchu Peru', 'Machupicchu', 'Machu Picchu Cusco'],
+  'chichen itza': ['Chichén Itzá', 'El Castillo Chichen Itza', 'Kukulcán Pyramid'],
+  'iguazu': ['Iguazu Falls', 'Iguazú Falls', 'Cataratas del Iguazú', 'Iguaçu Falls'],
+  'galapagos': ['Galápagos Islands', 'Islas Galápagos', 'Galápagos Ecuador'],
+  'galapagos islands': ['Galápagos Islands Ecuador', 'Islas Galápagos', 'Galápagos tortoise'],
+  'torres del paine': ['Torres del Paine', 'Torres del Paine National Park', 'Parque Nacional Torres del Paine'],
+  'patagonia': ['Patagonia Argentina Chile', 'Patagonia glaciers', 'Patagonia landscape'],
+  'perito moreno': ['Perito Moreno Glacier', 'Glaciar Perito Moreno'],
+  'salar de uyuni': ['Salar de Uyuni', 'Uyuni Salt Flat Bolivia', 'Salar de Uyuni Bolivia'],
+  'titicaca': ['Lake Titicaca', 'Lago Titicaca', 'Titicaca Peru Bolivia'],
+  'nazca lines': ['Nazca Lines', 'Líneas de Nazca', 'Nazca Peru geoglyphs'],
+  'easter island': ['Easter Island', 'Rapa Nui', 'Isla de Pascua', 'Moai statues'],
+  'moai': ['Moai Easter Island', 'Moai Rapa Nui', 'Easter Island statues'],
+  'copacabana': ['Copacabana Beach Rio', 'Copacabana Rio de Janeiro'],
+  'ipanema': ['Ipanema Beach', 'Ipanema Rio de Janeiro'],
+  'el calafate': ['El Calafate Argentina', 'Perito Moreno El Calafate'],
+  'atacama': ['Atacama Desert', 'Desierto de Atacama', 'Valle de la Luna Atacama'],
+  'cartagena': ['Cartagena Colombia', 'Cartagena walled city', 'Ciudad amurallada Cartagena'],
+  'amazon river': ['Amazon River', 'Rio Amazonas', 'Amazon Rainforest'],
+  'angel falls': ['Angel Falls Venezuela', 'Salto Ángel', 'Kerepakupai Merú'],
+  
+  // Middle East
   'pyramids': ['Pyramids of Giza', 'Great Pyramid of Giza', 'أهرامات الجيزة'],
   'giza': ['Pyramids of Giza', 'Great Sphinx of Giza', 'Giza Necropolis'],
   'sphinx': ['Great Sphinx of Giza', 'Sphinx Egypt'],
@@ -128,8 +153,38 @@ const LANDMARK_SYNONYMS: Record<string, string[]> = {
   'burj al arab': ['Burj Al Arab Dubai', 'Burj Al Arab Hotel'],
   'hagia sophia': ['Ayasofya', 'Hagia Sophia Istanbul'],
   'blue mosque': ['Sultan Ahmed Mosque', 'Blue Mosque Istanbul'],
+  'dead sea': ['Dead Sea', 'Dead Sea Israel Jordan'],
+  'wadi rum': ['Wadi Rum Jordan', 'Valley of the Moon Jordan'],
+  'jerusalem': ['Jerusalem Old City', 'Temple Mount Jerusalem', 'Western Wall Jerusalem'],
+  'dome of the rock': ['Dome of the Rock', 'Qubbat al-Sakhrah'],
+  
+  // Africa
   'table mountain': ['Table Mountain Cape Town', 'Table Mountain South Africa'],
-  'victoria falls': ['Victoria Falls', 'Mosi-oa-Tunya'],
+  'victoria falls': ['Victoria Falls', 'Mosi-oa-Tunya', 'Victoria Falls Zimbabwe Zambia'],
+  'serengeti': ['Serengeti National Park', 'Serengeti Tanzania', 'Serengeti wildlife'],
+  'masai mara': ['Masai Mara', 'Maasai Mara Kenya', 'Masai Mara safari'],
+  'ngorongoro': ['Ngorongoro Crater', 'Ngorongoro Conservation Area Tanzania'],
+  'kilimanjaro': ['Mount Kilimanjaro', 'Kilimanjaro Tanzania', 'Uhuru Peak'],
+  'kruger': ['Kruger National Park', 'Kruger Park South Africa', 'Kruger safari'],
+  'cape of good hope': ['Cape of Good Hope', 'Cape Point South Africa'],
+  'robben island': ['Robben Island', 'Robben Island Cape Town'],
+  'okavango': ['Okavango Delta', 'Okavango Botswana', 'Okavango Delta safari'],
+  'chobe': ['Chobe National Park', 'Chobe Botswana', 'Chobe elephants'],
+  'etosha': ['Etosha National Park', 'Etosha Namibia', 'Etosha salt pan'],
+  'namib desert': ['Namib Desert', 'Sossusvlei Namibia', 'Namib dunes'],
+  'sossusvlei': ['Sossusvlei', 'Sossusvlei Namibia dunes', 'Dead Vlei'],
+  'fish river canyon': ['Fish River Canyon Namibia', 'Fish River Canyon'],
+  'marrakech': ['Marrakech Morocco', 'Marrakech medina', 'Jemaa el-Fnaa'],
+  'sahara': ['Sahara Desert', 'Sahara dunes', 'Erg Chebbi Morocco'],
+  'luxor': ['Luxor Egypt', 'Valley of the Kings', 'Karnak Temple'],
+  'karnak': ['Karnak Temple', 'Karnak Luxor', 'Temple of Karnak'],
+  'abu simbel': ['Abu Simbel', 'Abu Simbel temples Egypt'],
+  'zanzibar': ['Zanzibar Tanzania', 'Stone Town Zanzibar', 'Zanzibar beach'],
+  'gorilla': ['Mountain gorillas', 'Rwanda gorilla trekking', 'Bwindi gorillas'],
+  'bwindi': ['Bwindi Impenetrable Forest', 'Bwindi gorillas Uganda'],
+  'amboseli': ['Amboseli National Park', 'Amboseli Kenya Kilimanjaro'],
+  'hwange': ['Hwange National Park', 'Hwange Zimbabwe'],
+  'south luangwa': ['South Luangwa National Park', 'South Luangwa Zambia'],
   
   // Asia
   'taj mahal': ['Taj Mahal Agra', 'ताज महल'],
@@ -164,9 +219,9 @@ const LANDMARK_SYNONYMS: Record<string, string[]> = {
   // Natural wonders
   'northern lights': ['Aurora Borealis', 'Northern Lights'],
   'aurora': ['Aurora Borealis', 'Northern Lights Iceland', 'Aurora Norway'],
-  'iguazu': ['Iguazu Falls', 'Iguazú Falls', 'Cataratas del Iguazú'],
   'amazon': ['Amazon Rainforest', 'Amazon River', 'Amazonia'],
 };
+
 
 // Festival-specific search terms for better results
 const FESTIVAL_KEYWORDS: Record<string, string[]> = {
