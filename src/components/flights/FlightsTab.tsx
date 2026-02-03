@@ -1,13 +1,13 @@
 import { useRef } from "react";
 import { useFlightInsights } from "@/hooks/useCityData";
 import { RouteOverview } from "./RouteOverview";
+import { FlightSearchControls } from "./FlightSearchControls";
 import { PriceSnapshotCard } from "./PriceSnapshotCard";
 import { TimingInsightCard } from "./TimingInsightCard";
 import { AirportComparisonCard } from "./AirportComparisonCard";
 import { SmartInsights } from "./SmartInsights";
 import { DataFreshness } from "@/components/shared/DataFreshness";
-import { Button } from "@/components/ui/button";
-import { Loader2, Plane, ExternalLink, Info } from "lucide-react";
+import { Loader2, Plane, Info } from "lucide-react";
 
 interface FlightsTabProps {
   departureCity: string;
@@ -106,6 +106,13 @@ export const FlightsTab = ({
           destinationAirports={data.destinationAirports}
         />
 
+        {/* Flight Search Controls */}
+        <FlightSearchControls
+          originAirports={data.originAirports}
+          destinationAirports={data.destinationAirports}
+          travelMonth={data.travelMonth}
+        />
+
         {/* Price Snapshot */}
         <PriceSnapshotCard snapshot={data.priceSnapshot} travelMonth={data.travelMonth} />
 
@@ -117,18 +124,6 @@ export const FlightsTab = ({
 
         {/* Smart Insights */}
         <SmartInsights insights={data.smartInsights} />
-
-        {/* Google Flights Handoff */}
-        <div className="pt-4">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto gap-2"
-            onClick={() => window.open(data.googleFlightsUrl, "_blank")}
-          >
-            <ExternalLink className="w-4 h-4" />
-            Explore flights on Google Flights
-          </Button>
-        </div>
 
         {/* Footer */}
         <footer className="flex items-start gap-2 text-xs text-muted-foreground pt-4 border-t border-border/50">
