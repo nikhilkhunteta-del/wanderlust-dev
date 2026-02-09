@@ -41,3 +41,34 @@ export function buildBookingUrl(city: string, country: string, travelMonth: stri
   
   return `https://www.google.com/travel/hotels?q=${destination}&dates=${checkin}to${checkout}`;
 }
+
+export interface HotelSearchParams {
+  city: string;
+  country: string;
+  checkinDate: Date;
+  checkoutDate: Date;
+  adults: number;
+  children: number;
+  area?: string;
+}
+
+export function buildGoogleHotelsSearchUrl(params: HotelSearchParams): string {
+  const { city, country, checkinDate, checkoutDate, adults, children, area } = params;
+  const checkin = `${checkinDate.getFullYear()}-${String(checkinDate.getMonth() + 1).padStart(2, "0")}-${String(checkinDate.getDate()).padStart(2, "0")}`;
+  const checkout = `${checkoutDate.getFullYear()}-${String(checkoutDate.getMonth() + 1).padStart(2, "0")}-${String(checkoutDate.getDate()).padStart(2, "0")}`;
+
+  let query = `${city}, ${country}`;
+  if (area) {
+    const areaLabels: Record<string, string> = {
+      city_center: "city centre",
+      beach: "near beach",
+      quiet: "quiet area",
+    };
+    query += ` ${areaLabels[area] || ""}`;
+  }
+
+  const destination = encodeURIComponent(query.trim());
+  const guestCount = adults + children;
+
+  return `https://www.google.com/travel/hotels?q=${destination}&dates=${checkin}to${checkout}&ap=guests${guestCount}`;
+}
