@@ -4,9 +4,9 @@ import { PriceCategoryCard } from "./PriceCategoryCard";
 import { NeighbourhoodCard } from "./NeighbourhoodCard";
 import { AreaGuidance } from "./AreaGuidance";
 import { PracticalStayInsights } from "./PracticalStayInsights";
+import { StaySearchControls } from "./StaySearchControls";
 import { DataFreshness } from "@/components/shared/DataFreshness";
-import { Button } from "@/components/ui/button";
-import { Loader2, Building2, ExternalLink, Info } from "lucide-react";
+import { Loader2, Building2, Info } from "lucide-react";
 
 interface StaysTabProps {
   city: string;
@@ -103,17 +103,8 @@ export const StaysTab = ({ city, country, travelMonth }: StaysTabProps) => {
         {/* Practical Insights */}
         <PracticalStayInsights insights={data.practicalInsights} />
 
-        {/* Booking Handoff */}
-        <div className="pt-4">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto gap-2"
-            onClick={() => window.open(data.bookingUrl, "_blank")}
-          >
-            <ExternalLink className="w-4 h-4" />
-            Explore hotels
-          </Button>
-        </div>
+        {/* Search Controls */}
+        <StaySearchControls city={city} country={country} travelMonth={travelMonth} />
 
         {/* Footer */}
         <footer className="flex items-start gap-2 text-xs text-muted-foreground pt-4 border-t border-border/50">
