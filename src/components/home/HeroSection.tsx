@@ -1,15 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/shared/Header";
 import heroImage from "@/assets/hero-santorini.jpg";
 
 interface HeroSectionProps {
   onStartExploring: () => void;
+  onPlanCity: () => void;
   onHowItWorks: () => void;
 }
 
-export const HeroSection = ({ onStartExploring, onHowItWorks }: HeroSectionProps) => {
+export const HeroSection = ({ onStartExploring, onPlanCity, onHowItWorks }: HeroSectionProps) => {
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden">
       {/* Header */}
@@ -60,9 +61,25 @@ export const HeroSection = ({ onStartExploring, onHowItWorks }: HeroSectionProps
             size="lg"
             className="gradient-sunset text-white border-0 px-8 py-6 text-lg font-medium rounded-full shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 group"
           >
-            Start exploring
+            Discover where to go
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
+          <Button
+            onClick={onPlanCity}
+            size="lg"
+            variant="outline"
+            className="border-white/40 text-white bg-white/10 backdrop-blur-sm px-8 py-6 text-lg font-medium rounded-full hover:bg-white/20 transition-all duration-300 group"
+          >
+            <MapPin className="mr-2 w-5 h-5" />
+            I already know where
+          </Button>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.9 }}
+          className="mt-6"
+        >
           <button
             onClick={onHowItWorks}
             className="text-white/80 hover:text-white text-sm font-medium underline underline-offset-4 transition-colors"

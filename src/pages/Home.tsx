@@ -14,6 +14,10 @@ const Home = () => {
     navigate("/questionnaire");
   };
 
+  const handlePlanCity = () => {
+    navigate("/plan");
+  };
+
   const handleHowItWorks = () => {
     howItWorksRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -22,6 +26,7 @@ const Home = () => {
     <div className="min-h-screen bg-background">
       <HeroSection
         onStartExploring={handleStartExploring}
+        onPlanCity={handlePlanCity}
         onHowItWorks={handleHowItWorks}
       />
       <ValuePropositions />
