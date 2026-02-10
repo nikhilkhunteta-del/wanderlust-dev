@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { useCityHighlights } from "@/hooks/useCityData";
@@ -21,14 +21,63 @@ interface LocationState {
   profile: TravelProfile;
 }
 
+function buildDefaultProfile(cityName: string): TravelProfile {
+  const now = new Date();
+  const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  return {
+    interestScores: { culture: 0.5, nature: 0.3, beach: 0.3, food: 0.5, nightlife: 0.2, shopping: 0.2, photography: 0.3, wellness: 0.2 },
+    adventureLevel: 0.3,
+    adventureTypes: [],
+    travelMonth: monthNames[now.getMonth()],
+    tripDuration: 7,
+    departureCity: "",
+    preferredRegions: [],
+    isFlexibleOnRegion: true,
+    weatherPreference: 0.6,
+    travelPace: 0.5,
+    travelCompanions: "",
+    groupType: "solo",
+    styleTags: [],
+    summary: `Exploring ${cityName}`,
+    completenessScore: 0.3,
+    followUpQuestion: null,
+  };
+}
+
 const CityDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { cityName } = useParams<{ cityName: string }>();
   const [activeTab, setActiveTab] = useState("highlights");
 
   const state = location.state as LocationState | undefined;
-  const city = state?.city;
-  const profile = state?.profile;
+
+  // Derive city & profile from router state, or build fallbacks from URL param
+  const { city, profile } = useMemo(() => {
+    if (state?.city && state?.profile) {
+      return { city: state.city, profile: state.profile };
+    }
+
+    // Fallback: parse city name from URL (supports "City" or "City, Country" via query param)
+    const urlCity = cityName ? decodeURIComponent(cityName) : null;
+    if (!urlCity) return { city: null, profile: null };
+
+    const searchParams = new URLSearchParams(location.search);
+    const urlCountry = searchParams.get("country") || "";
+
+    const fallbackCity: CityRecommendation = {
+      city: urlCity,
+      country: urlCountry,
+      rationale: `Discover what ${urlCity} has to offer.`,
+      tags: [],
+      imageQuery: `${urlCity} ${urlCountry} cityscape travel`.trim(),
+    };
+
+    return {
+      city: fallbackCity,
+      profile: buildDefaultProfile(urlCity),
+    };
+  }, [state, cityName, location.search]);
 
   // Build highlights request
   const highlightsRequest = city && profile ? {
@@ -66,7 +115,6 @@ const CityDetail = () => {
   const handleTabChange = useCallback(
     (value: string) => {
       setActiveTab(value);
-      // Prefetch adjacent tabs after a small delay to prioritize current tab
       setTimeout(() => {
         prefetchAdjacentTabs(value);
       }, 100);
@@ -81,11 +129,12 @@ const CityDetail = () => {
     }
   }, [city, profile, prefetchAdjacentTabs]);
 
+  // If we truly have no city (no state and no URL param), redirect home
   useEffect(() => {
-    if (!city || !profile) {
+    if (!city) {
       navigate("/");
     }
-  }, [city, profile, navigate]);
+  }, [city, navigate]);
 
   if (!city || !profile) {
     return null;
