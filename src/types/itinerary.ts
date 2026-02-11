@@ -17,6 +17,10 @@ export interface Activity {
   description: string;
   category: string;
   isMustDo?: boolean;
+  location?: string;
+  seasonalNote?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface TimeSlot {
@@ -28,11 +32,32 @@ export interface ItineraryDay {
   dayNumber: number;
   theme: string;
   slots: TimeSlot[];
+  neighbourhood?: string;
+  neighbourhoodVibe?: string;
+  estimatedWalkingKm?: number;
+  estimatedTransitMinutes?: number;
+  paceLabel?: "leisurely" | "moderate" | "active";
+}
+
+export interface DayTrip {
+  destination: string;
+  travelTime: string;
+  description: string;
+  matchedInterests: string[];
+  suggestedDayToReplace?: number;
+}
+
+export interface ExtensionSuggestion {
+  title: string;
+  description: string;
+  highlights: string[];
 }
 
 export interface CityItinerary {
   days: ItineraryDay[];
   tips: string[];
+  dayTrips?: DayTrip[];
+  extensionSuggestions?: ExtensionSuggestion[];
 }
 
 export interface ItineraryRequest {
@@ -43,6 +68,8 @@ export interface ItineraryRequest {
   userInterests: string[];
   adventureTypes: string[];
   settings: ItinerarySettings;
+  regenerateDay?: number;
+  adjustment?: string;
 }
 
 export const DEFAULT_ITINERARY_SETTINGS: ItinerarySettings = {

@@ -1,16 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { CityHighlights } from "@/types/cityHighlights";
 import {
   CityItinerary,
   ItinerarySettings,
+  ItineraryDay,
+  DayTrip,
   DEFAULT_ITINERARY_SETTINGS,
 } from "@/types/itinerary";
 import { getCityItinerary } from "@/lib/itinerary";
 import { DayCard } from "./DayCard";
 import { RefinementPanel } from "./RefinementPanel";
-import { Loader2, Lightbulb } from "lucide-react";
+import { DayTripSection } from "./DayTripSection";
+import { ExtensionSection } from "./ExtensionSection";
+import { ShareMenu } from "./ShareMenu";
+import { Loader2, Lightbulb, Map, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+const ItineraryMap = lazy(() =>
+  import("./ItineraryMap").then((m) => ({ default: m.ItineraryMap }))
+);
 
 interface ItineraryTabProps {
   city: CityRecommendation;
@@ -22,6 +33,11 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
   const [itinerary, setItinerary] = useState<CityItinerary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showMap, setShowMap] = useState(false);
+  const [selectedMapDay, setSelectedMapDay] = useState<number | null>(null);
+  const [isRefining, setIsRefining] = useState(false);
+  const [refiningDay, setRefiningDay] = useState<number | null>(null);
+
   const [settings, setSettings] = useState<ItinerarySettings>(() => {
     const topInterests = Object.entries(profile.interestScores)
       .filter(([_, score]) => score > 0)
@@ -63,6 +79,61 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
       setIsLoading(false);
     }
   };
+
+  const handleRefineDay = useCallback(
+    async (dayNumber: number, adjustment: string) => {
+      if (!itinerary) return;
+      setIsRefining(true);
+      setRefiningDay(dayNumber);
+
+      try {
+        const result = await getCityItinerary({
+          city: city.city,
+          country: city.country,
+          tripDuration: profile.tripDuration,
+          travelMonth: profile.travelMonth,
+          userInterests: interests,
+          adventureTypes: profile.adventureTypes,
+          settings,
+          regenerateDay: dayNumber,
+          adjustment,
+        });
+
+        // The response has a `regeneratedDay` field for per-day updates
+        const regenerated = (result as any).regeneratedDay as ItineraryDay | undefined;
+        if (regenerated) {
+          setItinerary((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              days: prev.days.map((d) =>
+                d.dayNumber === dayNumber ? { ...regenerated, dayNumber } : d
+              ),
+            };
+          });
+          toast.success(`Day ${dayNumber} refreshed`);
+        }
+      } catch (err) {
+        console.error("Failed to refine day:", err);
+        toast.error("Couldn't refresh this day. Try again.");
+      } finally {
+        setIsRefining(false);
+        setRefiningDay(null);
+      }
+    },
+    [itinerary, city, profile, interests, settings]
+  );
+
+  const handleReplaceDayWithTrip = useCallback(
+    (trip: DayTrip) => {
+      if (!trip.suggestedDayToReplace) return;
+      handleRefineDay(
+        trip.suggestedDayToReplace,
+        `Replace the full day with a day trip to ${trip.destination}. Include: travel there, exploring, and return. Focus on: ${trip.description}`
+      );
+    },
+    [handleRefineDay]
+  );
 
   useEffect(() => {
     fetchItinerary();
@@ -109,18 +180,68 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             Personalized for your {settings.tripStyle} travel style
           </p>
         </div>
-        {/* Mobile Only Customize Button */}
-        <div className="lg:hidden">
-          <RefinementPanel
-            settings={settings}
-            onSettingsChange={setSettings}
-            onUpdate={fetchItinerary}
-            isUpdating={isLoading}
-            interests={interests}
-            highlightExperiences={highlightExperiences}
-          />
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Map / List Toggle */}
+          <Button
+            variant={showMap ? "default" : "outline"}
+            size="sm"
+            className="gap-2 shadow-sm"
+            onClick={() => setShowMap(!showMap)}
+          >
+            {showMap ? <List className="w-4 h-4" /> : <Map className="w-4 h-4" />}
+            {showMap ? "List view" : "Map view"}
+          </Button>
+          <ShareMenu itinerary={itinerary} cityName={city.city} tripDuration={profile.tripDuration} />
+          {/* Mobile Only Customize Button */}
+          <div className="lg:hidden">
+            <RefinementPanel
+              settings={settings}
+              onSettingsChange={setSettings}
+              onUpdate={fetchItinerary}
+              isUpdating={isLoading}
+              interests={interests}
+              highlightExperiences={highlightExperiences}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Map View */}
+      {showMap && (
+        <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="text-sm text-muted-foreground">Show:</span>
+            <Button
+              variant={selectedMapDay === null ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs px-2.5"
+              onClick={() => setSelectedMapDay(null)}
+            >
+              All days
+            </Button>
+            {itinerary.days.map((day) => (
+              <Button
+                key={day.dayNumber}
+                variant={selectedMapDay === day.dayNumber ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs px-2.5"
+                onClick={() => setSelectedMapDay(day.dayNumber)}
+              >
+                Day {day.dayNumber}
+              </Button>
+            ))}
+          </div>
+          <Suspense
+            fallback={
+              <div className="h-[400px] bg-muted/30 rounded-xl flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            }
+          >
+            <ItineraryMap days={itinerary.days} selectedDay={selectedMapDay} />
+          </Suspense>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex gap-6 lg:gap-8">
@@ -130,15 +251,23 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             <div
               key={day.dayNumber}
               className="animate-in fade-in slide-in-from-bottom-4"
-              style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
+              style={{ animationDelay: `${index * 100}ms`, animationFillMode: "backwards" }}
             >
-              <DayCard day={day} />
+              <DayCard
+                day={day}
+                onRefineDay={handleRefineDay}
+                isRefining={isRefining}
+                refiningDay={refiningDay}
+              />
             </div>
           ))}
 
           {/* Tips Section */}
           {itinerary.tips && itinerary.tips.length > 0 && (
-            <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-xl p-5 md:p-6 border border-amber-500/20 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${itinerary.days.length * 100}ms` }}>
+            <div
+              className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-xl p-5 md:p-6 border border-amber-500/20 animate-in fade-in slide-in-from-bottom-4"
+              style={{ animationDelay: `${itinerary.days.length * 100}ms` }}
+            >
               <h3 className="font-semibold flex items-center gap-2.5 mb-4 text-amber-700 dark:text-amber-400">
                 <div className="p-1.5 rounded-lg bg-amber-500/10">
                   <Lightbulb className="w-4 h-4" />
@@ -155,9 +284,32 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
               </ul>
             </div>
           )}
+
+          {/* Day Trips */}
+          {itinerary.dayTrips && itinerary.dayTrips.length > 0 && (
+            <div
+              className="animate-in fade-in slide-in-from-bottom-4"
+              style={{ animationDelay: `${(itinerary.days.length + 1) * 100}ms` }}
+            >
+              <DayTripSection
+                dayTrips={itinerary.dayTrips}
+                onReplaceDayWithTrip={handleReplaceDayWithTrip}
+              />
+            </div>
+          )}
+
+          {/* Extension Suggestions */}
+          {itinerary.extensionSuggestions && itinerary.extensionSuggestions.length > 0 && (
+            <div
+              className="animate-in fade-in slide-in-from-bottom-4"
+              style={{ animationDelay: `${(itinerary.days.length + 2) * 100}ms` }}
+            >
+              <ExtensionSection suggestions={itinerary.extensionSuggestions} />
+            </div>
+          )}
         </div>
 
-        {/* Desktop Refinement Panel - Single Instance */}
+        {/* Desktop Refinement Panel */}
         <div className="hidden lg:block w-80 flex-shrink-0">
           <div className="sticky top-[120px]">
             <RefinementPanel
