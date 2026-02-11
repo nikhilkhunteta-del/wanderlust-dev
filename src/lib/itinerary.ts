@@ -4,7 +4,7 @@ import { CityItinerary, ItineraryRequest } from "@/types/itinerary";
 export async function getCityItinerary(
   request: ItineraryRequest
 ): Promise<CityItinerary> {
-  const { data, error } = await supabase.functions.invoke<CityItinerary>(
+  const { data, error } = await supabase.functions.invoke(
     "city-itinerary",
     {
       body: request,
@@ -20,5 +20,7 @@ export async function getCityItinerary(
     throw new Error("No itinerary data received");
   }
 
+  // Per-day regeneration returns { regeneratedDay: ... }
+  // Full generation returns the full itinerary
   return data;
 }

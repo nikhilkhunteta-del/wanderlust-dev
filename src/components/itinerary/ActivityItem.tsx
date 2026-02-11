@@ -1,5 +1,5 @@
 import { Activity } from "@/types/itinerary";
-import { MapPin, Utensils, Camera, Mountain, Sparkles, ShoppingBag, Moon, Clock, Star } from "lucide-react";
+import { MapPin, Utensils, Camera, Mountain, Sparkles, ShoppingBag, Moon, Clock, Star, Leaf } from "lucide-react";
 
 interface ActivityItemProps {
   activity: Activity;
@@ -44,6 +44,18 @@ export const ActivityItem = ({ activity }: ActivityItemProps) => {
             <p className="text-sm text-muted-foreground mt-0.5 leading-snug line-clamp-2">
               {activity.description}
             </p>
+            {activity.location && (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70 mt-1">
+                <MapPin className="w-2.5 h-2.5" />
+                {activity.location}
+              </span>
+            )}
+            {activity.seasonalNote && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 mt-1 bg-amber-500/5 px-2 py-0.5 rounded-full">
+                <Leaf className="w-2.5 h-2.5" />
+                {activity.seasonalNote}
+              </span>
+            )}
           </div>
         </div>
       </div>

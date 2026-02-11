@@ -1,12 +1,17 @@
 import { ItineraryDay } from "@/types/itinerary";
 import { TimeSlotCard } from "./TimeSlotCard";
+import { PacingStats } from "./PacingStats";
+import { QuickRefinements } from "./QuickRefinements";
 import { Calendar, MapPin } from "lucide-react";
 
 interface DayCardProps {
   day: ItineraryDay;
+  onRefineDay?: (dayNumber: number, adjustment: string) => void;
+  isRefining?: boolean;
+  refiningDay?: number | null;
 }
 
-export const DayCard = ({ day }: DayCardProps) => {
+export const DayCard = ({ day, onRefineDay, isRefining = false, refiningDay = null }: DayCardProps) => {
   return (
     <article className="bg-card rounded-xl border border-border/50 overflow-hidden hover:border-primary/30 transition-colors duration-300 shadow-sm hover:shadow-md">
       {/* Day Header */}
@@ -24,11 +29,31 @@ export const DayCard = ({ day }: DayCardProps) => {
             <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-0.5">
               <Calendar className="w-3 h-3" />
               Day {day.dayNumber}
+              {day.neighbourhood && (
+                <>
+                  <span className="text-border">·</span>
+                  <span className="text-primary/70 normal-case tracking-normal">{day.neighbourhood}</span>
+                </>
+              )}
             </div>
             <h3 className="font-display font-semibold text-lg text-foreground truncate">
               {day.theme}
             </h3>
+            {day.neighbourhoodVibe && (
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 italic">
+                {day.neighbourhoodVibe}
+              </p>
+            )}
           </div>
+        </div>
+
+        {/* Pacing Stats */}
+        <div className="mt-3">
+          <PacingStats
+            walkingKm={day.estimatedWalkingKm}
+            transitMinutes={day.estimatedTransitMinutes}
+            paceLabel={day.paceLabel}
+          />
         </div>
       </div>
 
@@ -37,6 +62,19 @@ export const DayCard = ({ day }: DayCardProps) => {
         {Array.isArray(day.slots) && day.slots.map((slot) => (
           <TimeSlotCard key={slot.period} slot={slot} />
         ))}
+
+        {/* Quick Refinements */}
+        {onRefineDay && (
+          <div className="pt-2 border-t border-border/30">
+            <p className="text-xs text-muted-foreground mb-2">Quick adjust this day:</p>
+            <QuickRefinements
+              dayNumber={day.dayNumber}
+              onRefineDay={onRefineDay}
+              isRefining={isRefining}
+              refiningDay={refiningDay}
+            />
+          </div>
+        )}
       </div>
     </article>
   );
