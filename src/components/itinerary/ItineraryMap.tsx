@@ -1,5 +1,4 @@
 import { useEffect, useRef, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { ItineraryDay } from "@/types/itinerary";
@@ -9,7 +8,6 @@ interface ItineraryMapProps {
   selectedDay: number | null;
 }
 
-// Custom colored marker icons per day
 const dayColors = [
   "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
   "#ec4899", "#06b6d4", "#f97316", "#14b8a6", "#6366f1",
@@ -38,23 +36,12 @@ function createDayIcon(dayNumber: number) {
   });
 }
 
-// Component to fit bounds when data changes
-function FitBounds({ markers }: { markers: { lat: number; lng: number }[] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (markers.length === 0) return;
-    const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]));
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
-  }, [markers, map]);
-
-  return null;
-}
-
 export const ItineraryMap = ({ days, selectedDay }: ItineraryMapProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+
   const allMarkers = useMemo(() => {
     const markers: { lat: number; lng: number; title: string; dayNumber: number; time: string }[] = [];
-
     const filteredDays = selectedDay ? days.filter((d) => d.dayNumber === selectedDay) : days;
 
     for (const day of filteredDays) {
@@ -76,6 +63,46 @@ export const ItineraryMap = ({ days, selectedDay }: ItineraryMapProps) => {
     return markers;
   }, [days, selectedDay]);
 
+  useEffect(() => {
+    if (!containerRef.current || allMarkers.length === 0) return;
+
+    // Create map if not exists
+    if (!mapRef.current) {
+      mapRef.current = L.map(containerRef.current, {
+        scrollWheelZoom: false,
+      });
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(mapRef.current);
+    }
+
+    const map = mapRef.current;
+
+    // Clear existing markers
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker) map.removeLayer(layer);
+    });
+
+    // Add markers
+    for (const m of allMarkers) {
+      L.marker([m.lat, m.lng], { icon: createDayIcon(m.dayNumber) })
+        .addTo(map)
+        .bindPopup(`<div style="font-size:13px"><div style="font-weight:600">Day ${m.dayNumber} · ${m.time}</div><div>${m.title}</div></div>`);
+    }
+
+    // Fit bounds
+    const bounds = L.latLngBounds(allMarkers.map((m) => [m.lat, m.lng] as [number, number]));
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+  }, [allMarkers]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
   if (allMarkers.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 bg-muted/30 rounded-xl border border-border/50 text-sm text-muted-foreground">
@@ -84,36 +111,11 @@ export const ItineraryMap = ({ days, selectedDay }: ItineraryMapProps) => {
     );
   }
 
-  const center: [number, number] = [allMarkers[0].lat, allMarkers[0].lng];
-
   return (
-    <div className="rounded-xl overflow-hidden border border-border/50 shadow-sm" style={{ height: 400 }}>
-      <MapContainer
-        center={center}
-        zoom={13}
-        style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <FitBounds markers={allMarkers} />
-        {allMarkers.map((marker, index) => (
-          <Marker
-            key={index}
-            position={[marker.lat, marker.lng]}
-            icon={createDayIcon(marker.dayNumber)}
-          >
-            <Popup>
-              <div className="text-sm">
-                <div className="font-semibold">Day {marker.dayNumber} · {marker.time}</div>
-                <div>{marker.title}</div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </div>
+    <div
+      ref={containerRef}
+      className="rounded-xl overflow-hidden border border-border/50 shadow-sm"
+      style={{ height: 400 }}
+    />
   );
 };
