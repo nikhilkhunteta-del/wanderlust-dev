@@ -2,6 +2,7 @@ export interface StayInsightsRequest {
   city: string;
   country: string;
   travelMonth: string;
+  departureCity?: string;
 }
 
 export interface PriceCategory {

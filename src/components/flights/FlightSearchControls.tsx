@@ -99,8 +99,20 @@ export const FlightSearchControls = ({
 
   const today = startOfDay(new Date());
 
+  const searchUrl = useMemo(() => {
+    if (!departureAirport || !arrivalAirport || !departureDate || !returnDate) return null;
+    if (isBefore(departureDate, today) || isBefore(returnDate, departureDate)) return null;
+    return buildGoogleFlightsSearchUrl({
+      originAirport: departureAirport,
+      destinationAirport: arrivalAirport,
+      departureDate,
+      returnDate,
+      passengers,
+      cabinClass,
+    });
+  }, [departureAirport, arrivalAirport, departureDate, returnDate, passengers, cabinClass, today]);
+
   const handleSearch = () => {
-    // Validation
     if (!departureAirport || !arrivalAirport) {
       setValidationError("Please select both departure and arrival airports.");
       return;
@@ -121,19 +133,7 @@ export const FlightSearchControls = ({
       setValidationError("Return date must be after departure date.");
       return;
     }
-
     setValidationError(null);
-
-    const url = buildGoogleFlightsSearchUrl({
-      originAirport: departureAirport,
-      destinationAirport: arrivalAirport,
-      departureDate,
-      returnDate,
-      passengers,
-      cabinClass,
-    });
-
-    window.open(url, "_blank");
   };
 
   return (
@@ -284,10 +284,23 @@ export const FlightSearchControls = ({
 
         {/* Search Button */}
         <div className="mt-4">
-          <Button onClick={handleSearch} className="w-full sm:w-auto gap-2">
-            <Search className="h-4 w-4" />
-            Search flights
-          </Button>
+          {searchUrl ? (
+            <a
+              href={searchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleSearch}
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors w-full sm:w-auto"
+            >
+              <Search className="h-4 w-4" />
+              Search flights
+            </a>
+          ) : (
+            <Button onClick={handleSearch} className="w-full sm:w-auto gap-2">
+              <Search className="h-4 w-4" />
+              Search flights
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

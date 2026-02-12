@@ -6,6 +6,17 @@ interface PriceSnapshotCardProps {
   travelMonth: string;
 }
 
+function getCurrencySymbol(currency?: string): string {
+  const symbols: Record<string, string> = {
+    USD: "$", EUR: "€", GBP: "£", INR: "₹", JPY: "¥", CNY: "¥",
+    AUD: "A$", CAD: "C$", CHF: "CHF ", SEK: "kr", NOK: "kr",
+    SGD: "S$", HKD: "HK$", NZD: "NZ$", ZAR: "R", BRL: "R$",
+    MXN: "MX$", THB: "฿", KRW: "₩", TRY: "₺", AED: "AED ",
+    SAR: "SAR ", MYR: "RM", PHP: "₱", IDR: "Rp", VND: "₫",
+  };
+  return symbols[currency?.toUpperCase() || "USD"] || `${currency} `;
+}
+
 export const PriceSnapshotCard = ({ snapshot, travelMonth }: PriceSnapshotCardProps) => {
   const trendConfig = {
     lower: {
@@ -36,7 +47,7 @@ export const PriceSnapshotCard = ({ snapshot, travelMonth }: PriceSnapshotCardPr
         <div>
           <p className="text-sm text-muted-foreground mb-1">Typical round-trip economy</p>
           <p className="text-4xl font-bold text-foreground">
-            ${snapshot.typicalPrice.toLocaleString()}
+            {getCurrencySymbol(snapshot.currency)}{snapshot.typicalPrice.toLocaleString()}
           </p>
         </div>
         <div className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 ${trend.bgColor} ${trend.color}`}>
@@ -48,7 +59,7 @@ export const PriceSnapshotCard = ({ snapshot, travelMonth }: PriceSnapshotCardPr
       <div className="flex items-center gap-6 mb-4">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wide">Low</p>
-          <p className="text-lg font-semibold text-foreground">${snapshot.lowPrice.toLocaleString()}</p>
+          <p className="text-lg font-semibold text-foreground">{getCurrencySymbol(snapshot.currency)}{snapshot.lowPrice.toLocaleString()}</p>
         </div>
         <div className="flex-1 h-2 bg-muted rounded-full relative">
           <div
@@ -68,7 +79,7 @@ export const PriceSnapshotCard = ({ snapshot, travelMonth }: PriceSnapshotCardPr
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground uppercase tracking-wide">High</p>
-          <p className="text-lg font-semibold text-foreground">${snapshot.highPrice.toLocaleString()}</p>
+          <p className="text-lg font-semibold text-foreground">{getCurrencySymbol(snapshot.currency)}{snapshot.highPrice.toLocaleString()}</p>
         </div>
       </div>
 

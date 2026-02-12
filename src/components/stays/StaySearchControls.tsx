@@ -71,6 +71,20 @@ export const StaySearchControls = ({
 
   const today = startOfDay(new Date());
 
+  const searchUrl = useMemo(() => {
+    if (!checkinDate || !checkoutDate || adults < 1) return null;
+    if (isBefore(checkinDate, today) || isBefore(checkoutDate, checkinDate)) return null;
+    return buildGoogleHotelsSearchUrl({
+      city,
+      country,
+      checkinDate,
+      checkoutDate,
+      adults,
+      children,
+      area: area === "no_preference" ? undefined : area,
+    });
+  }, [city, country, checkinDate, checkoutDate, adults, children, area, today]);
+
   const handleSearch = () => {
     if (!checkinDate) {
       setValidationError("Please select a check-in date.");
@@ -92,20 +106,7 @@ export const StaySearchControls = ({
       setValidationError("At least 1 adult is required.");
       return;
     }
-
     setValidationError(null);
-
-    const url = buildGoogleHotelsSearchUrl({
-      city,
-      country,
-      checkinDate,
-      checkoutDate,
-      adults,
-      children,
-      area: area === "no_preference" ? undefined : area,
-    });
-
-    window.open(url, "_blank");
   };
 
   return (
@@ -240,10 +241,23 @@ export const StaySearchControls = ({
         )}
 
         <div className="mt-4">
-          <Button onClick={handleSearch} className="w-full sm:w-auto gap-2">
-            <Search className="h-4 w-4" />
-            Search stays
-          </Button>
+          {searchUrl ? (
+            <a
+              href={searchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleSearch}
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors w-full sm:w-auto"
+            >
+              <Search className="h-4 w-4" />
+              Search stays
+            </a>
+          ) : (
+            <Button onClick={handleSearch} className="w-full sm:w-auto gap-2">
+              <Search className="h-4 w-4" />
+              Search stays
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

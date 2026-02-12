@@ -20,7 +20,7 @@ serve(async (req) => {
   }
 
   try {
-    const { city, country, travelMonth } = await req.json();
+    const { city, country, travelMonth, departureCity } = await req.json();
 
     if (!city || !country) {
       return new Response(
@@ -38,6 +38,10 @@ serve(async (req) => {
 
     const monthName = MONTH_NAMES[travelMonth?.toLowerCase()] || travelMonth || "your travel dates";
 
+    const currencyInstruction = departureCity
+      ? `Use the local currency of the traveller's departure city (${departureCity}). For example: INR for India, EUR for France, GBP for UK, USD for US. Use ISO 4217 currency code.`
+      : `Use USD for all prices.`;
+
     const prompt = `You are a travel accommodation expert. Generate comprehensive stay insights for ${city}, ${country} during ${monthName}.
 
 Provide a JSON response with this exact structure:
@@ -48,12 +52,39 @@ Provide a JSON response with this exact structure:
       "category": "budget",
       "label": "Budget",
       "starRating": "2-3★",
-      "lowPrice": <number in USD>,
-      "highPrice": <number in USD>,
-      "currency": "USD",
+      "lowPrice": <number in local currency>,
+      "highPrice": <number in local currency>,
+      "currency": "<ISO 4217 currency code>",
       "typicalInclusions": ["wifi", "breakfast", etc - 2-3 items]
     },
     {
+      "category": "midRange",
+      "label": "Mid-Range",
+      "starRating": "3-4★",
+      "lowPrice": <number>,
+      "highPrice": <number>,
+      "currency": "<same currency code>",
+      "typicalInclusions": [2-3 items]
+    },
+    {
+      "category": "premium",
+      "label": "Premium",
+      "starRating": "4-5★",
+      "lowPrice": <number>,
+      "highPrice": <number>,
+      "currency": "<same currency code>",
+      "typicalInclusions": [2-3 items]
+    },
+    {
+      "category": "luxury",
+      "label": "Luxury",
+      "starRating": "5★+",
+      "lowPrice": <number>,
+      "highPrice": <number>,
+      "currency": "<same currency code>",
+      "typicalInclusions": [2-3 items]
+    }
+  ],
       "category": "midRange",
       "label": "Mid-Range",
       "starRating": "3-4★",
@@ -105,7 +136,7 @@ Provide a JSON response with this exact structure:
 
 Important guidelines:
 - Prices should reflect typical rates for ${monthName} (consider seasonality)
-- Use USD for all prices
+- ${currencyInstruction}
 - Be specific to ${city}'s actual neighbourhoods and accommodation scene
 - Neighbourhoods should be real, well-known areas
 - Keep descriptions concise and informative

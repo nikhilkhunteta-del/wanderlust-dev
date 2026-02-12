@@ -12,10 +12,11 @@ interface StaysTabProps {
   city: string;
   country: string;
   travelMonth: string;
+  departureCity?: string;
 }
 
-export const StaysTab = ({ city, country, travelMonth }: StaysTabProps) => {
-  const { data, isLoading, isFetching, error, dataUpdatedAt } = useStayInsights(city, country, travelMonth);
+export const StaysTab = ({ city, country, travelMonth, departureCity }: StaysTabProps) => {
+  const { data, isLoading, isFetching, error, dataUpdatedAt } = useStayInsights(city, country, travelMonth, departureCity);
   const initialLoadTime = useRef<number | null>(null);
 
   if (data && !initialLoadTime.current) {
