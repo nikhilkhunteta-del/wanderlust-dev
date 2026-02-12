@@ -97,13 +97,13 @@ Return a JSON object with this exact structure:
     }
   ],
   "travelMonth": "${monthDisplay}",
-  "priceSnapshot": {
-    "typicalPrice": number (round-trip economy in USD),
+   "priceSnapshot": {
+    "typicalPrice": number (round-trip economy),
     "lowPrice": number (low end of typical range),
     "highPrice": number (high end of typical range),
     "trend": "lower" | "typical" | "higher" (compared to annual average for this route),
     "trendExplanation": "Brief explanation of why prices tend to be this way in ${monthDisplay}",
-    "currency": "USD"
+    "currency": "The local currency code of the departure city (e.g., INR for India, EUR for France, GBP for UK, USD for US). Use the ISO 4217 code."
   },
   "timingInsight": {
     "title": "Brief timing observation title",
@@ -128,9 +128,10 @@ Return a JSON object with this exact structure:
 }
 
 Guidelines for pricing estimates:
-- Short-haul (<3 hours): typically $150-600 range
-- Medium-haul (3-7 hours): typically $400-1200 range  
-- Long-haul (7+ hours): typically $600-2500 range
+- Use the LOCAL CURRENCY of the departure city (e.g., INR for departures from India, EUR for France, GBP for UK, USD for US)
+- Short-haul (<3 hours): typically equivalent of $150-600 range in local currency
+- Medium-haul (3-7 hours): typically equivalent of $400-1200 range in local currency
+- Long-haul (7+ hours): typically equivalent of $600-2500 range in local currency
 - Adjust based on route popularity, competition, and seasonality
 - Peak seasons (holidays, summer for popular destinations): trend "higher"
 - Shoulder seasons: trend "lower" or "typical"

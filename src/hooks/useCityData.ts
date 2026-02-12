@@ -79,10 +79,10 @@ export function useFlightInsights(request: FlightInsightsRequest | null) {
   });
 }
 
-export function useStayInsights(city: string, country: string, travelMonth: string) {
+export function useStayInsights(city: string, country: string, travelMonth: string, departureCity?: string) {
   return useQuery({
-    queryKey: ["stay-insights", city, country, travelMonth],
-    queryFn: () => getStayInsights({ city, country, travelMonth }),
+    queryKey: ["stay-insights", city, country, travelMonth, departureCity],
+    queryFn: () => getStayInsights({ city, country, travelMonth, departureCity }),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });

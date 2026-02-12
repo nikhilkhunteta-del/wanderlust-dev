@@ -6,6 +6,17 @@ interface PriceCategoryCardProps {
   category: PriceCategory;
 }
 
+function getCurrencySymbol(currency?: string): string {
+  const symbols: Record<string, string> = {
+    USD: "$", EUR: "€", GBP: "£", INR: "₹", JPY: "¥", CNY: "¥",
+    AUD: "A$", CAD: "C$", CHF: "CHF ", SEK: "kr", NOK: "kr",
+    SGD: "S$", HKD: "HK$", NZD: "NZ$", ZAR: "R", BRL: "R$",
+    MXN: "MX$", THB: "฿", KRW: "₩", TRY: "₺", AED: "AED ",
+    SAR: "SAR ", MYR: "RM", PHP: "₱", IDR: "Rp", VND: "₫",
+  };
+  return symbols[currency?.toUpperCase() || "USD"] || `${currency} `;
+}
+
 export const PriceCategoryCard = ({ category }: PriceCategoryCardProps) => {
   const getCategoryStyles = () => {
     switch (category.category) {
@@ -35,11 +46,11 @@ export const PriceCategoryCard = ({ category }: PriceCategoryCardProps) => {
         <div className="mb-3">
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-display font-bold text-foreground">
-              ${category.lowPrice}
+              {getCurrencySymbol(category.currency)}{category.lowPrice}
             </span>
             <span className="text-muted-foreground">–</span>
             <span className="text-2xl font-display font-bold text-foreground">
-              ${category.highPrice}
+              {getCurrencySymbol(category.currency)}{category.highPrice}
             </span>
             <span className="text-sm text-muted-foreground ml-1">/night</span>
           </div>
