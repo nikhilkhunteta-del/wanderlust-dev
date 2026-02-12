@@ -1,7 +1,7 @@
 import { SignatureExperience } from "@/types/cityHighlights";
-import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
+import { getYourGuideSearchUrl, shouldShowTourLink } from "@/lib/getYourGuideLinks";
 
 interface ExperienceCardProps {
   experience: SignatureExperience;
@@ -10,6 +10,9 @@ interface ExperienceCardProps {
 }
 
 export const ExperienceCard = ({ experience, city, country }: ExperienceCardProps) => {
+  const showTourLink = shouldShowTourLink(experience.title);
+  const tourUrl = getYourGuideSearchUrl(experience.title, city, country);
+
   return (
     <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
       {/* Image using new image system */}
@@ -33,20 +36,20 @@ export const ExperienceCard = ({ experience, city, country }: ExperienceCardProp
         <h3 className="text-lg font-semibold mb-2 text-foreground">
           {experience.title}
         </h3>
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+        <p className="text-muted-foreground text-sm leading-relaxed mb-3">
           {experience.description}
         </p>
         
-        {experience.bookingUrl && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => window.open(experience.bookingUrl!, "_blank")}
+        {showTourLink && (
+          <a
+            href={tourUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            Book Experience
+            View guided tour
             <ExternalLink className="w-3 h-3" />
-          </Button>
+          </a>
         )}
       </div>
     </article>

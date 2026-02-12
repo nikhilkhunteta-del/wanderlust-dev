@@ -6,12 +6,14 @@ import { Calendar, MapPin } from "lucide-react";
 
 interface DayCardProps {
   day: ItineraryDay;
+  city?: string;
+  country?: string;
   onRefineDay?: (dayNumber: number, adjustment: string) => void;
   isRefining?: boolean;
   refiningDay?: number | null;
 }
 
-export const DayCard = ({ day, onRefineDay, isRefining = false, refiningDay = null }: DayCardProps) => {
+export const DayCard = ({ day, city, country, onRefineDay, isRefining = false, refiningDay = null }: DayCardProps) => {
   return (
     <article className="bg-card rounded-xl border border-border/50 overflow-hidden hover:border-primary/30 transition-colors duration-300 shadow-sm hover:shadow-md">
       {/* Day Header */}
@@ -60,7 +62,7 @@ export const DayCard = ({ day, onRefineDay, isRefining = false, refiningDay = nu
       {/* Time Slots */}
       <div className="p-4 md:p-5 space-y-4">
         {Array.isArray(day.slots) && day.slots.map((slot) => (
-          <TimeSlotCard key={slot.period} slot={slot} />
+          <TimeSlotCard key={slot.period} slot={slot} city={city} country={country} />
         ))}
 
         {/* Quick Refinements */}

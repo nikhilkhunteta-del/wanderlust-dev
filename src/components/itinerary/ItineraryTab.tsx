@@ -15,6 +15,7 @@ import { RefinementPanel } from "./RefinementPanel";
 import { DayTripSection } from "./DayTripSection";
 import { ExtensionSection } from "./ExtensionSection";
 import { ShareMenu } from "./ShareMenu";
+import { CuratedToursSection } from "./CuratedToursSection";
 import { Loader2, Lightbulb, Map, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -255,6 +256,8 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             >
               <DayCard
                 day={day}
+                city={city.city}
+                country={city.country}
                 onRefineDay={handleRefineDay}
                 isRefining={isRefining}
                 refiningDay={refiningDay}
@@ -307,6 +310,19 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
               <ExtensionSection suggestions={itinerary.extensionSuggestions} />
             </div>
           )}
+
+          {/* Curated Tours & Experiences */}
+          <div
+            className="animate-in fade-in slide-in-from-bottom-4"
+            style={{ animationDelay: `${(itinerary.days.length + 3) * 100}ms` }}
+          >
+            <CuratedToursSection
+              itinerary={itinerary}
+              cityName={city.city}
+              country={city.country}
+              userInterests={interests}
+            />
+          </div>
         </div>
 
         {/* Desktop Refinement Panel */}
