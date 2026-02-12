@@ -1,8 +1,11 @@
 import { Activity } from "@/types/itinerary";
-import { MapPin, Utensils, Camera, Mountain, Sparkles, ShoppingBag, Moon, Clock, Star, Leaf } from "lucide-react";
+import { MapPin, Utensils, Camera, Mountain, Sparkles, ShoppingBag, Moon, Clock, Star, Leaf, ExternalLink } from "lucide-react";
+import { getYourGuideSearchUrl, shouldShowTourLink } from "@/lib/getYourGuideLinks";
 
 interface ActivityItemProps {
   activity: Activity;
+  city?: string;
+  country?: string;
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -15,8 +18,9 @@ const categoryIcons: Record<string, React.ReactNode> = {
   nightlife: <Moon className="w-4 h-4" />,
 };
 
-export const ActivityItem = ({ activity }: ActivityItemProps) => {
+export const ActivityItem = ({ activity, city, country }: ActivityItemProps) => {
   const icon = categoryIcons[activity.category] || <MapPin className="w-4 h-4" />;
+  const showTourLink = city && shouldShowTourLink(activity.title);
 
   return (
     <div className="flex gap-3 py-3 group hover:bg-background/50 rounded-lg px-2 -mx-2 transition-colors">
@@ -55,6 +59,17 @@ export const ActivityItem = ({ activity }: ActivityItemProps) => {
                 <Leaf className="w-2.5 h-2.5" />
                 {activity.seasonalNote}
               </span>
+            )}
+            {showTourLink && (
+              <a
+                href={getYourGuideSearchUrl(activity.title, city!, country)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-primary mt-1.5 transition-colors"
+              >
+                Check availability
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
             )}
           </div>
         </div>

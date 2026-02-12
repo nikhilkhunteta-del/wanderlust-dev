@@ -4,6 +4,8 @@ import { Sunrise, Sun, Moon } from "lucide-react";
 
 interface TimeSlotProps {
   slot: TimeSlotType;
+  city?: string;
+  country?: string;
 }
 
 const periodConfig = {
@@ -33,7 +35,7 @@ const periodConfig = {
   },
 };
 
-export const TimeSlotCard = ({ slot }: TimeSlotProps) => {
+export const TimeSlotCard = ({ slot, city, country }: TimeSlotProps) => {
   const config = periodConfig[slot.period];
   const { Icon } = config;
 
@@ -47,7 +49,7 @@ export const TimeSlotCard = ({ slot }: TimeSlotProps) => {
       </div>
       <div className="space-y-1">
         {slot.activities.map((activity, index) => (
-          <ActivityItem key={index} activity={activity} />
+          <ActivityItem key={index} activity={activity} city={city} country={country} />
         ))}
         {slot.activities.length === 0 && (
           <p className="text-sm text-muted-foreground italic flex items-center gap-2 py-2">
