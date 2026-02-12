@@ -73,7 +73,7 @@ export const RefinementPanel = ({
   const focusIndex = interests.indexOf(settings.focusInterest);
   const sliderValue = focusIndex >= 0 ? focusIndex : 0;
 
-  const PanelContent = () => (
+  const panelContent = (
     <div className="space-y-6">
       {/* Trip Style */}
       <div>
@@ -237,7 +237,7 @@ export const RefinementPanel = ({
             </SheetDescription>
           </SheetHeader>
           <div className="mt-6">
-            <PanelContent />
+            {panelContent}
           </div>
         </SheetContent>
       </Sheet>
@@ -250,7 +250,7 @@ export const RefinementPanel = ({
           </div>
           Customize Trip
         </h3>
-        <PanelContent />
+        {panelContent}
       </div>
     </>
   );
