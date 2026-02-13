@@ -2,6 +2,7 @@ import { CityHighlights } from "@/types/cityHighlights";
 import { HighlightsHero } from "./HighlightsHero";
 import { ExperienceCard } from "./ExperienceCard";
 import { VibeStrip } from "./VibeStrip";
+import { HighlightsCuratedTours } from "./HighlightsCuratedTours";
 import { Loader2 } from "lucide-react";
 
 interface HighlightsTabProps {
@@ -74,6 +75,15 @@ export const HighlightsTab = ({
               <ExperienceCard key={index} experience={experience} city={city} country={country} />
             ))}
           </div>
+        </section>
+
+        {/* Curated Tours & Experiences */}
+        <section className="mt-12">
+          <HighlightsCuratedTours
+            experiences={highlights.experiences}
+            cityName={city}
+            country={country}
+          />
         </section>
       </div>
     </div>
