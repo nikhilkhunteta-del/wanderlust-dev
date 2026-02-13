@@ -16,7 +16,6 @@ import { RefinementPanel } from "./RefinementPanel";
 import { DayTripSection } from "./DayTripSection";
 import { ExtensionSection } from "./ExtensionSection";
 import { ShareMenu } from "./ShareMenu";
-import { CuratedToursSection } from "./CuratedToursSection";
 import { MultiCitySuggestion } from "./MultiCitySuggestion";
 import { Loader2, Lightbulb, Map, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -344,18 +343,6 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             </div>
           )}
 
-          {/* Curated Tours & Experiences */}
-          <div
-            className="animate-in fade-in slide-in-from-bottom-4"
-            style={{ animationDelay: `${(itinerary.days.length + 3) * 100}ms` }}
-          >
-            <CuratedToursSection
-              itinerary={itinerary}
-              cityName={city.city}
-              country={city.country}
-              userInterests={interests}
-            />
-          </div>
         </div>
 
         {/* Desktop Refinement Panel */}
