@@ -9,6 +9,7 @@ import {
   DayTrip,
   DEFAULT_ITINERARY_SETTINGS,
 } from "@/types/itinerary";
+import { MultiCityRoute } from "@/types/multiCity";
 import { getCityItinerary } from "@/lib/itinerary";
 import { DayCard } from "./DayCard";
 import { RefinementPanel } from "./RefinementPanel";
@@ -16,6 +17,7 @@ import { DayTripSection } from "./DayTripSection";
 import { ExtensionSection } from "./ExtensionSection";
 import { ShareMenu } from "./ShareMenu";
 import { CuratedToursSection } from "./CuratedToursSection";
+import { MultiCitySuggestion } from "./MultiCitySuggestion";
 import { Loader2, Lightbulb, Map, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -38,6 +40,8 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
   const [selectedMapDay, setSelectedMapDay] = useState<number | null>(null);
   const [isRefining, setIsRefining] = useState(false);
   const [refiningDay, setRefiningDay] = useState<number | null>(null);
+  const [isMultiCityActive, setIsMultiCityActive] = useState(false);
+  const [multiCityRoute, setMultiCityRoute] = useState<MultiCityRoute | null>(null);
 
   const [settings, setSettings] = useState<ItinerarySettings>(() => {
     const topInterests = Object.entries(profile.interestScores)
@@ -136,6 +140,16 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
     [handleRefineDay]
   );
 
+  const handleSelectMultiCity = useCallback((route: MultiCityRoute) => {
+    setMultiCityRoute(route);
+    setIsMultiCityActive(true);
+    toast.success("Multi-city route selected — full multi-city itinerary coming soon!");
+  }, []);
+
+  const handleRevertToSingleCity = useCallback(() => {
+    setIsMultiCityActive(false);
+  }, []);
+
   useEffect(() => {
     fetchItinerary();
   }, []);
@@ -206,6 +220,25 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
           </div>
         </div>
       </div>
+
+      {/* Multi-City Suggestion */}
+      {profile.tripDuration >= 8 && (
+        <div className="mb-6">
+          <MultiCitySuggestion
+            city={city.city}
+            country={city.country}
+            tripDuration={profile.tripDuration}
+            travelMonth={profile.travelMonth}
+            userInterests={interests}
+            adventureTypes={profile.adventureTypes}
+            tripStyle={settings.tripStyle}
+            budgetLevel={settings.budgetLevel}
+            onSelectMultiCity={handleSelectMultiCity}
+            isMultiCityActive={isMultiCityActive}
+            onRevertToSingleCity={handleRevertToSingleCity}
+          />
+        </div>
+      )}
 
       {/* Map View */}
       {showMap && (
