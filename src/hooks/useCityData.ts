@@ -8,9 +8,11 @@ import { getSituationalAwareness } from "@/lib/situationalAwareness";
 import { getFlightInsights } from "@/lib/flightInsights";
 import { getStayInsights } from "@/lib/stayInsights";
 import { getCityItinerary } from "@/lib/itinerary";
+import { getMultiCityItinerary } from "@/lib/multiCity";
 import { CityHighlightsRequest } from "@/types/cityHighlights";
 import { FlightInsightsRequest } from "@/types/flightInsights";
 import { ItineraryRequest, CityItinerary } from "@/types/itinerary";
+import { MultiCityItineraryRequest, MultiCityItinerary } from "@/types/multiCity";
 
 // Cache for 10 minutes, consider stale after 5 minutes
 const STALE_TIME = 5 * 60 * 1000;
@@ -101,6 +103,20 @@ export function useCityItinerary(request: ItineraryRequest | null) {
       request?.settings,
     ],
     queryFn: () => getCityItinerary(request!),
+    enabled: !!request,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  });
+}
+
+export function useMultiCityItinerary(request: MultiCityItineraryRequest | null) {
+  return useQuery<MultiCityItinerary>({
+    queryKey: [
+      "multi-city-itinerary",
+      request?.route?.totalDays,
+      request?.route?.stops?.map((s) => s.city).join(","),
+    ],
+    queryFn: () => getMultiCityItinerary(request!),
     enabled: !!request,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,

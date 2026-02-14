@@ -1,3 +1,5 @@
+import { ItineraryDay } from "@/types/itinerary";
+
 export interface MultiCityStop {
   city: string;
   country: string;
@@ -22,10 +24,35 @@ export interface MultiCityRoute {
   routeRationale: string;
 }
 
+export interface MultiCityDay extends ItineraryDay {
+  cityName: string;
+  isTravelDay?: boolean;
+}
+
+export interface CityTransition {
+  fromCity: string;
+  toCity: string;
+  dayNumber: number;
+  transportMode: string;
+  travelTime: string;
+  tip?: string;
+}
+
 export interface MultiCityItinerary {
-  route: MultiCityRoute;
-  days: import("@/types/itinerary").ItineraryDay[];
+  days: MultiCityDay[];
   tips: string[];
+  cityTransitions: CityTransition[];
+}
+
+export interface MultiCityItineraryRequest {
+  route: MultiCityRoute;
+  travelMonth: string;
+  userInterests: string[];
+  adventureTypes: string[];
+  tripStyle: string;
+  budgetLevel: string;
+  diningPreference: string;
+  includeFreeTime: boolean;
 }
 
 export interface MultiCityRequest {
