@@ -8,8 +8,10 @@ import { getHealthNotices } from "@/lib/healthNotices";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
 import { getFlightInsights } from "@/lib/flightInsights";
 import { getStayInsights } from "@/lib/stayInsights";
+import { getCityItinerary } from "@/lib/itinerary";
 import { CityHighlightsRequest } from "@/types/cityHighlights";
 import { FlightInsightsRequest } from "@/types/flightInsights";
+import { ItineraryRequest } from "@/types/itinerary";
 
 // Tab order for adjacency calculation
 const TAB_ORDER = [
@@ -35,11 +37,12 @@ interface PrefetchParams {
   travelMonth: string;
   highlightsRequest: CityHighlightsRequest | null;
   flightRequest: FlightInsightsRequest | null;
+  itineraryRequest: ItineraryRequest | null;
 }
 
 export function useTabPrefetch(params: PrefetchParams) {
   const queryClient = useQueryClient();
-  const { city, country, travelMonth, highlightsRequest, flightRequest } = params;
+  const { city, country, travelMonth, highlightsRequest, flightRequest, itineraryRequest } = params;
 
   const prefetchTab = useCallback(
     async (tabName: TabName) => {
@@ -55,11 +58,17 @@ export function useTabPrefetch(params: PrefetchParams) {
           break;
 
         case "itinerary":
-          // Itinerary uses highlights data + its own generation, prefetch highlights
-          if (highlightsRequest) {
+          if (itineraryRequest) {
             queryClient.prefetchQuery({
-              queryKey: ["city-highlights", highlightsRequest.city, highlightsRequest.country],
-              queryFn: () => getCityHighlights(highlightsRequest),
+              queryKey: [
+                "city-itinerary",
+                itineraryRequest.city,
+                itineraryRequest.country,
+                itineraryRequest.tripDuration,
+                itineraryRequest.travelMonth,
+                itineraryRequest.settings,
+              ],
+              queryFn: () => getCityItinerary(itineraryRequest),
               staleTime: STALE_TIME,
             });
           }

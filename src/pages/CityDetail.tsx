@@ -103,12 +103,35 @@ const CityDetail = () => {
   const { data: highlights, isLoading, error } = useCityHighlights(highlightsRequest);
 
   // Tab prefetching
+  // Build itinerary request for prefetching
+  const interests = profile ? Object.entries(profile.interestScores)
+    .filter(([_, score]) => score > 0)
+    .map(([interest]) => interest) : [];
+
+  const itineraryRequest = city && profile ? {
+    city: city.city,
+    country: city.country,
+    tripDuration: profile.tripDuration,
+    travelMonth: profile.travelMonth,
+    userInterests: interests,
+    adventureTypes: profile.adventureTypes,
+    settings: {
+      tripStyle: "balanced" as const,
+      focusInterest: interests[0] || "",
+      budgetLevel: "mid" as const,
+      diningPreference: "mixed" as const,
+      mustDoExperiences: [],
+      includeFreeTime: true,
+    },
+  } : null;
+
   const { prefetchAdjacentTabs } = useTabPrefetch({
     city: city?.city ?? "",
     country: city?.country ?? "",
     travelMonth: profile?.travelMonth ?? "",
     highlightsRequest,
     flightRequest,
+    itineraryRequest,
   });
 
   // Handle tab change with prefetching
