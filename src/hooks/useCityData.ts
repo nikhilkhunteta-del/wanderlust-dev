@@ -7,8 +7,10 @@ import { getHealthNotices } from "@/lib/healthNotices";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
 import { getFlightInsights } from "@/lib/flightInsights";
 import { getStayInsights } from "@/lib/stayInsights";
+import { getCityItinerary } from "@/lib/itinerary";
 import { CityHighlightsRequest } from "@/types/cityHighlights";
 import { FlightInsightsRequest } from "@/types/flightInsights";
+import { ItineraryRequest, CityItinerary } from "@/types/itinerary";
 
 // Cache for 10 minutes, consider stale after 5 minutes
 const STALE_TIME = 5 * 60 * 1000;
@@ -83,6 +85,23 @@ export function useStayInsights(city: string, country: string, travelMonth: stri
   return useQuery({
     queryKey: ["stay-insights", city, country, travelMonth, departureCity],
     queryFn: () => getStayInsights({ city, country, travelMonth, departureCity }),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  });
+}
+
+export function useCityItinerary(request: ItineraryRequest | null) {
+  return useQuery<CityItinerary>({
+    queryKey: [
+      "city-itinerary",
+      request?.city,
+      request?.country,
+      request?.tripDuration,
+      request?.travelMonth,
+      request?.settings,
+    ],
+    queryFn: () => getCityItinerary(request!),
+    enabled: !!request,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });

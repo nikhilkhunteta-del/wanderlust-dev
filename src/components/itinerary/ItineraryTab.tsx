@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useCallback, lazy, Suspense, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { CityHighlights } from "@/types/cityHighlights";
@@ -7,10 +8,12 @@ import {
   ItinerarySettings,
   ItineraryDay,
   DayTrip,
+  ItineraryRequest,
   DEFAULT_ITINERARY_SETTINGS,
 } from "@/types/itinerary";
 import { MultiCityRoute } from "@/types/multiCity";
 import { getCityItinerary } from "@/lib/itinerary";
+import { useCityItinerary } from "@/hooks/useCityData";
 import { DayCard } from "./DayCard";
 import { RefinementPanel } from "./RefinementPanel";
 import { DayTripSection } from "./DayTripSection";
@@ -32,15 +35,22 @@ interface ItineraryTabProps {
 }
 
 export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) => {
-  const [itinerary, setItinerary] = useState<CityItinerary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
   const [showMap, setShowMap] = useState(false);
   const [selectedMapDay, setSelectedMapDay] = useState<number | null>(null);
   const [isRefining, setIsRefining] = useState(false);
   const [refiningDay, setRefiningDay] = useState<number | null>(null);
   const [isMultiCityActive, setIsMultiCityActive] = useState(false);
   const [multiCityRoute, setMultiCityRoute] = useState<MultiCityRoute | null>(null);
+
+  const interests = useMemo(
+    () =>
+      Object.entries(profile.interestScores)
+        .filter(([_, score]) => score > 0)
+        .map(([interest]) => interest),
+    [profile.interestScores]
+  );
 
   const [settings, setSettings] = useState<ItinerarySettings>(() => {
     const topInterests = Object.entries(profile.interestScores)
@@ -54,35 +64,23 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
     };
   });
 
-  const interests = Object.entries(profile.interestScores)
-    .filter(([_, score]) => score > 0)
-    .map(([interest]) => interest);
-
   const highlightExperiences = highlights?.experiences.map((e) => e.title) || [];
 
-  const fetchItinerary = async () => {
-    setIsLoading(true);
-    setError(null);
+  // Build the request object for React Query
+  const itineraryRequest = useMemo<ItineraryRequest>(
+    () => ({
+      city: city.city,
+      country: city.country,
+      tripDuration: profile.tripDuration,
+      travelMonth: profile.travelMonth,
+      userInterests: interests,
+      adventureTypes: profile.adventureTypes,
+      settings,
+    }),
+    [city.city, city.country, profile.tripDuration, profile.travelMonth, interests, profile.adventureTypes, settings]
+  );
 
-    try {
-      const result = await getCityItinerary({
-        city: city.city,
-        country: city.country,
-        tripDuration: profile.tripDuration,
-        travelMonth: profile.travelMonth,
-        userInterests: interests,
-        adventureTypes: profile.adventureTypes,
-        settings,
-      });
-
-      setItinerary(result);
-    } catch (err) {
-      console.error("Failed to fetch itinerary:", err);
-      setError(err instanceof Error ? err.message : "Failed to generate itinerary");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: itinerary, isLoading, error, refetch } = useCityItinerary(itineraryRequest);
 
   const handleRefineDay = useCallback(
     async (dayNumber: number, adjustment: string) => {
@@ -92,29 +90,26 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
 
       try {
         const result = await getCityItinerary({
-          city: city.city,
-          country: city.country,
-          tripDuration: profile.tripDuration,
-          travelMonth: profile.travelMonth,
-          userInterests: interests,
-          adventureTypes: profile.adventureTypes,
-          settings,
+          ...itineraryRequest,
           regenerateDay: dayNumber,
           adjustment,
         });
 
-        // The response has a `regeneratedDay` field for per-day updates
         const regenerated = (result as any).regeneratedDay as ItineraryDay | undefined;
         if (regenerated) {
-          setItinerary((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              days: prev.days.map((d) =>
-                d.dayNumber === dayNumber ? { ...regenerated, dayNumber } : d
-              ),
-            };
-          });
+          // Patch the cached itinerary in-place
+          queryClient.setQueryData<CityItinerary>(
+            ["city-itinerary", itineraryRequest.city, itineraryRequest.country, itineraryRequest.tripDuration, itineraryRequest.travelMonth, itineraryRequest.settings],
+            (old) => {
+              if (!old) return old;
+              return {
+                ...old,
+                days: old.days.map((d) =>
+                  d.dayNumber === dayNumber ? { ...regenerated, dayNumber } : d
+                ),
+              };
+            }
+          );
           toast.success(`Day ${dayNumber} refreshed`);
         }
       } catch (err) {
@@ -125,7 +120,7 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
         setRefiningDay(null);
       }
     },
-    [itinerary, city, profile, interests, settings]
+    [itinerary, itineraryRequest, queryClient]
   );
 
   const handleReplaceDayWithTrip = useCallback(
@@ -149,10 +144,6 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
     setIsMultiCityActive(false);
   }, []);
 
-  useEffect(() => {
-    fetchItinerary();
-  }, []);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -171,7 +162,7 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
       <div className="flex items-center justify-center py-24">
         <div className="text-center max-w-md">
           <p className="text-destructive mb-2">Failed to generate itinerary</p>
-          <p className="text-muted-foreground text-sm">{error}</p>
+          <p className="text-muted-foreground text-sm">{error instanceof Error ? error.message : "Unknown error"}</p>
         </div>
       </div>
     );
@@ -195,7 +186,6 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Map / List Toggle */}
           <Button
             variant={showMap ? "default" : "outline"}
             size="sm"
@@ -206,12 +196,11 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             {showMap ? "List view" : "Map view"}
           </Button>
           <ShareMenu itinerary={itinerary} cityName={city.city} tripDuration={profile.tripDuration} />
-          {/* Mobile Only Customize Button */}
           <div className="lg:hidden">
             <RefinementPanel
               settings={settings}
               onSettingsChange={setSettings}
-              onUpdate={fetchItinerary}
+              onUpdate={() => refetch()}
               isUpdating={isLoading}
               interests={interests}
               highlightExperiences={highlightExperiences}
@@ -278,7 +267,6 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
 
       {/* Main Content */}
       <div className="flex gap-6 lg:gap-8">
-        {/* Itinerary Days */}
         <div className="flex-1 min-w-0 space-y-5">
           {itinerary.days.map((day, index) => (
             <div
@@ -342,7 +330,6 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
               <ExtensionSection suggestions={itinerary.extensionSuggestions} />
             </div>
           )}
-
         </div>
 
         {/* Desktop Refinement Panel */}
@@ -351,7 +338,7 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             <RefinementPanel
               settings={settings}
               onSettingsChange={setSettings}
-              onUpdate={fetchItinerary}
+              onUpdate={() => refetch()}
               isUpdating={isLoading}
               interests={interests}
               highlightExperiences={highlightExperiences}
