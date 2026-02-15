@@ -86,7 +86,7 @@ export const ShareMenu = ({ itinerary, cityName, tripDuration }: ShareMenuProps)
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 shadow-sm">
+        <Button variant="outline" size="sm" className="gap-2 shadow-sm" data-share-trigger>
           <Share2 className="w-4 h-4" />
           Share
         </Button>
