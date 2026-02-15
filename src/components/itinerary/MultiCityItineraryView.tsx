@@ -1,8 +1,10 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useRef, useCallback, lazy, Suspense } from "react";
 import { MultiCityItinerary, MultiCityRoute, CityTransition } from "@/types/multiCity";
 import { DayCard } from "./DayCard";
-import { Loader2, Lightbulb, Train, Plane, Bus, Ship, Car, ArrowRight, Map, List } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CollapsedDayCard } from "./CollapsedDayCard";
+import { TravelTransitionCard } from "./TravelTransitionCard";
+import { JourneyCompletion } from "./JourneyCompletion";
+import { Loader2, Lightbulb, BookOpen } from "lucide-react";
 
 const MultiCityMap = lazy(() =>
   import("./MultiCityMap").then((m) => ({ default: m.MultiCityMap }))
@@ -13,24 +15,50 @@ interface MultiCityItineraryViewProps {
   route: MultiCityRoute;
   isLoading: boolean;
   error: Error | null;
+  cityName: string;
+  tripDuration: number;
 }
 
-const transportIcons: Record<string, typeof Train> = {
-  train: Train,
-  flight: Plane,
-  bus: Bus,
-  ferry: Ship,
-  drive: Car,
-};
+// Generate narrative chapter titles
+function getChapterTitle(city: string, index: number): string {
+  return `Chapter ${index + 1}`;
+}
 
 export const MultiCityItineraryView = ({
   itinerary,
   route,
   isLoading,
   error,
+  cityName,
+  tripDuration,
 }: MultiCityItineraryViewProps) => {
-  const [showMap, setShowMap] = useState(false);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
+  const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const toggleDay = useCallback((dayNumber: number) => {
+    setExpandedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(dayNumber)) {
+        next.delete(dayNumber);
+      } else {
+        next.add(dayNumber);
+      }
+      return next;
+    });
+  }, []);
+
+  const expandAllInChapter = useCallback((days: typeof itinerary.days) => {
+    setExpandedDays((prev) => {
+      const next = new Set(prev);
+      const allExpanded = days.every((d) => next.has(d.dayNumber));
+      if (allExpanded) {
+        days.forEach((d) => next.delete(d.dayNumber));
+      } else {
+        days.forEach((d) => next.add(d.dayNumber));
+      }
+      return next;
+    });
+  }, []);
 
   if (isLoading) {
     return (
@@ -61,6 +89,21 @@ export const MultiCityItineraryView = ({
 
   if (!itinerary) return null;
 
+  // Regional map
+  const mapSection = (
+    <div className="mb-8">
+      <Suspense
+        fallback={
+          <div className="h-[420px] bg-muted/30 rounded-xl flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        }
+      >
+        <MultiCityMap route={route} days={itinerary.days} selectedCity={null} />
+      </Suspense>
+    </div>
+  );
+
   // Group days by city
   const cityGroups: { city: string; days: typeof itinerary.days; transition?: CityTransition }[] = [];
   let currentCity = "";
@@ -78,152 +121,98 @@ export const MultiCityItineraryView = ({
   });
 
   return (
-    <div className="space-y-5">
-      {/* Route overview strip + map toggle */}
-      <div className="flex items-center justify-between gap-3 flex-wrap px-1 mb-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {route.stops.map((stop, i) => (
-            <div key={stop.city} className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-primary-foreground ${
-                    i === 0 ? "bg-primary" : "bg-violet-500"
-                  }`}
-                >
-                  {i + 1}
-                </div>
-                <span className="text-sm font-medium">{stop.city}</span>
-                <span className="text-xs text-muted-foreground">({stop.days}d)</span>
-              </div>
-              {i < route.stops.length - 1 && (
-                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40" />
-              )}
-            </div>
-          ))}
-        </div>
-        <Button
-          variant={showMap ? "default" : "outline"}
-          size="sm"
-          className="gap-2 shadow-sm"
-          onClick={() => setShowMap(!showMap)}
-        >
-          {showMap ? <List className="w-4 h-4" /> : <Map className="w-4 h-4" />}
-          {showMap ? "List view" : "Map view"}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      {/* Regional Map — ONE map only */}
+      {mapSection}
 
-      {/* Map View */}
-      {showMap && (
-        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <span className="text-sm text-muted-foreground">Show:</span>
-            <Button
-              variant={selectedCity === null ? "default" : "outline"}
-              size="sm"
-              className="h-7 text-xs px-2.5"
-              onClick={() => setSelectedCity(null)}
-            >
-              All cities
-            </Button>
-            {route.stops.map((stop) => (
-              <Button
-                key={stop.city}
-                variant={selectedCity === stop.city ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-xs px-2.5"
-                onClick={() => setSelectedCity(stop.city)}
-              >
-                {stop.city}
-              </Button>
-            ))}
-          </div>
-          <Suspense
-            fallback={
-              <div className="h-[420px] bg-muted/30 rounded-xl flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            }
-          >
-            <MultiCityMap route={route} days={itinerary.days} selectedCity={selectedCity} />
-          </Suspense>
-        </div>
-      )}
-
-      {/* City groups with days */}
+      {/* Journey Chapters */}
       {cityGroups.map((group, groupIndex) => {
         const stopIndex = route.stops.findIndex((s) => s.city === group.city);
-        const TransportIcon = group.transition
-          ? transportIcons[group.transition.transportMode] || Train
-          : null;
+        const stop = route.stops[stopIndex];
+        const leg = group.transition
+          ? route.legs.find((l) => l.to === group.city)
+          : undefined;
 
         return (
-          <div key={`${group.city}-${groupIndex}`}>
-            {/* Travel transition card */}
-            {group.transition && TransportIcon && (
-              <div className="flex items-center gap-3 py-3 px-4 mb-3 bg-gradient-to-r from-violet-500/5 to-indigo-500/5 border border-violet-500/15 rounded-lg animate-in fade-in slide-in-from-bottom-2">
-                <div className="p-1.5 rounded-lg bg-violet-500/10">
-                  <TransportIcon className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">
-                    {group.transition.fromCity}
-                    <ArrowRight className="w-3 h-3 inline mx-1.5 text-muted-foreground/50" />
-                    {group.transition.toCity}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {group.transition.travelTime} by {group.transition.transportMode}
-                    {group.transition.tip && ` · ${group.transition.tip}`}
-                  </p>
-                </div>
-              </div>
+          <div
+            key={`${group.city}-${groupIndex}`}
+            ref={(el) => { chapterRefs.current[group.city] = el; }}
+            className="scroll-mt-[120px]"
+          >
+            {/* Travel Transition Card between chapters */}
+            {group.transition && (
+              <TravelTransitionCard transition={group.transition} leg={leg} />
             )}
 
-            {/* City header */}
-            <div className="flex items-center gap-3 mb-4 px-1">
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground flex-shrink-0 ${
-                  stopIndex === 0 ? "bg-primary" : "bg-violet-500"
-                }`}
-              >
-                {stopIndex + 1}
+            {/* Chapter Header */}
+            <div className="mb-5">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm">
+                    {stopIndex + 1}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-primary/70 uppercase tracking-wider flex items-center gap-1.5">
+                        <BookOpen className="w-3 h-3" />
+                        {getChapterTitle(group.city, groupIndex)}
+                      </span>
+                    </div>
+                    <h3 className="font-display font-semibold text-xl leading-tight text-foreground">
+                      {group.city}
+                    </h3>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="font-display font-semibold text-lg leading-tight">
-                  {group.city}
-                </h3>
-                <p className="text-xs text-muted-foreground">
+              <div className="flex items-center gap-3 ml-[52px]">
+                <p className="text-sm text-muted-foreground">
                   {group.days.length} {group.days.length === 1 ? "day" : "days"}
-                  {route.stops[stopIndex]?.country && `, ${route.stops[stopIndex].country}`}
+                  {stop?.country && ` · ${stop.country}`}
                 </p>
+                <button
+                  onClick={() => expandAllInChapter(group.days)}
+                  className="text-xs text-primary/70 hover:text-primary transition-colors"
+                >
+                  {group.days.every((d) => expandedDays.has(d.dayNumber)) ? "Collapse all" : "Expand all"}
+                </button>
               </div>
             </div>
 
             {/* Day cards */}
-            {group.days.map((day, dayIndex) => (
-              <div
-                key={day.dayNumber}
-                className="mb-5 animate-in fade-in slide-in-from-bottom-4"
-                style={{
-                  animationDelay: `${(groupIndex * 3 + dayIndex) * 80}ms`,
-                  animationFillMode: "backwards",
-                }}
-              >
-                <DayCard
-                  day={day}
-                  city={group.city}
-                  country={route.stops[stopIndex]?.country || ""}
-                  isRefining={false}
-                  refiningDay={null}
-                />
-              </div>
-            ))}
+            <div className="space-y-3 ml-0 md:ml-[52px]">
+              {group.days.map((day) => (
+                <div
+                  key={day.dayNumber}
+                  className="animate-in fade-in slide-in-from-bottom-2 duration-200"
+                  style={{
+                    animationDelay: `${groupIndex * 60}ms`,
+                    animationFillMode: "backwards",
+                  }}
+                >
+                  {expandedDays.has(day.dayNumber) ? (
+                    <DayCard
+                      day={day}
+                      city={group.city}
+                      country={stop?.country || ""}
+                      isRefining={false}
+                      refiningDay={null}
+                    />
+                  ) : (
+                    <CollapsedDayCard
+                      day={day}
+                      onClick={() => toggleDay(day.dayNumber)}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         );
       })}
 
       {/* Tips */}
       {itinerary.tips && itinerary.tips.length > 0 && (
-        <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-xl p-5 md:p-6 border border-amber-500/20 animate-in fade-in slide-in-from-bottom-4">
+        <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-xl p-5 md:p-6 border border-amber-500/20">
           <h3 className="font-semibold flex items-center gap-2.5 mb-4 text-amber-700 dark:text-amber-400">
             <div className="p-1.5 rounded-lg bg-amber-500/10">
               <Lightbulb className="w-4 h-4" />
@@ -240,6 +229,12 @@ export const MultiCityItineraryView = ({
           </ul>
         </div>
       )}
+
+      {/* Journey Completion */}
+      <JourneyCompletion
+        cityName={route.stops.map((s) => s.city).join(" → ")}
+        tripDuration={tripDuration}
+      />
     </div>
   );
 };
