@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 
 const STORAGE_KEY = "saved-experiences";
 
@@ -52,6 +53,9 @@ export function useSavedExperiences(city: string, country: string) {
           ? prev.filter((s) => makeKey(s.city, s.title) !== key)
           : [...prev, { title, city, country, savedAt: new Date().toISOString() }];
         writeStore(next);
+        toast({
+          description: exists ? "Removed from saved ideas." : "Saved to your trip ideas.",
+        });
         return next;
       });
     },
