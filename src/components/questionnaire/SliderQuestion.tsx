@@ -1,4 +1,10 @@
+import { motion, AnimatePresence } from 'framer-motion';
 import { Slider } from '@/components/ui/slider';
+
+interface EmotionalLabel {
+  range: [number, number];
+  label: string;
+}
 
 interface SliderConfig {
   min: number;
@@ -6,6 +12,7 @@ interface SliderConfig {
   step: number;
   labels: string[];
   unit?: string;
+  emotionalLabels?: EmotionalLabel[];
 }
 
 interface SliderQuestionProps {
@@ -15,9 +22,15 @@ interface SliderQuestionProps {
 }
 
 export const SliderQuestion = ({ config, value, onChange }: SliderQuestionProps) => {
-  const { min, max, step, labels, unit } = config;
+  const { min, max, step, labels, unit, emotionalLabels } = config;
 
   const getLabel = () => {
+    if (emotionalLabels) {
+      const match = emotionalLabels.find(
+        (el) => value >= el.range[0] && value <= el.range[1]
+      );
+      if (match) return match.label;
+    }
     const percentage = ((value - min) / (max - min)) * 100;
     const labelIndex = Math.min(
       Math.floor((percentage / 100) * labels.length),
@@ -33,7 +46,18 @@ export const SliderQuestion = ({ config, value, onChange }: SliderQuestionProps)
           {value}
           {unit && <span className="text-2xl ml-1 text-muted-foreground">{unit}</span>}
         </div>
-        <div className="text-lg text-muted-foreground mt-1">{getLabel()}</div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={getLabel()}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="text-base text-muted-foreground mt-2 italic font-body"
+          >
+            {getLabel()}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <Slider

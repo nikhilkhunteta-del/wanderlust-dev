@@ -7,17 +7,22 @@ interface ProgressIndicatorProps {
 
 export const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) => {
   return (
-    <div className="flex items-center justify-center gap-2">
-      {Array.from({ length: totalSteps }).map((_, index) => (
-        <div
-          key={index}
-          className={cn(
-            'progress-step',
-            index === currentStep && 'progress-step-active',
-            index < currentStep && 'progress-step-completed'
-          )}
-        />
-      ))}
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex items-center justify-center gap-2">
+        {Array.from({ length: totalSteps }).map((_, index) => (
+          <div
+            key={index}
+            className={cn(
+              'progress-step',
+              index === currentStep && 'progress-step-active',
+              index < currentStep && 'progress-step-completed'
+            )}
+          />
+        ))}
+      </div>
+      <span className="text-xs text-muted-foreground/70 font-body tracking-wide">
+        Takes about 1 minute
+      </span>
     </div>
   );
 };

@@ -147,16 +147,17 @@
 @layer components {
   .option-chip {
     @apply px-4 py-2.5 rounded-full border-2 border-border bg-card text-foreground 
-           font-medium transition-all duration-200 cursor-pointer select-none
-           hover:border-primary/50 hover:bg-primary/5;
+           font-medium transition-all duration-150 ease-out cursor-pointer select-none
+           hover:border-primary/50 hover:bg-primary/5 hover:shadow-md;
   }
 
   .option-chip-selected {
-    @apply border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25;
+    @apply border-primary bg-primary/15 text-primary shadow-md shadow-primary/10;
   }
 
   .question-card {
-    @apply bg-card rounded-2xl p-8 shadow-xl shadow-black/5 border border-border/50;
+    @apply bg-card rounded-2xl p-8 border border-border/50;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
   }
 
   .progress-step {

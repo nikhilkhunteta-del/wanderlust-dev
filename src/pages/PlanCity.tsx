@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/shared/Header";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Check, MapPin, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, MapPin, Search } from "lucide-react";
 import { TextInputQuestion } from "@/components/questionnaire/TextInputQuestion";
 import { MultiSelectQuestion } from "@/components/questionnaire/MultiSelectQuestion";
 import { SingleSelectQuestion } from "@/components/questionnaire/SingleSelectQuestion";
 import { SliderQuestion } from "@/components/questionnaire/SliderQuestion";
-import { DropdownQuestion } from "@/components/questionnaire/DropdownQuestion";
 import { QuestionCard } from "@/components/questionnaire/QuestionCard";
 import { ProgressIndicator } from "@/components/questionnaire/ProgressIndicator";
 import { QUESTIONS, TravelPreferences, QuestionConfig } from "@/types/questionnaire";
@@ -16,8 +15,6 @@ import { buildTravelProfile } from "@/lib/profileBuilder";
 import { CityRecommendation } from "@/types/recommendations";
 import { cn } from "@/lib/utils";
 
-// For the direct-plan flow, we skip continent preference (user already chose a city)
-// and departure city is asked separately. We also need city + country input first.
 const PLAN_QUESTIONS: QuestionConfig[] = QUESTIONS.filter(
   (q) => q.id !== "continentPreference"
 );
@@ -40,6 +37,7 @@ const PlanCity = () => {
   const [country, setCountry] = useState("");
   const [phase, setPhase] = useState<"city-select" | "questionnaire">("city-select");
   const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
 
   const currentQuestion = PLAN_QUESTIONS[currentStep];
@@ -48,7 +46,6 @@ const PlanCity = () => {
 
   const handleCitySelected = useCallback(() => {
     if (!city.trim()) return;
-    // Try to extract country if user typed "City, Country"
     const parts = city.split(",").map((s) => s.trim());
     if (parts.length >= 2) {
       setCity(parts[0]);
@@ -73,7 +70,6 @@ const PlanCity = () => {
 
   const handleNext = () => {
     if (isLastStep) {
-      // Build profile and navigate to city detail
       const fullPrefs: TravelPreferences = {
         ...preferences,
         continentPreference: ["anywhere"],
@@ -92,6 +88,7 @@ const PlanCity = () => {
         state: { city: cityRec, profile },
       });
     } else {
+      setDirection(1);
       setCurrentStep((prev) => prev + 1);
     }
   };
@@ -100,6 +97,7 @@ const PlanCity = () => {
     if (isFirstStep) {
       setPhase("city-select");
     } else {
+      setDirection(-1);
       setCurrentStep((prev) => prev - 1);
     }
   };
@@ -113,6 +111,7 @@ const PlanCity = () => {
             options={currentQuestion.options!}
             selected={value as string[]}
             onChange={updatePreference}
+            grouped={currentQuestion.grouped}
           />
         );
       case "single-select":
@@ -131,14 +130,6 @@ const PlanCity = () => {
             onChange={updatePreference}
           />
         );
-      case "dropdown":
-        return (
-          <DropdownQuestion
-            options={currentQuestion.options!}
-            value={value as string}
-            onChange={updatePreference}
-          />
-        );
       case "text-input":
         return (
           <TextInputQuestion
@@ -152,7 +143,6 @@ const PlanCity = () => {
     }
   };
 
-  // Phase 1: City selection
   if (phase === "city-select") {
     return (
       <div className="min-h-screen flex flex-col gradient-warm">
@@ -212,7 +202,6 @@ const PlanCity = () => {
     );
   }
 
-  // Phase 2: Questionnaire (reuse existing question components)
   return (
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header
@@ -228,18 +217,20 @@ const PlanCity = () => {
       </div>
 
       <main className="flex-1 flex items-center justify-center px-4 pb-8">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={currentStep}
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.3 }}
+            custom={direction}
+            initial={{ opacity: 0, y: direction > 0 ? 12 : -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: direction > 0 ? -12 : 12 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
           >
             <QuestionCard
               questionNumber={currentStep + 1}
               totalQuestions={PLAN_QUESTIONS.length}
               questionText={currentQuestion.questionText}
+              subtitle={currentQuestion.subtitle}
             >
               {renderQuestion()}
             </QuestionCard>
@@ -271,7 +262,7 @@ const PlanCity = () => {
             {isLastStep ? (
               <>
                 Build My Guide
-                <Check className="w-5 h-5" />
+                <Sparkles className="w-5 h-5" />
               </>
             ) : (
               <>
