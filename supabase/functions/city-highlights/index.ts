@@ -21,6 +21,7 @@ interface SignatureExperience {
   description: string;
   imageQuery: string;
   bookingUrl: string | null;
+  category: string;
 }
 
 interface CityHighlights {
@@ -28,6 +29,10 @@ interface CityHighlights {
   experiences: SignatureExperience[];
   vibeTags: string[];
   heroImageQuery: string;
+  personalMatchReasons: string[];
+  perfectDayNarrative: string;
+  featuredExperienceIndex: number;
+  experienceThemes: { themeLabel: string; experienceIndices: number[] }[];
 }
 
 serve(async (req) => {
@@ -55,17 +60,28 @@ RULES:
 - Curate experiences that genuinely align with stated preferences
 - Avoid clichés and tourist trap recommendations
 - Keep descriptions concise and evocative
+- personalMatchReasons: 3-4 concise bullet points explaining WHY this city matches THIS specific traveler. Reference their actual interests using **bold** for key phrases. Tone: confident, human, never salesy.
+- perfectDayNarrative: A 3-4 sentence immersive narrative of a perfect day in this city for THIS traveler, flowing morning→afternoon→evening. Reflect their interests. No generic tourism language.
+- featuredExperienceIndex: index (0-based) of the experience that best matches the user's top interests.
+- experienceThemes: group the experiences by user-relevant themes with labels like "For your love of culture", "For authentic food experiences", etc.
 
 Respond with ONLY valid JSON in this exact format:
 {
   "matchStatement": "2-3 sentences explaining why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
+  "personalMatchReasons": ["You enjoy **cultural heritage** and authentic local food", "You prefer **warm, pleasant weather** during your travel month", "..."],
+  "perfectDayNarrative": "Start your morning exploring... end the day...",
   "experiences": [
     {
       "title": "Experience title",
       "description": "One compelling sentence explaining why this experience is special and aligns with user interests",
       "imageQuery": "descriptive search term for a photo of this experience",
-      "bookingUrl": "https://www.getyourguide.com/... or null if not applicable"
+      "bookingUrl": null,
+      "category": "culture|food|nature|adventure|photography|nightlife|wellness|shopping|scenic"
     }
+  ],
+  "featuredExperienceIndex": 0,
+  "experienceThemes": [
+    { "themeLabel": "For your love of culture", "experienceIndices": [0, 2] }
   ],
   "vibeTags": ["3-5 short tags like 'walkable', 'sunset viewpoints', 'street food'"],
   "heroImageQuery": "descriptive search term for the city's most iconic scenic view"
@@ -84,9 +100,13 @@ ${requestData.rationale}
 
 Generate:
 1. A match statement (2-3 sentences) explaining why ${requestData.city} fits their interests
-2. 3-5 signature experiences curated for their specific interests (not generic tourist lists)
-3. 3-5 vibe tags that capture the city's character relevant to this traveler
-4. A hero image search query for the city`;
+2. 3-4 personalMatchReasons as bullet points referencing their actual interests with **bold** emphasis on key phrases
+3. A perfectDayNarrative (3-4 immersive sentences, morning→evening, reflecting their interests)
+4. 5-7 signature experiences curated for their specific interests, each with a category tag
+5. featuredExperienceIndex: the index of the single best-matching experience
+6. experienceThemes: group experiences into 2-4 themes labeled for the user (e.g. "For your love of culture")
+7. 3-5 vibe tags that capture the city's character relevant to this traveler
+8. A hero image search query for the city`;
 
     console.log("Sending prompt to AI gateway...");
 

@@ -6,12 +6,16 @@ interface HighlightsCuratedToursProps {
   cityName: string;
   country: string;
   userInterests?: string[];
+  sectionTitle?: string;
+  sectionSubtitle?: string;
 }
 
 export const HighlightsCuratedTours = ({
   experiences,
   cityName,
   country,
+  sectionTitle = "Helpful tours & experiences",
+  sectionSubtitle = "Hand-picked options aligned with your interests — browse only if you're ready.",
 }: HighlightsCuratedToursProps) => {
   const tours = experiences
     .filter((e) => shouldShowTourLink(e.title))
@@ -33,10 +37,10 @@ export const HighlightsCuratedTours = ({
         <div className="p-1.5 rounded-lg bg-primary/10">
           <Compass className="w-4 h-4 text-primary" />
         </div>
-        Helpful tours & experiences
+        {sectionTitle}
       </h3>
       <p className="text-sm text-muted-foreground mb-5">
-        Hand-picked options aligned with your interests — browse only if you're ready.
+        {sectionSubtitle}
       </p>
 
       <div className="space-y-3">

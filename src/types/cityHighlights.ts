@@ -3,6 +3,7 @@ export interface SignatureExperience {
   description: string;
   imageQuery: string;
   bookingUrl: string | null;
+  category?: string;
 }
 
 export interface CityHighlights {
@@ -10,6 +11,15 @@ export interface CityHighlights {
   experiences: SignatureExperience[];
   vibeTags: string[];
   heroImageQuery: string;
+  personalMatchReasons?: string[];
+  perfectDayNarrative?: string;
+  featuredExperienceIndex?: number;
+  experienceThemes?: ExperienceTheme[];
+}
+
+export interface ExperienceTheme {
+  themeLabel: string;
+  experienceIndices: number[];
 }
 
 export interface CityHighlightsRequest {

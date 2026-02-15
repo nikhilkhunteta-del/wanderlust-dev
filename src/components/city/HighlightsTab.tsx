@@ -1,6 +1,9 @@
 import { CityHighlights } from "@/types/cityHighlights";
 import { HighlightsHero } from "./HighlightsHero";
-import { ExperienceCard } from "./ExperienceCard";
+import { PersonalMatchSection } from "./PersonalMatchSection";
+import { PerfectDayStrip } from "./PerfectDayStrip";
+import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
+import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { HighlightsCuratedTours } from "./HighlightsCuratedTours";
 import { Loader2 } from "lucide-react";
@@ -46,6 +49,9 @@ export const HighlightsTab = ({
     return null;
   }
 
+  const featuredIndex = highlights.featuredExperienceIndex ?? 0;
+  const featuredExperience = highlights.experiences[featuredIndex] ?? highlights.experiences[0];
+
   return (
     <div>
       {/* Hero Section */}
@@ -56,33 +62,53 @@ export const HighlightsTab = ({
       />
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 space-y-0">
+        {/* 1. Personal match reasons */}
+        <PersonalMatchSection
+          city={city}
+          reasons={highlights.personalMatchReasons ?? []}
+        />
+
+        {/* 2. Perfect day narrative */}
+        <PerfectDayStrip
+          city={city}
+          narrative={highlights.perfectDayNarrative ?? ""}
+        />
+
         {/* City Vibe */}
-        <section className="mb-12">
+        <section className="mb-14">
           <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
             City Vibe
           </h2>
           <VibeStrip tags={highlights.vibeTags} />
         </section>
 
-        {/* Signature Experiences */}
-        <section>
-          <h2 className="text-2xl font-display font-semibold mb-6">
-            Signature Experiences
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {highlights.experiences.map((experience, index) => (
-              <ExperienceCard key={index} experience={experience} city={city} country={country} />
-            ))}
-          </div>
-        </section>
+        {/* 3. Featured experience */}
+        {featuredExperience && (
+          <FeaturedExperienceCard
+            experience={featuredExperience}
+            city={city}
+            country={country}
+          />
+        )}
 
-        {/* Curated Tours & Experiences */}
-        <section className="mt-12">
+        {/* 4. Themed experiences */}
+        <ThemedExperienceSection
+          themes={highlights.experienceThemes ?? []}
+          experiences={highlights.experiences}
+          featuredIndex={featuredIndex}
+          city={city}
+          country={country}
+        />
+
+        {/* 5. Action-oriented tours section */}
+        <section className="mt-14">
           <HighlightsCuratedTours
             experiences={highlights.experiences}
             cityName={city}
             country={country}
+            sectionTitle="Make this experience real"
+            sectionSubtitle="Ready to experience this side of the city? Here are carefully selected options to help you plan smoothly."
           />
         </section>
       </div>
