@@ -907,11 +907,15 @@ serve(async (req) => {
   try {
     const request: ResolveImageRequest = await req.json();
     
-    if (!request.type || !request.city || !request.country) {
+    if (!request.type || !request.city) {
       return new Response(
-        JSON.stringify({ error: "type, city, and country are required" }),
+        JSON.stringify({ error: "type and city are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+    // Default country to city name for search if not provided
+    if (!request.country) {
+      request.country = request.city;
     }
 
     const cacheKey = generateCacheKey(request);
