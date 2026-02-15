@@ -14,17 +14,17 @@ export const VaccineGuidance = ({ vaccines }: VaccineGuidanceProps) => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Vaccine Recommendations</h3>
-      <div className="divide-y divide-border/50 rounded-lg border border-border/50 bg-card/50">
+      <ul className="space-y-2">
         {vaccines.map((vaccine, index) => (
-          <div key={index} className="flex items-start gap-3 px-4 py-3">
-            <Syringe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-            <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-              <p className="font-medium text-sm shrink-0">{vaccine.vaccine}</p>
-              <p className="text-sm text-muted-foreground">{vaccine.recommendation}</p>
-            </div>
-          </div>
+          <li key={index} className="flex items-baseline gap-2 text-sm">
+            <Syringe className="w-3.5 h-3.5 text-primary flex-shrink-0 translate-y-0.5" />
+            <span>
+              <span className="font-semibold">{vaccine.vaccine}</span>
+              <span className="text-muted-foreground"> — {vaccine.recommendation}</span>
+            </span>
+          </li>
         ))}
-      </div>
+      </ul>
       <p className="text-xs text-muted-foreground/70">
         Consult a travel health professional for personalized advice before your trip.
       </p>
