@@ -40,7 +40,7 @@ export const HighlightsCuratedTours = ({
         {sectionTitle}
       </h3>
       <p className="text-sm text-muted-foreground mb-5">
-        {sectionSubtitle}
+      If this feels like your kind of journey, here is how to begin.
       </p>
 
       <div className="space-y-3">

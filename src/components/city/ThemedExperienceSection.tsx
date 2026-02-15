@@ -35,6 +35,9 @@ export const ThemedExperienceSection = ({
 
   return (
     <div className="space-y-14">
+      <p className="text-sm text-muted-foreground italic -mb-8">
+        Here are the experiences that bring this feeling to life.
+      </p>
       {themes.map((theme, ti) => {
         const themeExperiences = theme.experienceIndices
           .filter((idx) => idx !== featuredIndex && idx < experiences.length)
@@ -43,13 +46,15 @@ export const ThemedExperienceSection = ({
         if (themeExperiences.length === 0) return null;
 
         return (
-          <section key={ti}>
+          <section key={ti} data-scroll-fade>
             <h2 className="text-xl md:text-2xl font-display font-semibold mb-6 text-foreground">
               {theme.themeLabel}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {themeExperiences.map((exp, i) => (
-                <ExperienceCard key={i} experience={exp} city={city} country={country} />
+                <div key={i} data-scroll-fade>
+                  <ExperienceCard experience={exp} city={city} country={country} />
+                </div>
               ))}
             </div>
           </section>
