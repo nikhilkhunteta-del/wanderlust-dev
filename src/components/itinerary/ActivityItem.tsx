@@ -9,69 +9,74 @@ interface ActivityItemProps {
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  culture: <Camera className="w-4 h-4" />,
-  nature: <Mountain className="w-4 h-4" />,
-  food: <Utensils className="w-4 h-4" />,
-  adventure: <Sparkles className="w-4 h-4" />,
-  relaxation: <Sparkles className="w-4 h-4" />,
-  shopping: <ShoppingBag className="w-4 h-4" />,
-  nightlife: <Moon className="w-4 h-4" />,
+  culture: <Camera className="w-3.5 h-3.5" />,
+  nature: <Mountain className="w-3.5 h-3.5" />,
+  food: <Utensils className="w-3.5 h-3.5" />,
+  adventure: <Sparkles className="w-3.5 h-3.5" />,
+  relaxation: <Sparkles className="w-3.5 h-3.5" />,
+  shopping: <ShoppingBag className="w-3.5 h-3.5" />,
+  nightlife: <Moon className="w-3.5 h-3.5" />,
 };
 
 export const ActivityItem = ({ activity, city, country }: ActivityItemProps) => {
-  const icon = categoryIcons[activity.category] || <MapPin className="w-4 h-4" />;
+  const icon = categoryIcons[activity.category] || <MapPin className="w-3.5 h-3.5" />;
   const showTourLink = city && shouldShowTourLink(activity.title);
 
   return (
-    <div className="flex gap-3 py-3 group hover:bg-background/50 rounded-lg px-2 -mx-2 transition-colors">
-      <div className="flex-shrink-0 w-16 text-xs text-muted-foreground font-medium flex items-start gap-1.5 pt-1">
-        <Clock className="w-3 h-3" />
+    <div className="flex gap-3 py-2.5 group">
+      {/* Time */}
+      <div className="flex-shrink-0 w-14 text-[11px] text-muted-foreground/60 font-medium pt-1.5">
         {activity.time}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start gap-2.5">
-          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-background border border-border/50 text-muted-foreground group-hover:text-primary group-hover:border-primary/30 flex items-center justify-center transition-colors shadow-sm">
-            {icon}
-          </div>
-          <div className="flex-1 min-w-0 pt-0.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="font-medium text-foreground leading-tight group-hover:text-primary transition-colors">
-                {activity.title}
-              </h4>
-              {activity.isMustDo && (
-                <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20">
-                  <Star className="w-3 h-3 fill-primary" />
-                  Must-do
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground mt-0.5 leading-snug line-clamp-2">
-              {activity.description}
-            </p>
-            {activity.location && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70 mt-1">
-                <MapPin className="w-2.5 h-2.5" />
-                {activity.location}
-              </span>
-            )}
-            {activity.seasonalNote && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 mt-1 bg-amber-500/5 px-2 py-0.5 rounded-full">
-                <Leaf className="w-2.5 h-2.5" />
-                {activity.seasonalNote}
-              </span>
-            )}
-            {showTourLink && (
-              <a
-                href={getYourGuideSearchUrl(activity.title, city!, country)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-primary mt-1.5 transition-colors"
-              >
-                Check availability
-                <ExternalLink className="w-2.5 h-2.5" />
-              </a>
-            )}
-          </div>
+
+      {/* Icon dot */}
+      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-muted/50 border border-border/30 text-muted-foreground/60 group-hover:text-primary/70 group-hover:border-primary/20 flex items-center justify-center transition-colors">
+        {icon}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pt-0.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Title — strong */}
+          <h4 className="font-medium text-sm text-foreground leading-tight">
+            {activity.title}
+          </h4>
+          {activity.isMustDo && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-md font-semibold">
+              <Star className="w-2.5 h-2.5 fill-primary" />
+              Highlight
+            </span>
+          )}
+        </div>
+        {/* Description — subtle */}
+        <p className="text-xs text-muted-foreground/60 mt-0.5 leading-relaxed line-clamp-2">
+          {activity.description}
+        </p>
+        {/* Meta — very subtle */}
+        <div className="flex items-center gap-3 mt-1 flex-wrap">
+          {activity.location && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/40">
+              <MapPin className="w-2 h-2" />
+              {activity.location}
+            </span>
+          )}
+          {activity.seasonalNote && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-amber-600/70 dark:text-amber-400/70">
+              <Leaf className="w-2 h-2" />
+              {activity.seasonalNote}
+            </span>
+          )}
+          {showTourLink && (
+            <a
+              href={getYourGuideSearchUrl(activity.title, city!, country)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/40 hover:text-primary transition-colors"
+            >
+              Check availability
+              <ExternalLink className="w-2 h-2" />
+            </a>
+          )}
         </div>
       </div>
     </div>
