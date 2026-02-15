@@ -1,7 +1,5 @@
 import { SignatureExperience } from "@/types/cityHighlights";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
-import { ExternalLink } from "lucide-react";
-import { getYourGuideSearchUrl, shouldShowTourLink } from "@/lib/getYourGuideLinks";
 
 interface FeaturedExperienceCardProps {
   experience: SignatureExperience;
@@ -10,9 +8,6 @@ interface FeaturedExperienceCardProps {
 }
 
 export const FeaturedExperienceCard = ({ experience, city, country }: FeaturedExperienceCardProps) => {
-  const showTourLink = shouldShowTourLink(experience.title);
-  const tourUrl = getYourGuideSearchUrl(experience.title, city, country);
-
   return (
     <section className="mb-14">
       <article className="group relative rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
@@ -38,20 +33,9 @@ export const FeaturedExperienceCard = ({ experience, city, country }: FeaturedEx
           <h3 className="text-2xl md:text-3xl font-display font-semibold text-white mb-2">
             {experience.title}
           </h3>
-          <p className="text-white/85 text-sm md:text-base leading-relaxed max-w-2xl mb-3">
+          <p className="text-white/85 text-sm md:text-base leading-relaxed max-w-2xl">
             {experience.description}
           </p>
-          {showTourLink && (
-            <a
-              href={tourUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-white/70 hover:text-white transition-colors"
-            >
-              View guided option
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
         </div>
       </article>
     </section>

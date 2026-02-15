@@ -7,6 +7,7 @@ import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { HighlightsCuratedTours } from "./HighlightsCuratedTours";
 import { Loader2 } from "lucide-react";
+import { useScrollFade } from "@/hooks/useScrollFade";
 
 interface HighlightsTabProps {
   city: string;
@@ -23,6 +24,8 @@ export const HighlightsTab = ({
   isLoading,
   error,
 }: HighlightsTabProps) => {
+  const scrollRef = useScrollFade<HTMLDivElement>();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -53,7 +56,7 @@ export const HighlightsTab = ({
   const featuredExperience = highlights.experiences[featuredIndex] ?? highlights.experiences[0];
 
   return (
-    <div>
+    <div ref={scrollRef}>
       {/* Hero Section */}
       <HighlightsHero
         city={city}
@@ -102,7 +105,7 @@ export const HighlightsTab = ({
         />
 
         {/* 5. Action-oriented tours section */}
-        <section className="mt-14">
+        <section className="mt-14" data-scroll-fade>
           <HighlightsCuratedTours
             experiences={highlights.experiences}
             cityName={city}
