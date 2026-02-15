@@ -1,6 +1,12 @@
+import { useState, lazy, Suspense } from "react";
 import { MultiCityItinerary, MultiCityRoute, CityTransition } from "@/types/multiCity";
 import { DayCard } from "./DayCard";
-import { Loader2, Lightbulb, Train, Plane, Bus, Ship, Car, ArrowRight } from "lucide-react";
+import { Loader2, Lightbulb, Train, Plane, Bus, Ship, Car, ArrowRight, Map, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const MultiCityMap = lazy(() =>
+  import("./MultiCityMap").then((m) => ({ default: m.MultiCityMap }))
+);
 
 interface MultiCityItineraryViewProps {
   itinerary: MultiCityItinerary;
@@ -23,6 +29,9 @@ export const MultiCityItineraryView = ({
   isLoading,
   error,
 }: MultiCityItineraryViewProps) => {
+  const [showMap, setShowMap] = useState(false);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -44,9 +53,7 @@ export const MultiCityItineraryView = ({
       <div className="flex items-center justify-center py-24">
         <div className="text-center max-w-md">
           <p className="text-destructive mb-2">Failed to generate multi-city itinerary</p>
-          <p className="text-muted-foreground text-sm">
-            {error.message}
-          </p>
+          <p className="text-muted-foreground text-sm">{error.message}</p>
         </div>
       </div>
     );
@@ -72,27 +79,75 @@ export const MultiCityItineraryView = ({
 
   return (
     <div className="space-y-5">
-      {/* Route overview strip */}
-      <div className="flex items-center gap-2 flex-wrap px-1 mb-2">
-        {route.stops.map((stop, i) => (
-          <div key={stop.city} className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-primary-foreground ${
-                  i === 0 ? "bg-primary" : "bg-violet-500"
-                }`}
-              >
-                {i + 1}
+      {/* Route overview strip + map toggle */}
+      <div className="flex items-center justify-between gap-3 flex-wrap px-1 mb-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {route.stops.map((stop, i) => (
+            <div key={stop.city} className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-primary-foreground ${
+                    i === 0 ? "bg-primary" : "bg-violet-500"
+                  }`}
+                >
+                  {i + 1}
+                </div>
+                <span className="text-sm font-medium">{stop.city}</span>
+                <span className="text-xs text-muted-foreground">({stop.days}d)</span>
               </div>
-              <span className="text-sm font-medium">{stop.city}</span>
-              <span className="text-xs text-muted-foreground">({stop.days}d)</span>
+              {i < route.stops.length - 1 && (
+                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+              )}
             </div>
-            {i < route.stops.length - 1 && (
-              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40" />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+        <Button
+          variant={showMap ? "default" : "outline"}
+          size="sm"
+          className="gap-2 shadow-sm"
+          onClick={() => setShowMap(!showMap)}
+        >
+          {showMap ? <List className="w-4 h-4" /> : <Map className="w-4 h-4" />}
+          {showMap ? "List view" : "Map view"}
+        </Button>
       </div>
+
+      {/* Map View */}
+      {showMap && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="text-sm text-muted-foreground">Show:</span>
+            <Button
+              variant={selectedCity === null ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs px-2.5"
+              onClick={() => setSelectedCity(null)}
+            >
+              All cities
+            </Button>
+            {route.stops.map((stop) => (
+              <Button
+                key={stop.city}
+                variant={selectedCity === stop.city ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs px-2.5"
+                onClick={() => setSelectedCity(stop.city)}
+              >
+                {stop.city}
+              </Button>
+            ))}
+          </div>
+          <Suspense
+            fallback={
+              <div className="h-[420px] bg-muted/30 rounded-xl flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            }
+          >
+            <MultiCityMap route={route} days={itinerary.days} selectedCity={selectedCity} />
+          </Suspense>
+        </div>
+      )}
 
       {/* City groups with days */}
       {cityGroups.map((group, groupIndex) => {
