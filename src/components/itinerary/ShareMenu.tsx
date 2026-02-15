@@ -27,9 +27,9 @@ function formatItineraryText(itinerary: CityItinerary, cityName: string, tripDur
     }
     text += `${"-".repeat(30)}\n`;
 
-    for (const slot of day.slots) {
+    for (const slot of (day.slots ?? [])) {
       text += `\n  ${slot.period.toUpperCase()}\n`;
-      for (const activity of slot.activities) {
+      for (const activity of (slot.activities ?? [])) {
         text += `    ${activity.time} — ${activity.title}\n`;
         text += `    ${activity.description}\n`;
         if (activity.location) text += `    📍 ${activity.location}\n`;
