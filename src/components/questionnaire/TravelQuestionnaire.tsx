@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Header } from '@/components/shared/Header';
 import { ProgressIndicator } from './ProgressIndicator';
 import { QuestionCard } from './QuestionCard';
 import { MultiSelectQuestion } from './MultiSelectQuestion';
 import { SingleSelectQuestion } from './SingleSelectQuestion';
 import { SliderQuestion } from './SliderQuestion';
-import { DropdownQuestion } from './DropdownQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { QUESTIONS, TravelPreferences } from '@/types/questionnaire';
 import { buildTravelProfile } from '@/lib/profileBuilder';
@@ -29,6 +29,7 @@ const initialPreferences: TravelPreferences = {
 export const TravelQuestionnaire = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
 
   const currentQuestion = QUESTIONS[currentStep];
@@ -53,14 +54,15 @@ export const TravelQuestionnaire = () => {
     if (isLastStep) {
       const profile = buildTravelProfile(preferences);
       console.log('Travel Profile:', profile);
-      // Navigate to results page with the profile
       navigate('/results', { state: { profile } });
     } else {
+      setDirection(1);
       setCurrentStep((prev) => prev + 1);
     }
   };
 
   const handleBack = () => {
+    setDirection(-1);
     setCurrentStep((prev) => prev - 1);
   };
 
@@ -74,6 +76,7 @@ export const TravelQuestionnaire = () => {
             options={currentQuestion.options!}
             selected={value as string[]}
             onChange={updatePreference}
+            grouped={currentQuestion.grouped}
           />
         );
       case 'single-select':
@@ -92,14 +95,6 @@ export const TravelQuestionnaire = () => {
             onChange={updatePreference}
           />
         );
-      case 'dropdown':
-        return (
-          <DropdownQuestion
-            options={currentQuestion.options!}
-            value={value as string}
-            onChange={updatePreference}
-          />
-        );
       case 'text-input':
         return (
           <TextInputQuestion
@@ -112,14 +107,10 @@ export const TravelQuestionnaire = () => {
         return null;
     }
   };
+
   return (
     <div className="min-h-screen flex flex-col gradient-warm">
-      {/* Header */}
-      <Header
-        rightContent={
-          <span>~{Math.ceil((QUESTIONS.length - currentStep) * 9)} sec remaining</span>
-        }
-      />
+      <Header />
 
       {/* Progress */}
       <div className="px-4 pb-8">
@@ -128,13 +119,25 @@ export const TravelQuestionnaire = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 pb-8">
-        <QuestionCard
-          questionNumber={currentStep + 1}
-          totalQuestions={QUESTIONS.length}
-          questionText={currentQuestion.questionText}
-        >
-          {renderQuestion()}
-        </QuestionCard>
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={currentStep}
+            custom={direction}
+            initial={{ opacity: 0, y: direction > 0 ? 12 : -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: direction > 0 ? -12 : 12 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            <QuestionCard
+              questionNumber={currentStep + 1}
+              totalQuestions={QUESTIONS.length}
+              questionText={currentQuestion.questionText}
+              subtitle={currentQuestion.subtitle}
+            >
+              {renderQuestion()}
+            </QuestionCard>
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Navigation */}
@@ -165,8 +168,8 @@ export const TravelQuestionnaire = () => {
           >
             {isLastStep ? (
               <>
-                Find My Destinations
-                <Check className="w-5 h-5" />
+                Design my journey
+                <Sparkles className="w-5 h-5" />
               </>
             ) : (
               <>
