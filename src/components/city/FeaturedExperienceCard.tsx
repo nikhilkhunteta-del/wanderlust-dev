@@ -1,16 +1,32 @@
 import { SignatureExperience } from "@/types/cityHighlights";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
+import { Bookmark } from "lucide-react";
 
 interface FeaturedExperienceCardProps {
   experience: SignatureExperience;
   city: string;
   country: string;
+  isSaved?: boolean;
+  onToggleSave?: (title: string) => void;
 }
 
-export const FeaturedExperienceCard = ({ experience, city, country }: FeaturedExperienceCardProps) => {
+export const FeaturedExperienceCard = ({ experience, city, country, isSaved, onToggleSave }: FeaturedExperienceCardProps) => {
   return (
     <section className="mb-14">
       <article className="group relative rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+        {/* Save button */}
+        {onToggleSave && (
+          <button
+            onClick={() => onToggleSave(experience.title)}
+            aria-label={isSaved ? "Remove from saved" : "Save for later"}
+            className="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+          >
+            <Bookmark
+              className={`w-5 h-5 transition-colors ${isSaved ? "fill-primary text-primary" : "text-white"}`}
+            />
+          </button>
+        )}
+
         <div className="aspect-[21/9] md:aspect-[3/1] overflow-hidden">
           <ResolvedImage
             request={{

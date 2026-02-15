@@ -8,6 +8,7 @@ import { VibeStrip } from "./VibeStrip";
 import { HighlightsCuratedTours } from "./HighlightsCuratedTours";
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
+import { useSavedExperiences } from "@/hooks/useSavedExperiences";
 
 interface HighlightsTabProps {
   city: string;
@@ -25,6 +26,7 @@ export const HighlightsTab = ({
   error,
 }: HighlightsTabProps) => {
   const scrollRef = useScrollFade<HTMLDivElement>();
+  const { isSaved, toggle } = useSavedExperiences(city, country);
 
   if (isLoading) {
     return (
@@ -92,6 +94,8 @@ export const HighlightsTab = ({
             experience={featuredExperience}
             city={city}
             country={country}
+            isSaved={isSaved(featuredExperience.title)}
+            onToggleSave={toggle}
           />
         )}
 
@@ -102,6 +106,8 @@ export const HighlightsTab = ({
           featuredIndex={featuredIndex}
           city={city}
           country={country}
+          isSaved={isSaved}
+          onToggleSave={toggle}
         />
 
         {/* 5. Action-oriented tours section */}
