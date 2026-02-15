@@ -7,6 +7,8 @@ interface ThemedExperienceSectionProps {
   featuredIndex: number;
   city: string;
   country: string;
+  isSaved?: (title: string) => boolean;
+  onToggleSave?: (title: string) => void;
 }
 
 export const ThemedExperienceSection = ({
@@ -15,6 +17,8 @@ export const ThemedExperienceSection = ({
   featuredIndex,
   city,
   country,
+  isSaved,
+  onToggleSave,
 }: ThemedExperienceSectionProps) => {
   // If no themes provided, fall back to flat grid (excluding featured)
   if (!themes || themes.length === 0) {
@@ -26,7 +30,7 @@ export const ThemedExperienceSection = ({
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {remaining.map((exp, i) => (
-            <ExperienceCard key={i} experience={exp} city={city} country={country} />
+            <ExperienceCard key={i} experience={exp} city={city} country={country} isSaved={isSaved?.(exp.title)} onToggleSave={onToggleSave} />
           ))}
         </div>
       </section>
@@ -53,7 +57,7 @@ export const ThemedExperienceSection = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {themeExperiences.map((exp, i) => (
                 <div key={i} data-scroll-fade>
-                  <ExperienceCard experience={exp} city={city} country={country} />
+                  <ExperienceCard experience={exp} city={city} country={country} isSaved={isSaved?.(exp.title)} onToggleSave={onToggleSave} />
                 </div>
               ))}
             </div>
