@@ -281,8 +281,8 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
         /* ── Single-City Journey ── */
         <div className="flex gap-6 lg:gap-8">
           <div className="flex-1 min-w-0 space-y-4">
-            {/* Day Selector Chips */}
-            <div className="sticky top-[120px] z-10 bg-background/95 backdrop-blur-sm py-3 -mx-1 px-1 border-b border-border/30 mb-2">
+            {/* Day Selector Chips — mobile only (desktop uses right rail) */}
+            <div className="sticky top-[120px] z-10 bg-background/95 backdrop-blur-sm py-3 -mx-1 px-1 border-b border-border/30 mb-2 xl:hidden">
               <DaySelector
                 days={itinerary.days}
                 selectedDay={selectedDay}
