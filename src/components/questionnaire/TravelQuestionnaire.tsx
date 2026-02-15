@@ -8,6 +8,7 @@ import { ProgressIndicator } from './ProgressIndicator';
 import { QuestionCard } from './QuestionCard';
 import { MultiSelectQuestion } from './MultiSelectQuestion';
 import { SingleSelectQuestion } from './SingleSelectQuestion';
+import { MonthGridQuestion } from './MonthGridQuestion';
 import { SliderQuestion } from './SliderQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { QUESTIONS, TravelPreferences } from '@/types/questionnaire';
@@ -80,6 +81,15 @@ export const TravelQuestionnaire = () => {
           />
         );
       case 'single-select':
+        if (currentQuestion.id === 'travelMonth') {
+          return (
+            <MonthGridQuestion
+              options={currentQuestion.options!}
+              selected={value as string}
+              onChange={updatePreference}
+            />
+          );
+        }
         return (
           <SingleSelectQuestion
             options={currentQuestion.options!}

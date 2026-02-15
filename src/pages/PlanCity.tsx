@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Sparkles, MapPin, Search } from "lucide-reac
 import { TextInputQuestion } from "@/components/questionnaire/TextInputQuestion";
 import { MultiSelectQuestion } from "@/components/questionnaire/MultiSelectQuestion";
 import { SingleSelectQuestion } from "@/components/questionnaire/SingleSelectQuestion";
+import { MonthGridQuestion } from "@/components/questionnaire/MonthGridQuestion";
 import { SliderQuestion } from "@/components/questionnaire/SliderQuestion";
 import { QuestionCard } from "@/components/questionnaire/QuestionCard";
 import { ProgressIndicator } from "@/components/questionnaire/ProgressIndicator";
@@ -115,6 +116,15 @@ const PlanCity = () => {
           />
         );
       case "single-select":
+        if (currentQuestion.id === "travelMonth") {
+          return (
+            <MonthGridQuestion
+              options={currentQuestion.options!}
+              selected={value as string}
+              onChange={updatePreference}
+            />
+          );
+        }
         return (
           <SingleSelectQuestion
             options={currentQuestion.options!}
