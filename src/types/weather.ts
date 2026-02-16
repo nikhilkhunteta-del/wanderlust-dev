@@ -3,6 +3,8 @@ export interface WeatherStats {
   avgLowTemp: number;
   sunshineHours: number;
   totalRainfall: number;
+  humidity: number;
+  rainyDays: number;
   unit: "celsius" | "fahrenheit";
 }
 
@@ -29,16 +31,48 @@ export interface WeatherInsight {
 export interface PackingTip {
   icon: string;
   tip: string;
+  category: "clothing" | "sun" | "health";
+}
+
+export interface WeatherRisk {
+  risk: string;
+  severity: "low" | "moderate" | "high";
+  detail: string;
+}
+
+export interface SensoryPeriod {
+  period: "morning" | "afternoon" | "evening";
+  description: string;
+}
+
+export interface ChartSummary {
+  warmestWeek: string;
+  coolestMornings: string;
+  rainLikelihood: string;
+  outdoorComfortScore: number;
+}
+
+export interface MonthRanking {
+  rank: number;
+  totalMonths: number;
+  rating: "excellent" | "good" | "mixed" | "poor";
+  confidence: "high" | "moderate" | "low";
+  avoidMonths: string;
 }
 
 export interface CityWeather {
   verdict: string;
+  monthRanking: MonthRanking;
   stats: WeatherStats;
   dailyData: DailyWeather[];
   weeklyData: WeeklyWeather[];
+  chartSummary: ChartSummary;
   insights: WeatherInsight[];
+  weatherRisks: WeatherRisk[];
+  sensoryNarrative: SensoryPeriod[];
   bestTimeToVisit: string;
   packingTips: PackingTip[];
+  notNeeded: string[];
 }
 
 export interface WeatherRequest {
