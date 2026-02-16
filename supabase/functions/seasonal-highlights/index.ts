@@ -46,49 +46,60 @@ serve(async (req) => {
 
     const systemPrompt = `You are a travel content expert specializing in seasonal events, festivals, and unique experiences around the world.
 
-Your task is to identify 2-4 special experiences a traveler might catch during a specific month in a city. These can include:
-- Festivals and cultural celebrations
-- Religious events and holidays
-- Natural phenomena (cherry blossoms, northern lights, migrations, etc.)
-- Seasonal food and harvest festivals
-- Music festivals and cultural events
-- City traditions and local celebrations
+Your task is to identify 4-6 special experiences a traveler might catch during a specific month in a city. These MUST be time-sensitive — things that are special BECAUSE of the month, not generic year-round attractions.
+
+Each experience must be categorized into one of three sections:
+- "festivals_cultural": Festivals, cultural celebrations, religious events, music events, local traditions
+- "food_traditions": Seasonal food, harvest festivals, seasonal markets, culinary traditions
+- "weather_driven": Natural phenomena, weather-dependent activities, seasonal landscapes, outdoor experiences best this month
+
+Each experience must include an urgency level:
+- "only_this_month": Happens exclusively during this month
+- "best_this_month": Available other times but peaks or is best now
+- "short_window": Brief seasonal window that includes this month
+- null: Year-round but has seasonal character
+
+Each experience must include a "whySeasonal" field: one sentence explaining WHY this is special during this specific month (not a generic description).
 
 RULES:
 - Be specific to the city or region, not generic
 - Events must occur or peak during the specified month
-- If no major seasonal events exist for that month, select distinctive year-round experiences and label them 'year-round'
-- Provide accurate timing labels (e.g., 'early April', 'mid December', 'year-round')
+- Do NOT include generic tourist attractions — only time-sensitive experiences
+- Aim for at least one item per section
+- Provide accurate timing labels (e.g., 'early April', 'mid December')
 - Include Wikipedia URLs when they exist, otherwise leave null
-- Generate proper Google search URLs for each event
 
 Respond with ONLY valid JSON in this exact format:
 {
   "openingStatement": "One engaging sentence about what travelers visiting in [month] might experience",
+  "monthSummary": "A concise editorial sentence: '[Month] is one of the best times to visit [City] for [2-3 unique seasonal advantages].'",
   "highlights": [
     {
       "title": "Event or experience name",
-      "timing": "Specific timing (e.g., 'late March', 'first week of July', 'year-round')",
+      "timing": "Specific timing (e.g., 'Early February', 'Mid-month', 'Whole month')",
       "category": "cultural|natural|food|religious|music|other",
-      "description": "1-2 sentences explaining what this is and why it's special",
+      "section": "festivals_cultural|food_traditions|weather_driven",
+      "description": "1-2 sentences explaining what this is",
+      "whySeasonal": "One sentence: why THIS month makes it special",
+      "urgency": "only_this_month|best_this_month|short_window|null",
       "imageQuery": "descriptive search term for a representative photo",
-      "wikipediaUrl": "https://en.wikipedia.org/wiki/... or null if no page exists",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/... or null",
       "officialUrl": "Official event website or null",
       "googleSearchUrl": "https://www.google.com/search?q=..."
     }
   ]
 }`;
 
-    const userPrompt = `Find 2-4 seasonal highlights for travelers visiting ${requestData.city}, ${requestData.country} during ${monthName}.
+    const userPrompt = `Find 4-6 seasonal highlights for travelers visiting ${requestData.city}, ${requestData.country} during ${monthName}.
 
-Include festivals, cultural events, natural phenomena, seasonal foods, or traditions that:
-1. Are specific to ${requestData.city} or its region
-2. Occur or are best experienced in ${monthName}
-3. Would enhance a traveler's experience
+Focus on time-sensitive experiences:
+1. Festivals, celebrations, or cultural events happening in ${monthName}
+2. Seasonal food, markets, or culinary traditions specific to ${monthName}
+3. Weather-driven experiences that are best or only possible in ${monthName}
 
-If there are no major events in ${monthName}, include distinctive year-round experiences that are quintessential to ${requestData.city}.
+Every item must answer: "Why is this special DURING ${monthName}?"
 
-For each highlight, provide accurate timing, a compelling description, and working links.`;
+Do NOT include generic year-round attractions. Each highlight must have clear seasonal relevance.`;
 
     console.log("Sending prompt to AI gateway...");
 

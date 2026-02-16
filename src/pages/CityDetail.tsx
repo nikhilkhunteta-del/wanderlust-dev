@@ -185,9 +185,9 @@ const CityDetail = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="seasonal"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Seasonal
+                What's On
               </TabsTrigger>
               <TabsTrigger
                 value="weather"
@@ -248,6 +248,7 @@ const CityDetail = () => {
             city={city.city}
             country={city.country}
             travelMonth={profile.travelMonth}
+            onSwitchTab={handleTabChange}
           />
         </TabsContent>
 
