@@ -5,6 +5,9 @@ import { WeatherStats } from "./WeatherStats";
 import { WeatherCharts } from "./WeatherCharts";
 import { WeeklyInsights } from "./WeeklyInsights";
 import { PackingTips } from "./PackingTips";
+import { WeatherWatch } from "./WeatherWatch";
+import { SensoryNarrative } from "./SensoryNarrative";
+import { MonthComparison } from "./MonthComparison";
 import { TemperatureToggle, TemperatureUnit } from "./TemperatureToggle";
 import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, CloudOff } from "lucide-react";
@@ -19,7 +22,7 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
   const [tempUnit, setTempUnit] = useState<TemperatureUnit>("celsius");
   const { data: weather, isLoading, isFetching, error, dataUpdatedAt } = useCityWeather(city, country, travelMonth);
   const initialLoadTime = useRef<number | null>(null);
-  
+
   if (weather && !initialLoadTime.current) {
     initialLoadTime.current = Date.now();
   }
@@ -50,43 +53,51 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
     );
   }
 
-  if (!weather) {
-    return null;
-  }
+  if (!weather) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-8">
-      {/* Verdict with Temperature Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="flex-1">
-          <WeatherVerdict verdict={weather.verdict} month={travelMonth} city={city} />
-        </div>
-        <div className="flex items-center gap-3 sm:pt-4">
+    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-10">
+      {/* Header row: Verdict + controls */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-end gap-3">
           <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
           <TemperatureToggle unit={tempUnit} onUnitChange={setTempUnit} />
         </div>
+        <WeatherVerdict
+          verdict={weather.verdict}
+          month={travelMonth}
+          city={city}
+          monthRanking={weather.monthRanking}
+        />
       </div>
 
-      {/* Key Stats */}
-      <WeatherStats stats={weather.stats} unit={tempUnit} />
+      {/* Travel comfort signals */}
+      <WeatherStats stats={weather.stats} unit={tempUnit} month={travelMonth} />
 
-      {/* Charts and Insights Grid */}
+      {/* Sensory narrative */}
+      <SensoryNarrative periods={weather.sensoryNarrative} month={travelMonth} />
+
+      {/* Charts + Sidebar grid */}
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-        {/* Charts - Takes 2 columns */}
         <div className="lg:col-span-2">
           <WeatherCharts
             dailyData={weather.dailyData}
             weeklyData={weather.weeklyData}
             month={travelMonth}
             unit={tempUnit}
+            chartSummary={weather.chartSummary}
           />
         </div>
-
-        {/* Sidebar - Insights and Packing */}
         <div className="space-y-6">
-          <WeeklyInsights insights={weather.insights} />
-          <PackingTips tips={weather.packingTips} bestTimeToVisit={weather.bestTimeToVisit} />
+          <WeeklyInsights insights={weather.insights} bestTimeToVisit={weather.bestTimeToVisit} />
+          <MonthComparison monthRanking={weather.monthRanking} month={travelMonth} />
         </div>
+      </div>
+
+      {/* Weather Watch & Packing */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <WeatherWatch risks={weather.weatherRisks} />
+        <PackingTips tips={weather.packingTips} notNeeded={weather.notNeeded} />
       </div>
     </div>
   );
