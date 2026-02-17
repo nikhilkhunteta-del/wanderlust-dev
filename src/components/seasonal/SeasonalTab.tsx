@@ -1,10 +1,9 @@
 import { useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useSeasonalHighlights } from "@/hooks/useCityData";
 import { SeasonalEventCard } from "./SeasonalEventCard";
 import { DataFreshness } from "@/components/shared/DataFreshness";
-import { SeasonalHighlight, SeasonalSection } from "@/types/seasonalHighlights";
-import { Loader2, Sparkles, PartyPopper, Utensils, Sun, ArrowRight } from "lucide-react";
+import { SeasonalItem, SeasonalSection } from "@/types/seasonalHighlights";
+import { Loader2, Sparkles, PartyPopper, Utensils, Sun, ArrowRight, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SeasonalTabProps {
@@ -28,7 +27,7 @@ const SECTION_CONFIG: Record<SeasonalSection, { title: string; icon: React.React
     description: "Celebrations, traditions, and cultural events happening now",
   },
   food_traditions: {
-    title: "Seasonal Food & Local Traditions",
+    title: "Seasonal Food & Traditions",
     icon: <Utensils className="w-5 h-5" />,
     description: "Flavors and customs unique to this time of year",
   },
@@ -44,11 +43,7 @@ const SECTION_ORDER: SeasonalSection[] = ["festivals_cultural", "food_traditions
 export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: SeasonalTabProps) => {
   const { data, isLoading, isFetching, error, dataUpdatedAt } = useSeasonalHighlights(city, country, travelMonth);
   const monthDisplay = MONTH_DISPLAY[travelMonth] || travelMonth;
-  const initialLoadTime = useRef<number | null>(null);
 
-  if (data && !initialLoadTime.current) {
-    initialLoadTime.current = Date.now();
-  }
   const isFromCache = data && !isLoading && dataUpdatedAt < Date.now() - 100;
 
   if (isLoading) {
@@ -57,7 +52,7 @@ export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: Seasona
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Finding what's happening in {monthDisplay}…
+            Searching for verified events in {monthDisplay}…
           </p>
         </div>
       </div>
@@ -81,17 +76,22 @@ export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: Seasona
     return null;
   }
 
-  // Group highlights by section
-  const grouped: Record<SeasonalSection, SeasonalHighlight[]> = {
+  // Group items by section
+  const grouped: Record<SeasonalSection, SeasonalItem[]> = {
     festivals_cultural: [],
     food_traditions: [],
     weather_driven: [],
   };
 
-  for (const h of data.highlights) {
-    const section = h.section && grouped[h.section] ? h.section : "festivals_cultural";
-    grouped[section].push(h);
+  for (const item of data.items) {
+    const section = item.section && grouped[item.section] ? item.section : "festivals_cultural";
+    grouped[section].push(item);
   }
+
+  const fetchedDate = data.fetchedAt ? new Date(data.fetchedAt) : null;
+  const lastCheckedStr = fetchedDate
+    ? fetchedDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : null;
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
@@ -104,29 +104,40 @@ export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: Seasona
             </div>
             <div>
               <h2 className="text-2xl font-display font-semibold text-foreground">
-                What's Happening in {monthDisplay}
+                What's On in {monthDisplay}
               </h2>
               <p className="text-muted-foreground text-sm">
-                Time-sensitive experiences you won't want to miss
+                Source-verified events and experiences
               </p>
             </div>
           </div>
-          <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
+          <div className="flex items-center gap-3">
+            {lastCheckedStr && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="w-3 h-3" />
+                Last checked: {lastCheckedStr}
+              </span>
+            )}
+            <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
+          </div>
         </div>
 
-        {/* Month summary insight */}
-        {data.monthSummary && (
-          <div className="bg-accent/40 border border-accent rounded-xl px-5 py-4 mt-4">
-            <p className="text-base text-foreground/85 leading-relaxed italic">
-              {data.monthSummary}
+        {/* Status banner for degraded */}
+        {data.status === "degraded" && (
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-5 py-3 mt-4 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Some results may be less reliable — primary search returned limited results.
             </p>
           </div>
         )}
 
-        {/* Opening statement */}
-        <p className="text-lg text-foreground/75 leading-relaxed max-w-3xl mt-4">
-          {data.openingStatement}
-        </p>
+        {/* Month opener */}
+        {data.monthOpener && (
+          <p className="text-lg text-foreground/75 leading-relaxed max-w-3xl mt-4">
+            {data.monthOpener}
+          </p>
+        )}
       </div>
 
       {/* Grouped sections */}
@@ -145,8 +156,8 @@ export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: Seasona
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {items.map((highlight, index) => (
-                <SeasonalEventCard key={index} highlight={highlight} city={city} country={country} />
+              {items.map((item, index) => (
+                <SeasonalEventCard key={index} item={item} city={city} country={country} />
               ))}
             </div>
           </section>
@@ -154,33 +165,32 @@ export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: Seasona
       })}
 
       {/* Empty state */}
-      {data.highlights.length === 0 && (
+      {data.items.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
-          <p>No specific seasonal events found for {monthDisplay}.</p>
+          <p className="font-medium">No major verified events found for {monthDisplay}.</p>
           <p className="text-sm mt-1">Check the Highlights tab for year-round experiences.</p>
         </div>
       )}
 
       {/* CTA to itinerary */}
-      <div className="mt-8 border-t border-border/50 pt-8">
-        <div className="bg-gradient-to-r from-accent/60 to-accent/30 rounded-xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h4 className="text-lg font-semibold text-foreground mb-1">
-              Plan your days around these {monthDisplay} moments
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              See how these experiences fit into a day-by-day itinerary.
-            </p>
+      {data.items.length > 0 && (
+        <div className="mt-8 border-t border-border/50 pt-8">
+          <div className="bg-gradient-to-r from-accent/60 to-accent/30 rounded-xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 className="text-lg font-semibold text-foreground mb-1">
+                Plan your days around these {monthDisplay} moments
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                See how these experiences fit into a day-by-day itinerary.
+              </p>
+            </div>
+            <Button onClick={() => onSwitchTab?.("itinerary")} className="gap-2 shrink-0">
+              View Itinerary
+              <ArrowRight className="w-4 h-4" />
+            </Button>
           </div>
-          <Button
-            onClick={() => onSwitchTab?.("itinerary")}
-            className="gap-2 shrink-0"
-          >
-            View Itinerary
-            <ArrowRight className="w-4 h-4" />
-          </Button>
         </div>
-      </div>
+      )}
     </div>
   );
 };

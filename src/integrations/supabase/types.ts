@@ -80,6 +80,42 @@ export type Database = {
         }
         Relationships: []
       }
+      seasonal_cache: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          fetched_at: string
+          id: string
+          items_json: Json
+          month: number
+          status: string
+          year: number
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          items_json?: Json
+          month: number
+          status?: string
+          year: number
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          items_json?: Json
+          month?: number
+          status?: string
+          year?: number
+        }
+        Relationships: []
+      }
       situational_cache: {
         Row: {
           city: string

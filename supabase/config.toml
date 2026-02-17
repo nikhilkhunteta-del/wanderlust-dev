@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.situational-cache-write]
 verify_jwt = false
+
+[functions.seasonal-search]
+verify_jwt = false
