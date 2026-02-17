@@ -80,6 +80,45 @@ export type Database = {
         }
         Relationships: []
       }
+      situational_cache: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          events_json: Json
+          fetched_at: string
+          id: string
+          month: number
+          sources_json: Json
+          status: string
+          year: number
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          events_json?: Json
+          fetched_at?: string
+          id?: string
+          month: number
+          sources_json?: Json
+          status?: string
+          year: number
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          events_json?: Json
+          fetched_at?: string
+          id?: string
+          month?: number
+          sources_json?: Json
+          status?: string
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
