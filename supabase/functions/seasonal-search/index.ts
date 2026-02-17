@@ -38,15 +38,23 @@ interface RawSource {
 }
 
 interface SeasonalItem {
+  event_id: string;
   title: string;
   date_range: string;
+  start_date: string | null;
+  end_date: string | null;
   category: "festival" | "cultural" | "seasonal_nature" | "seasonal_food" | "sports" | "other";
+  primary_type: string;
+  secondary_tags: string[];
   location: string | null;
   description: string;
+  why_it_matters: string | null;
+  impact_score: number;
   source_name: string;
   source_url: string;
   confidence: "high" | "medium" | "low";
   section: "festivals_cultural" | "food_traditions" | "weather_driven";
+  verified: boolean;
 }
 
 const CACHE_TTL_DAYS = 7;
@@ -278,44 +286,59 @@ async function summarizeWithGemini(
     }))
   );
 
-  const systemPrompt = `You are a travel content editor. Your job is to take RAW SEARCH RESULTS about events/experiences in a city during a specific month and structure them into a clean list.
+  const systemPrompt = `You are a travel content editor. Your job is to take RAW SEARCH RESULTS about events/experiences in a city during a specific month and structure them into a clean, deduplicated list ranked by traveler impact.
 
 CRITICAL RULES:
 - You must ONLY use information from the provided sources
 - NEVER invent event names, dates, or URLs that aren't in the sources
 - NEVER add events not mentioned in the sources
 - Each item MUST reference a source_url from the provided sources
-- If a source doesn't clearly indicate month-specific timing, set confidence to "low"
-- Deduplicate: merge items that refer to the same event
-- Maximum 8 items
+- DEDUPLICATE: If two sources refer to the same real-world event (e.g. "Holi" appearing in multiple sources), merge them into ONE item. Merge tags instead of duplicating.
+- Same title + overlapping dates + same city = single event
+- Maximum 10 items total
+
+For each item, assign an impact_score (0-10):
+- 9-10: Once-in-a-lifetime, city-defining events (major festivals like Holi, Carnival, Oktoberfest)
+- 7-8: Significant events that shape a trip (large cultural celebrations, renowned exhibitions)
+- 4-6: Worth knowing about (concerts, seasonal markets, exhibitions, food events)
+- 1-3: Niche or minor (conferences, workshops, small local meetups)
+
+For items with impact_score >= 7, add a "why_it_matters" field: 1-2 practical sentences about how it affects trip planning (crowds, hotel prices, closures, cultural uniqueness).
 
 Categorize each into a section:
 - "festivals_cultural": Festivals, celebrations, cultural events, music, art
 - "food_traditions": Seasonal food, markets, harvest, culinary traditions
 - "weather_driven": Nature, weather activities, seasonal landscapes, outdoor experiences
 
-Categorize each with a category:
-- "festival", "cultural", "seasonal_nature", "seasonal_food", "sports", "other"
-
 Set confidence:
 - "high": Source explicitly mentions this event in ${monthName} ${year} or annually in ${monthName}
 - "medium": Source mentions the event but timing is approximate
 - "low": Source mentions the city/experience but timing isn't clearly ${monthName}
 
+Generate a stable event_id for each: lowercase, hyphenated, e.g. "holi-festival-jaipur-2026"
+
 Return ONLY valid JSON:
 {
-  "monthOpener": "One sentence about what makes ${monthName} special in ${city}",
+  "monthOpener": "One compelling sentence about what makes ${monthName} special in ${city}",
   "items": [
     {
+      "event_id": "stable-unique-id",
       "title": "Event name (from source)",
       "date_range": "Specific dates or 'All month' (from source)",
+      "start_date": "YYYY-MM-DD or null",
+      "end_date": "YYYY-MM-DD or null",
       "category": "festival|cultural|seasonal_nature|seasonal_food|sports|other",
+      "primary_type": "Festival|Cultural|Food|Experience|Conference|Sports|Nature|Other",
+      "secondary_tags": ["Crowd-heavy", "Family-friendly", "Night-event", "Seasonal"],
       "section": "festivals_cultural|food_traditions|weather_driven",
       "location": "Venue or area (from source, or null)",
       "description": "1-2 sentences (can rephrase source but must be grounded)",
+      "why_it_matters": "Practical trip impact (for impact_score >= 7, else null)",
+      "impact_score": 8,
       "source_name": "Publisher name",
       "source_url": "Exact URL from the source",
-      "confidence": "high|medium|low"
+      "confidence": "high|medium|low",
+      "verified": true
     }
   ]
 }`;
@@ -373,7 +396,7 @@ Structure these into a clean list of seasonal highlights. Remember: use ONLY inf
     });
 
     return {
-      items: validItems.slice(0, 8),
+      items: validItems.slice(0, 10),
       monthOpener: parsed.monthOpener || `Discover what's happening in ${city} during ${monthName}.`,
     };
   } catch (error) {
@@ -387,16 +410,24 @@ function createItemsFromRawSources(
   city: string,
   monthName: string
 ): { items: SeasonalItem[]; monthOpener: string } {
-  const items: SeasonalItem[] = sources.slice(0, 8).map((s) => ({
+  const items: SeasonalItem[] = sources.slice(0, 10).map((s, i) => ({
+    event_id: `raw-${i}-${s.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 30)}`,
     title: s.title,
     date_range: monthName,
+    start_date: null,
+    end_date: null,
     category: "other" as const,
+    primary_type: "Other",
+    secondary_tags: [],
     section: "festivals_cultural" as const,
     location: null,
     description: s.snippet.substring(0, 200),
+    why_it_matters: null,
+    impact_score: 3,
     source_name: s.publisher,
     source_url: s.url,
     confidence: "low" as const,
+    verified: false,
   }));
 
   return {
