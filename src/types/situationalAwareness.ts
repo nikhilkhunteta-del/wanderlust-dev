@@ -1,11 +1,12 @@
 /**
  * Situational Awareness Data Types
  * 
- * Architecture:
- * - Primary source: Perplexity Search API (grounded, cited)
- * - Backup: Firecrawl (Google News scraping)
- * - Caching: 6-hour TTL in situational_cache table
- * - Rule: No factual claim without at least one source URL
+ * Scope: ONLY real-time travel disruptions.
+ * - Transport disruptions (strikes, cancellations, closures)
+ * - Safety/political events (protests, curfews, unrest)
+ * - Natural/environmental hazards (floods, storms, fires, pollution)
+ * 
+ * NOT included: advisories, health, festivals, generic tips.
  */
 
 export type EventCategory =
@@ -13,9 +14,10 @@ export type EventCategory =
   | "safety"
   | "protest"
   | "extreme_weather"
-  | "crowds_closures"
-  | "entry_rules"
+  | "environmental"
   | "other";
+
+export type ImpactLevel = "high" | "medium" | "low";
 
 export type StatusLabel = "Normal" | "Watch" | "Disrupted";
 
@@ -23,19 +25,19 @@ export interface EventSource {
   url: string;
   title: string;
   publisher: string;
-  published_at?: string | null;
 }
 
 export interface SituationalEvent {
   id: string;
   category: EventCategory;
+  impact_level: ImpactLevel;
   severity: number; // 1-5
   confidence: number; // 0-1
   title: string;
-  start_time: string | null;
-  end_time: string | null;
+  summary: string;
+  relevance_to_traveler: string;
+  start_date: string | null;
   affected_areas: string;
-  traveler_impact_summary: string;
   recommended_actions: string[];
   sources: EventSource[];
 }
@@ -63,31 +65,4 @@ export interface SituationalAwarenessRequest {
   city: string;
   country: string;
   travelMonth: string;
-}
-
-// Legacy types kept for compatibility
-export type IssueCategory =
-  | "political"
-  | "security"
-  | "transport"
-  | "weather"
-  | "health"
-  | "natural"
-  | "holiday"
-  | "other";
-
-export type IssueTimeframe = "ongoing" | "expected" | "seasonal";
-
-export interface SituationalIssue {
-  title: string;
-  category: IssueCategory;
-  timeframe: IssueTimeframe;
-  summary: string;
-  sourceUrl: string;
-  sourceName: string;
-}
-
-export interface SeasonalPattern {
-  title: string;
-  description: string;
 }
