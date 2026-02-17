@@ -1,65 +1,68 @@
-import { SeasonalHighlight, SeasonalCategory, SeasonalUrgency } from "@/types/seasonalHighlights";
+import { SeasonalItem, SeasonalCategory, SeasonalConfidence } from "@/types/seasonalHighlights";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Search, Calendar, Sparkles, Leaf, Utensils, Church, Music, Star, Clock, Flame } from "lucide-react";
+import { ExternalLink, Calendar, Sparkles, Leaf, Utensils, Music, Star, Trophy, CheckCircle2, HelpCircle } from "lucide-react";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
 
 interface SeasonalEventCardProps {
-  highlight: SeasonalHighlight;
+  item: SeasonalItem;
   city: string;
   country: string;
 }
 
 const categoryConfig: Record<SeasonalCategory, { label: string; icon: React.ReactNode; color: string }> = {
-  cultural: { 
-    label: "Cultural", 
+  festival: {
+    label: "Festival",
     icon: <Sparkles className="w-3 h-3" />,
-    color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+    color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
   },
-  natural: { 
-    label: "Natural", 
+  cultural: {
+    label: "Cultural",
+    icon: <Star className="w-3 h-3" />,
+    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  },
+  seasonal_nature: {
+    label: "Nature",
     icon: <Leaf className="w-3 h-3" />,
-    color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+    color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
   },
-  food: { 
-    label: "Food", 
+  seasonal_food: {
+    label: "Food",
     icon: <Utensils className="w-3 h-3" />,
-    color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+    color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
   },
-  religious: { 
-    label: "Religious", 
-    icon: <Church className="w-3 h-3" />,
-    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+  sports: {
+    label: "Sports",
+    icon: <Trophy className="w-3 h-3" />,
+    color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
   },
-  music: { 
-    label: "Music", 
-    icon: <Music className="w-3 h-3" />,
-    color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300"
-  },
-  other: { 
-    label: "Experience", 
+  other: {
+    label: "Experience",
     icon: <Star className="w-3 h-3" />,
-    color: "bg-muted text-muted-foreground"
+    color: "bg-muted text-muted-foreground",
   },
 };
 
-const urgencyConfig: Record<NonNullable<SeasonalUrgency>, { label: string; icon: React.ReactNode }> = {
-  only_this_month: {
-    label: "Only this month",
-    icon: <Flame className="w-3 h-3" />,
+const confidenceConfig: Record<SeasonalConfidence, { label: string; icon: React.ReactNode; className: string }> = {
+  high: {
+    label: "Verified",
+    icon: <CheckCircle2 className="w-3 h-3" />,
+    className: "text-green-600 dark:text-green-400",
   },
-  best_this_month: {
-    label: "Best this month",
-    icon: <Star className="w-3 h-3" />,
+  medium: {
+    label: "Likely",
+    icon: <HelpCircle className="w-3 h-3" />,
+    className: "text-amber-600 dark:text-amber-400",
   },
-  short_window: {
-    label: "Short seasonal window",
-    icon: <Clock className="w-3 h-3" />,
+  low: {
+    label: "Unconfirmed",
+    icon: <HelpCircle className="w-3 h-3" />,
+    className: "text-muted-foreground",
   },
 };
 
-export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCardProps) => {
-  const category = categoryConfig[highlight.category] || categoryConfig.other;
-  const urgency = highlight.urgency ? urgencyConfig[highlight.urgency] : null;
+export const SeasonalEventCard = ({ item, city, country }: SeasonalEventCardProps) => {
+  const category = categoryConfig[item.category] || categoryConfig.other;
+  const confidence = confidenceConfig[item.confidence] || confidenceConfig.low;
 
   return (
     <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col border border-border/40">
@@ -67,12 +70,12 @@ export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCar
       <div className="relative aspect-[16/9] overflow-hidden">
         <ResolvedImage
           request={{
-            type: 'seasonal',
+            type: "seasonal",
             city,
             country,
-            entityName: highlight.title,
+            entityName: item.title,
           }}
-          alt={highlight.title}
+          alt={item.title}
           className="w-full h-full group-hover:scale-105 transition-transform duration-500"
           showAttribution
           fallbackCategory="cultural"
@@ -83,10 +86,10 @@ export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCar
             {category.icon}
             {category.label}
           </span>
-          {urgency && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-              {urgency.icon}
-              {urgency.label}
+          {item.confidence === "high" && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+              <CheckCircle2 className="w-3 h-3" />
+              Verified
             </span>
           )}
         </div>
@@ -97,60 +100,38 @@ export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCar
         {/* Timing */}
         <div className="flex items-center gap-2 mb-2">
           <Calendar className="w-4 h-4 text-primary/70 flex-shrink-0" />
-          <span className="text-sm font-medium text-primary/80">{highlight.timing}</span>
+          <span className="text-sm font-medium text-primary/80">{item.date_range}</span>
         </div>
 
         <h3 className="text-lg font-semibold text-foreground mb-1.5">
-          {highlight.title}
+          {item.title}
         </h3>
 
-        <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-          {highlight.description}
+        <p className="text-sm text-muted-foreground leading-relaxed mb-2 flex-1">
+          {item.description}
         </p>
 
-        {/* Why seasonal callout */}
-        {highlight.whySeasonal && (
-          <div className="bg-accent/50 rounded-lg px-3 py-2 mb-4 flex-1">
-            <p className="text-xs text-accent-foreground/80 italic leading-relaxed">
-              <Sparkles className="w-3 h-3 inline mr-1 text-primary/60" />
-              {highlight.whySeasonal}
-            </p>
-          </div>
+        {item.location && (
+          <p className="text-xs text-muted-foreground mb-3">
+            📍 {item.location}
+          </p>
         )}
 
-        {/* Links */}
-        <div className="flex flex-wrap gap-2 mt-auto">
-          {highlight.wikipediaUrl && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs"
-              onClick={() => window.open(highlight.wikipediaUrl!, "_blank")}
-            >
-              <ExternalLink className="w-3 h-3" />
-              Wikipedia
-            </Button>
-          )}
-          {highlight.officialUrl && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs"
-              onClick={() => window.open(highlight.officialUrl!, "_blank")}
-            >
-              <ExternalLink className="w-3 h-3" />
-              Official Site
-            </Button>
-          )}
+        {/* Source link */}
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/30">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             className="gap-1.5 text-xs"
-            onClick={() => window.open(highlight.googleSearchUrl, "_blank")}
+            onClick={() => window.open(item.source_url, "_blank")}
           >
-            <Search className="w-3 h-3" />
-            Search
+            <ExternalLink className="w-3 h-3" />
+            {item.source_name}
           </Button>
+          <span className={`inline-flex items-center gap-1 text-xs ${confidence.className}`}>
+            {confidence.icon}
+            {confidence.label}
+          </span>
         </div>
       </div>
     </article>
