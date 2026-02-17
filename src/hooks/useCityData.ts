@@ -64,12 +64,16 @@ export function useHealthNotices(city: string, country: string, travelMonth: str
   });
 }
 
+// Situational awareness uses 6-hour server-side cache, so client stale time can be longer
+const SITUATIONAL_STALE_TIME = 30 * 60 * 1000; // 30 minutes client-side
+const SITUATIONAL_CACHE_TIME = 60 * 60 * 1000; // 1 hour client-side
+
 export function useSituationalAwareness(city: string, country: string, travelMonth: string) {
   return useQuery({
     queryKey: ["situational-awareness", city, country, travelMonth],
     queryFn: () => getSituationalAwareness({ city, country, travelMonth }),
-    staleTime: STALE_TIME,
-    gcTime: CACHE_TIME,
+    staleTime: SITUATIONAL_STALE_TIME,
+    gcTime: SITUATIONAL_CACHE_TIME,
   });
 }
 
