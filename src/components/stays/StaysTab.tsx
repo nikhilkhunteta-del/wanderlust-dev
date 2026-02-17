@@ -38,13 +38,19 @@ export const StaysTab = ({ city, country, travelMonth, departureCity }: StaysTab
   }
 
   if (error) {
+    const errorMsg = error instanceof Error ? error.message : "Failed to load stay data";
+    const isCredits = errorMsg.toLowerCase().includes("credit") || errorMsg.toLowerCase().includes("402");
     return (
       <div className="flex items-center justify-center py-24">
         <div className="text-center max-w-md">
           <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-destructive mb-2 font-medium">Unable to load stay insights</p>
+          <p className="text-destructive mb-2 font-medium">
+            {isCredits ? "Service temporarily unavailable" : "Unable to load stay insights"}
+          </p>
           <p className="text-muted-foreground text-sm">
-            {error instanceof Error ? error.message : "Failed to load stay data"}
+            {isCredits
+              ? "Our AI service is currently at capacity. Please try again in a few minutes."
+              : errorMsg}
           </p>
         </div>
       </div>
