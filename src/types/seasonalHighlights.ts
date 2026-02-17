@@ -1,60 +1,44 @@
-export type SeasonalCategory =
-  | "festival"
-  | "cultural"
-  | "seasonal_nature"
-  | "seasonal_food"
-  | "sports"
+export type SeasonalCategory = 
+  | "cultural" 
+  | "natural" 
+  | "food" 
+  | "religious" 
+  | "music" 
   | "other";
 
-export type SeasonalConfidence = "high" | "medium" | "low";
+export type SeasonalUrgency = 
+  | "only_this_month"
+  | "best_this_month"
+  | "short_window"
+  | null;
 
-export type SeasonalSection =
+export type SeasonalSection = 
   | "festivals_cultural"
   | "food_traditions"
   | "weather_driven";
 
-export type PrimaryType =
-  | "Festival"
-  | "Cultural"
-  | "Food"
-  | "Experience"
-  | "Conference"
-  | "Sports"
-  | "Nature"
-  | "Other";
-
-export interface SeasonalItem {
-  event_id: string;
+export interface SeasonalHighlight {
   title: string;
-  date_range: string;
-  start_date: string | null;
-  end_date: string | null;
+  timing: string;
   category: SeasonalCategory;
-  primary_type: PrimaryType;
-  secondary_tags: string[];
   section: SeasonalSection;
-  location: string | null;
   description: string;
-  why_it_matters: string | null;
-  impact_score: number; // 0–10
-  source_name: string;
-  source_url: string;
-  confidence: SeasonalConfidence;
-  verified: boolean;
-  image_url?: string;
+  whySeasonal: string;
+  urgency: SeasonalUrgency;
+  imageQuery: string;
+  wikipediaUrl: string | null;
+  officialUrl: string | null;
+  googleSearchUrl: string;
 }
 
 export interface SeasonalHighlightsData {
-  items: SeasonalItem[];
-  monthOpener: string;
-  fetchedAt: string;
-  status: "ok" | "degraded" | "error";
-  fromCache: boolean;
+  openingStatement: string;
+  monthSummary: string;
+  highlights: SeasonalHighlight[];
 }
 
 export interface SeasonalHighlightsRequest {
   city: string;
   country: string;
   travelMonth: string;
-  travelYear?: number;
 }

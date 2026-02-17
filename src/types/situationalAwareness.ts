@@ -1,64 +1,37 @@
-/**
- * Situational Awareness Data Types
- * 
- * Scope: ONLY real-time travel disruptions.
- * - Transport disruptions (strikes, cancellations, closures)
- * - Safety/political events (protests, curfews, unrest)
- * - Natural/environmental hazards (floods, storms, fires, pollution)
- * 
- * NOT included: advisories, health, festivals, generic tips.
- */
-
-export type EventCategory =
+export type IssueCategory =
+  | "political"
+  | "security"
   | "transport"
-  | "safety"
-  | "protest"
-  | "extreme_weather"
-  | "environmental"
+  | "weather"
+  | "health"
+  | "natural"
+  | "holiday"
   | "other";
 
-export type ImpactLevel = "high" | "medium" | "low";
+export type IssueTimeframe = "ongoing" | "expected" | "seasonal";
 
-export type StatusLabel = "Normal" | "Watch" | "Disrupted";
-
-export interface EventSource {
-  url: string;
+export interface SituationalIssue {
   title: string;
-  publisher: string;
-}
-
-export interface SituationalEvent {
-  id: string;
-  category: EventCategory;
-  impact_level: ImpactLevel;
-  severity: number; // 1-5
-  confidence: number; // 0-1
-  title: string;
+  category: IssueCategory;
+  timeframe: IssueTimeframe;
   summary: string;
-  relevance_to_traveler: string;
-  start_date: string | null;
-  affected_areas: string;
-  recommended_actions: string[];
-  sources: EventSource[];
+  sourceUrl: string;
+  sourceName: string;
 }
 
-export interface SourceItem {
-  url: string;
+export interface SeasonalPattern {
   title: string;
-  publisher: string;
-  published_at: string | null;
-  snippet: string;
-  query_used: string;
+  description: string;
 }
 
 export interface SituationalAwarenessData {
-  events: SituationalEvent[];
-  sources: SourceItem[];
-  overallSeverity: number;
-  statusLabel: StatusLabel;
+  hasDisruptions: boolean;
   statusSummary: string;
-  fetchedAt: string;
-  status: "ok" | "degraded" | "error";
+  issues: SituationalIssue[];
+  seasonalPatterns: SeasonalPattern[];
+  practicalImpact: string;
+  lastUpdated: string;
+  dataSource: string;
 }
 
 export interface SituationalAwarenessRequest {

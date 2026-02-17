@@ -5,17 +5,14 @@ export async function getSeasonalHighlights(
   request: SeasonalHighlightsRequest
 ): Promise<SeasonalHighlightsData> {
   const { data, error } = await supabase.functions.invoke<SeasonalHighlightsData>(
-    "seasonal-search",
+    "seasonal-highlights",
     {
-      body: {
-        ...request,
-        travelYear: request.travelYear || new Date().getFullYear(),
-      },
+      body: request,
     }
   );
 
   if (error) {
-    console.error("Error calling seasonal-search function:", error);
+    console.error("Error calling seasonal-highlights function:", error);
     throw new Error("Failed to get seasonal highlights. Please try again.");
   }
 
