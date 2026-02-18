@@ -132,7 +132,7 @@ async function fetchDisruptions(
 ): Promise<any[]> {
   const year = new Date().getFullYear();
   const query = `${city} ${country} travel disruptions protests strikes safety ${travelMonth} ${year}`;
-  const systemPrompt = `You are a travel disruption analyst. Return ONLY a JSON array of current/recent issues affecting tourists in ${city}, ${country}. Each item: {\"title\":\"...\",\"category\":\"transport|political|security|health|natural|other\",\"status\":\"current|watch|resolved\",\"summary\":\"2 lines max\",\"tourist_impact\":\"high|medium|low\",\"source_name\":\"...\",\"source_url\":\"...\",\"date\":\"YYYY-MM-DD\"}. Only include events from the last 90 days that meaningfully deviate from normal conditions. Exclude generic background noise. If nothing notable, return []. Return ONLY valid JSON array.`;
+  const systemPrompt = `You are a travel disruption analyst. Return ONLY a JSON array of current/recent issues affecting tourists in ${city}, ${country}. Each item: {\"title\":\"...\",\"category\":\"transport|political|security|health|natural|other\",\"status\":\"current|watch|resolved\",\"summary\":\"2 lines max\",\"tourist_impact\":\"high|medium|low\",\"source_name\":\"...\",\"source_url\":\"...\",\"date\":\"YYYY-MM-DD\"}. Only include events from the last 90 days that meaningfully deviate from normal conditions. Exclude generic background noise. If multiple articles refer to the same underlying event or situation, merge them into a single card. Use the most recent article as the primary source and cite it. Do not create two cards for the same event. If nothing notable, return []. Return ONLY valid JSON array.`;
 
   try {
     const data = await queryPerplexity(perplexityKey, query, systemPrompt);
@@ -149,8 +149,8 @@ async function fetchVisaInfo(
   perplexityKey: string,
   country: string
 ): Promise<any> {
-  const query = `${country} visa requirements entry rules ${new Date().getFullYear()}`;
-  const systemPrompt = `Return ONLY a JSON object about visa/entry requirements for ${country}: {\"passport_validity\":\"e.g. 6 months beyond stay\",\"visa_free_nationalities\":[\"US\",\"UK\",\"EU\",...up to 15 most common],\"evisa_available\":true/false,\"active_restrictions\":null or \"description\",\"source_url\":\"https://...\"}. Be concise. Return ONLY valid JSON.`;
+  const query = `${country} visa requirements entry rules passport validity ${new Date().getFullYear()}`;
+  const systemPrompt = `Return ONLY a JSON object about visa/entry requirements for ${country}: {\"passport_validity_months\":6,\"passport_validity_text\":\"6 months beyond departure\",\"visa_free_nationalities\":[\"US\",\"UK\",\"EU\",...up to 15 most common],\"evisa_available\":true/false,\"visa_required\":false,\"evisa_url\":null or \"https://...\",\"is_schengen\":true/false,\"entry_framework_note\":\"contextual note about the country's entry system e.g. Schengen, ASEAN, Mercosur etc.\",\"active_restrictions\":null or \"description\",\"source_url\":\"https://...\"}. Be concise. Return ONLY valid JSON.`;
 
   try {
     const data = await queryPerplexity(perplexityKey, query, systemPrompt);
@@ -261,39 +261,90 @@ serve(async (req) => {
     const advisories = [usAdvisory, ukAdvisory, caAdvisory].filter(Boolean);
     console.log(`Got ${advisories.length} advisories, ${disruptions.length} disruptions`);
 
-    // If no real advisories, create fallback
-    if (advisories.length === 0) {
-      advisories.push({
-        source: "us", sourceName: "US State Department",
-        level: "Exercise Normal Precautions", levelNumeric: 1,
-        summary: "", sourceUrl: "https://travel.state.gov",
-        lastUpdated: new Date().toISOString().split("T")[0],
-      });
+    // Ensure all three advisory sources are always present
+    const sourceDefaults: Record<string, any> = {
+      us: { source: "us", sourceName: "US State Department", level: "Unavailable", levelNumeric: 0, summary: "", sourceUrl: "https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories.html", lastUpdated: "" },
+      uk: { source: "uk", sourceName: "UK FCDO", level: "Unavailable", levelNumeric: 0, summary: "", sourceUrl: `https://www.gov.uk/foreign-travel-advice/${resolvedCountry.toLowerCase().replace(/\\s+/g, "-")}`, lastUpdated: "" },
+      ca: { source: "ca", sourceName: "Government of Canada", level: "Unavailable", levelNumeric: 0, summary: "", sourceUrl: `https://travel.gc.ca/destinations/${resolvedCountry.toLowerCase().replace(/\\s+/g, "-")}`, lastUpdated: "" },
+    };
+    for (const key of ["us", "uk", "ca"]) {
+      if (!advisories.find((a: any) => a.source === key)) {
+        advisories.push(sourceDefaults[key]);
+      }
     }
 
     // AI synthesis
     const synthesis = await synthesize(LOVABLE_API_KEY, city, resolvedCountry, travelMonth || "", advisories, disruptions);
 
-    // Build emergency contacts
-    const emergencyContacts: any[] = [];
+    // Build emergency contacts with global fallback system
+    let emergencyContacts: any[] = [];
     let emergencyNote: string | null = null;
 
-    // For EU/common countries, use unified number
-    const euCountries = ["spain", "france", "germany", "italy", "portugal", "greece", "netherlands", "belgium", "austria", "croatia", "czech republic", "denmark", "finland", "sweden", "ireland", "poland", "romania", "hungary", "slovakia", "slovenia", "estonia", "latvia", "lithuania", "luxembourg", "malta", "cyprus", "bulgaria"];
-    if (euCountries.includes(resolvedCountry.toLowerCase())) {
-      emergencyNote = "All emergency services: 112";
-    } else {
-      // Let the AI data provide these — but we keep it minimal
-      emergencyContacts.push(
-        { service: "Emergency", number: "Check local listings" }
+    // Try Perplexity for emergency numbers
+    try {
+      const emergencyData = await queryPerplexity(
+        PERPLEXITY_API_KEY,
+        `What are the emergency numbers for police, ambulance, and fire in ${resolvedCountry}?`,
+        `Return ONLY a JSON object: {"police":"number","ambulance":"number","fire":"number"}. Return ONLY valid JSON.`
       );
+      const content = emergencyData.choices?.[0]?.message?.content || "{}";
+      const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
+      const nums = JSON.parse(cleaned);
+      if (nums.police && nums.ambulance && nums.fire) {
+        const allSame = nums.police === nums.ambulance && nums.ambulance === nums.fire;
+        if (allSame) {
+          emergencyNote = `All emergency services: ${nums.police}`;
+        } else {
+          emergencyContacts = [
+            { service: "Police", number: nums.police },
+            { service: "Ambulance", number: nums.ambulance },
+            { service: "Fire", number: nums.fire },
+          ];
+        }
+      }
+    } catch (e) {
+      console.warn("Emergency numbers fetch failed, using fallbacks:", e);
+    }
+
+    // Hardcoded fallbacks if nothing was found
+    if (emergencyContacts.length === 0 && !emergencyNote) {
+      const c = resolvedCountry.toLowerCase();
+      const euCountries = ["spain", "france", "germany", "italy", "portugal", "greece", "netherlands", "belgium", "austria", "croatia", "czech republic", "denmark", "finland", "sweden", "ireland", "poland", "romania", "hungary", "slovakia", "slovenia", "estonia", "latvia", "lithuania", "luxembourg", "malta", "cyprus", "bulgaria"];
+      if (euCountries.includes(c)) {
+        emergencyNote = "All emergency services: 112";
+      } else if (c === "united kingdom" || c === "uk") {
+        emergencyNote = "All emergency services: 999";
+      } else if (c === "united states" || c === "usa" || c === "us") {
+        emergencyNote = "All emergency services: 911";
+      } else if (c === "canada") {
+        emergencyNote = "All emergency services: 911";
+      } else if (c === "australia") {
+        emergencyNote = "All emergency services: 000";
+      } else if (c === "new zealand") {
+        emergencyNote = "All emergency services: 111";
+      } else if (c === "japan") {
+        emergencyContacts = [
+          { service: "Police", number: "110" },
+          { service: "Ambulance/Fire", number: "119" },
+        ];
+      } else {
+        emergencyNote = "Check local emergency numbers before travel";
+      }
     }
 
     // Format visa info
+    const months = visaRaw.passport_validity_months || null;
+    const passportText = months
+      ? `Passport must be valid for at least ${months} months beyond your departure date`
+      : visaRaw.passport_validity_text || visaRaw.passport_validity || "Check with your embassy";
     const visaInfo = {
-      passportValidity: visaRaw.passport_validity || "Check with your embassy",
+      passportValidity: passportText,
       visaFreeNationalities: visaRaw.visa_free_nationalities || [],
       eVisaAvailable: visaRaw.evisa_available || false,
+      visaRequired: visaRaw.visa_required || false,
+      eVisaUrl: visaRaw.evisa_url || null,
+      isSchengen: visaRaw.is_schengen || false,
+      entryFrameworkNote: visaRaw.entry_framework_note || null,
       activeRestrictions: visaRaw.active_restrictions || null,
       sourceUrl: visaRaw.source_url || "https://www.iatatravelcentre.com/world.php",
     };
