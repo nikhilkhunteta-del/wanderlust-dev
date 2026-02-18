@@ -22,19 +22,21 @@ serve(async (req) => {
   try {
     const { city, country, travelMonth, departureCity } = await req.json();
 
-    if (!city || !country) {
+    if (!city) {
       return new Response(
-        JSON.stringify({ error: "City and country are required" }),
+        JSON.stringify({ error: "City is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const resolvedCountry = country || city;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Generating stay insights for ${city}, ${country} in ${travelMonth}`);
+    console.log(`Generating stay insights for ${city}, ${resolvedCountry} in ${travelMonth}`);
 
     const monthName = MONTH_NAMES[travelMonth?.toLowerCase()] || travelMonth || "your travel dates";
 
@@ -42,7 +44,7 @@ serve(async (req) => {
       ? `Use the local currency of the traveller's departure city (${departureCity}). For example: INR for India, EUR for France, GBP for UK, USD for US. Use ISO 4217 currency code.`
       : `Use USD for all prices.`;
 
-    const prompt = `You are a travel accommodation expert. Generate comprehensive stay insights for ${city}, ${country} during ${monthName}.
+    const prompt = `You are a travel accommodation expert. Generate comprehensive stay insights for ${city}, ${resolvedCountry} during ${monthName}.
 
 Provide a JSON response with this exact structure:
 {
@@ -213,12 +215,12 @@ Return ONLY valid JSON, no markdown or explanation.`;
     const targetYear = new Date().getMonth() + 1 > parseInt(monthNum) ? year + 1 : year;
     const checkin = `${targetYear}-${monthNum}-15`;
     const checkout = `${targetYear}-${monthNum}-17`;
-    const destination = encodeURIComponent(`${city}, ${country}`);
+    const destination = encodeURIComponent(`${city}, ${resolvedCountry}`);
     const bookingUrl = `https://www.google.com/travel/hotels?q=${destination}&dates=${checkin}to${checkout}`;
 
     const result = {
       city,
-      country,
+      country: resolvedCountry,
       travelMonth: monthName,
       overview: insights.overview,
       priceCategories: insights.priceCategories,
