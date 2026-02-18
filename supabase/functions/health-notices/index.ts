@@ -60,19 +60,21 @@ serve(async (req) => {
   try {
     const { city, country, travelMonth } = await req.json();
 
-    if (!city || !country) {
-      throw new Error("City and country are required");
+    if (!city) {
+      throw new Error("City is required");
     }
+
+    const resolvedCountry = country || city;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Fetching health notices for ${city}, ${country} in ${travelMonth}`);
+    console.log(`Fetching health notices for ${city}, ${resolvedCountry} in ${travelMonth}`);
 
     // Step 1: Try to scrape real CDC data
-    const cdcContent = await scrapeCdcPage(country);
+    const cdcContent = await scrapeCdcPage(resolvedCountry);
     const hasCdcData = cdcContent && cdcContent.length > 100;
 
     // Step 2: Build prompt based on whether we have real CDC data
@@ -80,7 +82,7 @@ serve(async (req) => {
     
     if (hasCdcData) {
       console.log("Using real CDC data for health notices");
-      prompt = `You are a travel health information analyst. Analyze this REAL CDC travel health page data for ${country} and extract health information for travelers visiting ${city} in ${travelMonth || "any month"}.
+      prompt = `You are a travel health information analyst. Analyze this REAL CDC travel health page data for ${resolvedCountry} and extract health information for travelers visiting ${city} in ${travelMonth || "any month"}.
 
 --- CDC TRAVEL HEALTH PAGE DATA START ---
 ${cdcContent}
@@ -97,7 +99,7 @@ Return a JSON object with this exact structure:
       "title": "Exact notice title from CDC (e.g., 'Level 1 Travel Health Notice' or outbreak name)",
       "source": "CDC",
       "summary": "Brief summary of what CDC says about this",
-      "url": "https://wwwnc.cdc.gov/travel/destinations/traveler/none/${country.toLowerCase().replace(/\s+/g, "-")}"
+      "url": "https://wwwnc.cdc.gov/travel/destinations/traveler/none/${resolvedCountry.toLowerCase().replace(/\s+/g, "-")}"
     }
   ],
   "vaccines": [
@@ -111,11 +113,11 @@ Return a JSON object with this exact structure:
     "level": "safe" | "caution" | "not_recommended" (based on CDC guidance),
     "description": "Brief explanation based on CDC data"
   },
-  "foodSafetyTips": ["Food safety tips relevant to ${country}"],
+  "foodSafetyTips": ["Food safety tips relevant to ${resolvedCountry}"],
   "medicalFacilities": {
     "standard": "high" | "moderate" | "limited",
     "pharmacyAvailability": "Brief note on pharmacy access",
-    "emergencyNumber": "Emergency number for ${country}"
+    "emergencyNumber": "Emergency number for ${resolvedCountry}"
   },
   "packingList": ["Health items from CDC packing recommendations if present, otherwise general travel health items"],
   "travelInsuranceNote": "Brief recommendation about travel medical insurance",
@@ -131,7 +133,7 @@ Return a JSON object with this exact structure:
 Extract ALL Travel Health Notices and disease outbreaks from the CDC data. Be accurate to the source.`;
     } else {
       console.log("No CDC data available, using AI-generated content");
-      prompt = `You are a travel health information analyst. Generate health travel information for ${city}, ${country} for travelers visiting in ${travelMonth || "any month"}.
+      prompt = `You are a travel health information analyst. Generate health travel information for ${city}, ${resolvedCountry} for travelers visiting in ${travelMonth || "any month"}.
 
 NOTE: Real-time CDC data was not available. Use general knowledge about travel health for this destination.
 
@@ -230,7 +232,7 @@ Be factual and neutral. No alarmist language. No personalized medical advice.`;
     healthData.lastUpdated = new Date().toISOString().split("T")[0];
     healthData.dataSource = hasCdcData ? "CDC (real-time)" : "AI-generated";
 
-    console.log(`Generated health notices for ${city}, ${country}:`, {
+    console.log(`Generated health notices for ${city}, ${resolvedCountry}:`, {
       hasActiveAlerts: healthData.hasActiveAlerts,
       noticesCount: healthData.currentNotices?.length || 0,
       dataSource: healthData.dataSource,
