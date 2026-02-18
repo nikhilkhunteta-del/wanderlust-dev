@@ -5,6 +5,7 @@ import { getCityWeather } from "@/lib/weather";
 import { getTravelAdvisory } from "@/lib/travelAdvisory";
 import { getHealthNotices } from "@/lib/healthNotices";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
+import { getOnTheGround } from "@/lib/onTheGround";
 import { getFlightInsights } from "@/lib/flightInsights";
 import { getStayInsights } from "@/lib/stayInsights";
 import { getCityItinerary } from "@/lib/itinerary";
@@ -68,6 +69,15 @@ export function useSituationalAwareness(city: string, country: string, travelMon
   return useQuery({
     queryKey: ["situational-awareness", city, country, travelMonth],
     queryFn: () => getSituationalAwareness({ city, country, travelMonth }),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  });
+}
+
+export function useOnTheGround(city: string, country: string, travelMonth: string) {
+  return useQuery({
+    queryKey: ["on-the-ground", city, country, travelMonth],
+    queryFn: () => getOnTheGround({ city, country, travelMonth }),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });

@@ -9,9 +9,8 @@ import { HighlightsTab } from "@/components/city/HighlightsTab";
 import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
 import { SeasonalTab } from "@/components/seasonal/SeasonalTab";
 import { WeatherTab } from "@/components/weather/WeatherTab";
-import { TravelAdvisoryTab } from "@/components/travel/TravelAdvisoryTab";
+import { OnTheGroundTab } from "@/components/ground/OnTheGroundTab";
 import { HealthNoticesTab } from "@/components/health/HealthNoticesTab";
-import { SituationalTab } from "@/components/situational/SituationalTab";
 import { FlightsTab } from "@/components/flights/FlightsTab";
 import { StaysTab } from "@/components/stays/StaysTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -208,22 +207,16 @@ const CityDetail = () => {
                 Stays
               </TabsTrigger>
               <TabsTrigger
-                value="travel"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                value="ground"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Advisory
+                On the Ground
               </TabsTrigger>
               <TabsTrigger
                 value="health"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
               >
                 Health
-              </TabsTrigger>
-              <TabsTrigger
-                value="situational"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-              >
-                Situational
               </TabsTrigger>
             </TabsList>
           </div>
@@ -278,20 +271,16 @@ const CityDetail = () => {
           />
         </TabsContent>
 
-        <TabsContent value="travel" className="mt-0">
-          <TravelAdvisoryTab city={city.city} country={city.country} />
-        </TabsContent>
-
-        <TabsContent value="health" className="mt-0">
-          <HealthNoticesTab
+        <TabsContent value="ground" className="mt-0">
+          <OnTheGroundTab
             city={city.city}
             country={city.country}
             travelMonth={profile.travelMonth}
           />
         </TabsContent>
 
-        <TabsContent value="situational" className="mt-0">
-          <SituationalTab
+        <TabsContent value="health" className="mt-0">
+          <HealthNoticesTab
             city={city.city}
             country={city.country}
             travelMonth={profile.travelMonth}

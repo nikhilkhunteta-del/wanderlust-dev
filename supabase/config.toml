@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.get-image-pack]
 verify_jwt = false
+
+[functions.on-the-ground]
+verify_jwt = false

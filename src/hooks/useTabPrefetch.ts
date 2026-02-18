@@ -6,6 +6,7 @@ import { getCityWeather } from "@/lib/weather";
 import { getTravelAdvisory } from "@/lib/travelAdvisory";
 import { getHealthNotices } from "@/lib/healthNotices";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
+import { getOnTheGround } from "@/lib/onTheGround";
 import { getFlightInsights } from "@/lib/flightInsights";
 import { getStayInsights } from "@/lib/stayInsights";
 import { getCityItinerary } from "@/lib/itinerary";
@@ -21,9 +22,8 @@ const TAB_ORDER = [
   "weather",
   "flights",
   "stays",
-  "travel",
+  "ground",
   "health",
-  "situational",
 ] as const;
 
 type TabName = (typeof TAB_ORDER)[number];
@@ -113,10 +113,10 @@ export function useTabPrefetch(params: PrefetchParams) {
           });
           break;
 
-        case "travel":
+        case "ground":
           queryClient.prefetchQuery({
-            queryKey: ["travel-advisory", city, country],
-            queryFn: () => getTravelAdvisory({ city, country }),
+            queryKey: ["on-the-ground", city, country, travelMonth],
+            queryFn: () => getOnTheGround({ city, country, travelMonth }),
             staleTime: STALE_TIME,
           });
           break;
@@ -125,14 +125,6 @@ export function useTabPrefetch(params: PrefetchParams) {
           queryClient.prefetchQuery({
             queryKey: ["health-notices", city, country, travelMonth],
             queryFn: () => getHealthNotices({ city, country, travelMonth }),
-            staleTime: STALE_TIME,
-          });
-          break;
-
-        case "situational":
-          queryClient.prefetchQuery({
-            queryKey: ["situational-awareness", city, country, travelMonth],
-            queryFn: () => getSituationalAwareness({ city, country, travelMonth }),
             staleTime: STALE_TIME,
           });
           break;
