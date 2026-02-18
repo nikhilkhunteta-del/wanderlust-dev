@@ -1,4 +1,4 @@
-import { CurrentIssue, IssueCategory, IssueStatus, ImpactLevel } from "@/types/onTheGround";
+import { CurrentIssue, IssueCategory, IssueStatus } from "@/types/onTheGround";
 import { ExternalLink } from "lucide-react";
 
 interface CurrentIssuesProps {
@@ -20,12 +20,6 @@ const statusStyles: Record<IssueStatus, string> = {
   resolved: "bg-transparent text-muted-foreground/50 border border-muted-foreground/20 line-through",
 };
 
-const impactLabels: Record<ImpactLevel, { label: string; color: string }> = {
-  high: { label: "High impact", color: "text-red-600 dark:text-red-400" },
-  medium: { label: "Moderate impact", color: "text-amber-600 dark:text-amber-400" },
-  low: { label: "Low impact", color: "text-muted-foreground" },
-};
-
 export const CurrentIssues = ({ issues }: CurrentIssuesProps) => {
   if (!issues || issues.length === 0) {
     return (
@@ -37,39 +31,36 @@ export const CurrentIssues = ({ issues }: CurrentIssuesProps) => {
 
   return (
     <div className="space-y-3">
-      {issues.map((issue, i) => {
-        const impact = impactLabels[issue.touristImpact] || impactLabels.low;
-        return (
-          <div key={i} className="p-4 rounded-xl border border-border/60 bg-card/50 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColors[issue.category] || categoryColors.other}`}>
-                {issue.category}
-              </span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${statusStyles[issue.status] || statusStyles.current}`}>
-                {issue.status}
-              </span>
-              <span className={`text-xs font-medium ml-auto ${impact.color}`}>
-                {impact.label}
-              </span>
-            </div>
-            <h4 className="font-medium text-foreground">{issue.title}</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">{issue.summary}</p>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{issue.date}</span>
-              {issue.sourceUrl && (
-                <a
-                  href={issue.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-primary transition-colors"
-                >
-                  {issue.sourceName || "Source"} <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
+      {issues.map((issue, i) => (
+        <div key={i} className="p-4 rounded-xl border border-border/60 bg-card/50 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColors[issue.category] || categoryColors.other}`}>
+              {issue.category}
+            </span>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${statusStyles[issue.status] || statusStyles.current}`}>
+              {issue.status}
+            </span>
           </div>
-        );
-      })}
+          <h4 className="font-medium text-foreground">{issue.title}</h4>
+          <p className="text-xs text-muted-foreground" style={{ color: "#6B7280", fontSize: "12px" }}>
+            Tourist impact: {issue.touristImpact}
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{issue.summary}</p>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{issue.date}</span>
+            {issue.sourceUrl && (
+              <a
+                href={issue.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+              >
+                {issue.sourceName || "Source"} <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

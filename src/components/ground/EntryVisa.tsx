@@ -5,6 +5,19 @@ interface EntryVisaProps {
   visa: VisaInfo;
 }
 
+const eVisaLabel = (visa: VisaInfo) => {
+  if (visa.visaRequired) return "Visa required — check requirements for your nationality";
+  if (visa.eVisaAvailable && visa.eVisaUrl) {
+    return (
+      <a href={visa.eVisaUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+        Available — apply before travel <ExternalLink className="w-3 h-3" />
+      </a>
+    );
+  }
+  if (visa.eVisaAvailable) return "Available — apply before travel";
+  return "Not required";
+};
+
 export const EntryVisa = ({ visa }: EntryVisaProps) => {
   return (
     <div className="space-y-4">
@@ -16,7 +29,7 @@ export const EntryVisa = ({ visa }: EntryVisaProps) => {
           </div>
           <div>
             <span className="text-xs font-medium text-foreground block mb-1">eVisa</span>
-            {visa.eVisaAvailable ? "Available" : "Not available"}
+            {eVisaLabel(visa)}
           </div>
         </div>
 
@@ -37,6 +50,18 @@ export const EntryVisa = ({ visa }: EntryVisaProps) => {
               ))}
             </div>
           </div>
+        )}
+
+        {visa.isSchengen && (
+          <p className="text-xs text-muted-foreground">
+            This country is part of the Schengen Area — no eVisa required for visa-free nationalities, but ETIAS authorisation will be required from late 2026
+          </p>
+        )}
+
+        {!visa.isSchengen && visa.entryFrameworkNote && (
+          <p className="text-xs text-muted-foreground">
+            {visa.entryFrameworkNote}
+          </p>
         )}
       </div>
 

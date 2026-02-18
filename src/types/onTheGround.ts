@@ -4,7 +4,7 @@ export interface OfficialAdvisory {
   source: "us" | "uk" | "ca";
   sourceName: string;
   level: string;
-  levelNumeric: number; // 1-4
+  levelNumeric: number; // 0=unavailable, 1-4
   summary: string;
   sourceUrl: string;
   lastUpdated: string;
@@ -34,6 +34,10 @@ export interface VisaInfo {
   passportValidity: string;
   visaFreeNationalities: string[];
   eVisaAvailable: boolean;
+  visaRequired?: boolean;
+  eVisaUrl?: string | null;
+  isSchengen?: boolean;
+  entryFrameworkNote?: string | null;
   activeRestrictions: string | null;
   sourceUrl: string;
 }
@@ -52,7 +56,7 @@ export interface OnTheGroundData {
   safetyGuidance: SafetyCluster[];
   visaInfo: VisaInfo;
   emergencyContacts: EmergencyContact[];
-  emergencyNote: string | null; // e.g. "All emergency services: 112"
+  emergencyNote: string | null;
   sources: string[];
   lastUpdated: string;
   disclaimer: string;
