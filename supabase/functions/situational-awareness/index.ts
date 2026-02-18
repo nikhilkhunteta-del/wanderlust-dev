@@ -60,16 +60,18 @@ serve(async (req) => {
   try {
     const { city, country, travelMonth } = await req.json();
 
-    if (!city || !country) {
-      throw new Error("City and country are required");
+    if (!city) {
+      throw new Error("City is required");
     }
+
+    const resolvedCountry = country || city;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Fetching situational awareness for ${city}, ${country} in ${travelMonth}`);
+    console.log(`Fetching situational awareness for ${city}, ${resolvedCountry} in ${travelMonth}`);
 
     // Get current date for context
     const currentDate = new Date();
@@ -77,11 +79,11 @@ serve(async (req) => {
     const currentYear = currentDate.getFullYear();
 
     // Try to scrape recent news
-    const newsContent = await scrapeNewsForLocation(city, country);
+    const newsContent = await scrapeNewsForLocation(city, resolvedCountry);
     const hasNewsData = newsContent && newsContent.length > 100;
 
     // Build the AI prompt
-    const prompt = `You are a travel situational awareness analyst. Provide current situational awareness for travelers planning to visit ${city}, ${country} in ${travelMonth || "the coming months"}.
+    const prompt = `You are a travel situational awareness analyst. Provide current situational awareness for travelers planning to visit ${city}, ${resolvedCountry} in ${travelMonth || "the coming months"}.
 
 Current date: ${currentMonth} ${currentYear}
 
@@ -195,7 +197,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
     situationalData.lastUpdated = new Date().toISOString().split("T")[0];
     situationalData.dataSource = hasNewsData ? "News (real-time)" : "AI-generated";
 
-    console.log(`Generated situational awareness for ${city}, ${country}:`, {
+    console.log(`Generated situational awareness for ${city}, ${resolvedCountry}:`, {
       hasDisruptions: situationalData.hasDisruptions,
       issuesCount: situationalData.issues?.length || 0,
       dataSource: situationalData.dataSource,
