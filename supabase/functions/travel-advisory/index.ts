@@ -15,18 +15,20 @@ serve(async (req) => {
   try {
     const { city, country } = await req.json();
 
-    if (!city || !country) {
-      throw new Error("City and country are required");
+    if (!city) {
+      throw new Error("City is required");
     }
+
+    const resolvedCountry = country || city;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Fetching travel advisory for ${city}, ${country}`);
+    console.log(`Fetching travel advisory for ${city}, ${resolvedCountry}`);
 
-    const prompt = `You are a travel safety analyst. Generate a travel advisory for ${city}, ${country} based on typical government travel advisories from UK FCDO, US State Department, and Government of Canada.
+    const prompt = `You are a travel safety analyst. Generate a travel advisory for ${city}, ${resolvedCountry} based on typical government travel advisories from UK FCDO, US State Department, and Government of Canada.
 
 Return a JSON object with this exact structure:
 {
@@ -42,9 +44,9 @@ Return a JSON object with this exact structure:
     "tourist": "Tourist police/helpline if available, or null"
   },
   "sources": [
-    {"name": "UK Foreign Office", "url": "https://www.gov.uk/foreign-travel-advice/${country.toLowerCase().replace(/ /g, '-')}"},
+    {"name": "UK Foreign Office", "url": "https://www.gov.uk/foreign-travel-advice/${resolvedCountry.toLowerCase().replace(/ /g, '-')}"},
     {"name": "US State Department", "url": "https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories.html"},
-    {"name": "Government of Canada", "url": "https://travel.gc.ca/destinations/${country.toLowerCase().replace(/ /g, '-')}"}
+    {"name": "Government of Canada", "url": "https://travel.gc.ca/destinations/${resolvedCountry.toLowerCase().replace(/ /g, '-')}"}
   ],
   "advisoriesVary": boolean indicating if sources typically differ for this destination
 }
@@ -101,7 +103,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
     // Add last updated timestamp
     advisory.lastUpdated = new Date().toISOString().split("T")[0];
 
-    console.log(`Generated advisory for ${city}, ${country}:`, advisory.level);
+    console.log(`Generated advisory for ${city}, ${resolvedCountry}:`, advisory.level);
 
     return new Response(JSON.stringify(advisory), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
