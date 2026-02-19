@@ -50,7 +50,7 @@ export interface EmergencyContact {
 export interface OnTheGroundData {
   verdict: string;
   verdictLevel: "green" | "amber" | "red";
-  summaryParagraph: string;
+  forwardAssessment: string;
   officialAdvisories: OfficialAdvisory[];
   currentIssues: CurrentIssue[];
   safetyGuidance: SafetyCluster[];

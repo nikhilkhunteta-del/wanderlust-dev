@@ -26,7 +26,6 @@ async function fetchUSAdvisory(country: string): Promise<any> {
     const res = await fetchWithTimeout("https://cadataapi.state.gov/api/TravelAdvisories");
     if (!res.ok) throw new Error(`US API ${res.status}`);
     const raw = await res.json();
-    // The API may return an array directly or nested in a wrapper
     const items = Array.isArray(raw) ? raw : (raw?.data || raw?.advisories || raw?.Data || []);
     if (!Array.isArray(items) || items.length === 0) {
       console.warn("US API returned unexpected shape, keys:", Object.keys(raw || {}));
@@ -35,20 +34,16 @@ async function fetchUSAdvisory(country: string): Promise<any> {
     
     const cl = country.toLowerCase();
     const match = items.find((a: any) => {
-      // Fields: Title ("Spain - Level 2: Exercise Increased Caution"), Link, Category, Summary, id, Published, Updated
       const title = (a.Title || a.title || a.country_name || a.country || a.name || "").toLowerCase();
-      const iso = (a.iso_code || a.isoCode || a.ISO || a.code || "").toLowerCase();
-      // Title format: "Country - Level X: ..."
       const titleCountry = title.split(" - ")[0].trim();
-      return titleCountry === cl || iso === cl;
+      return titleCountry === cl;
     });
     
     if (!match) {
-      console.warn(`US advisory: no match for "${country}" among ${items.length} entries. Sample keys:`, Object.keys(items[0] || {}));
+      console.warn(`US advisory: no match for "${country}" among ${items.length} entries.`);
       return null;
     }
     
-    // Parse "Spain - Level 2: Exercise Increased Caution" format
     const title = match.Title || match.title || "";
     const levelMatch = title.match(/Level\s+(\d)/i);
     const level = levelMatch ? parseInt(levelMatch[1]) : 1;
@@ -76,7 +71,6 @@ async function fetchUSAdvisory(country: string): Promise<any> {
 }
 
 async function fetchUKAdvisory(country: string): Promise<any> {
-  // UK FCDO uses specific slugs that may differ from simple lowercasing
   const specialSlugs: Record<string, string> = {
     "united states": "usa",
     "united states of america": "usa",
@@ -118,7 +112,6 @@ async function fetchCAAdvisory(country: string): Promise<any> {
     const res = await fetchWithTimeout("https://data.international.gc.ca/travel-voyage/index-alpha-eng.json");
     if (!res.ok) throw new Error(`CA API ${res.status}`);
     const raw = await res.json();
-    // Structure: { data: { entities: { ... } } } or top-level array
     let items: any[] = [];
     if (Array.isArray(raw)) {
       items = raw;
@@ -139,11 +132,10 @@ async function fetchCAAdvisory(country: string): Promise<any> {
     });
     
     if (!match) {
-      console.warn(`CA advisory: no match for "${country}" among ${items.length} entries. Sample:`, JSON.stringify(items[0] || {}).slice(0, 200));
+      console.warn(`CA advisory: no match for "${country}" among ${items.length} entries.`);
       return null;
     }
     
-    // advisory-state is numeric: 1=normal, 2=high caution, 3=avoid non-essential, 4=avoid all
     const advisoryState = parseInt(match["advisory-state"]) || 1;
     const levelLabels: Record<number, string> = {
       1: "Exercise Normal Security Precautions",
@@ -153,7 +145,6 @@ async function fetchCAAdvisory(country: string): Promise<any> {
     };
     
     const slug = toSlug(country);
-    const iso = (match["country-iso"] || "").toUpperCase();
     return {
       source: "ca",
       sourceName: "Government of Canada",
@@ -202,7 +193,7 @@ async function fetchDisruptions(
 ): Promise<any[]> {
   const year = new Date().getFullYear();
   const query = `${city} ${country} travel disruptions protests strikes safety ${travelMonth} ${year}`;
-  const systemPrompt = `You are a travel disruption analyst. Return ONLY a JSON array of current/recent issues affecting tourists in ${city}, ${country}. Each item: {\"title\":\"...\",\"category\":\"transport|political|security|health|natural|other\",\"status\":\"current|watch|resolved\",\"summary\":\"2 lines max\",\"tourist_impact\":\"high|medium|low\",\"source_name\":\"...\",\"source_url\":\"...\",\"date\":\"YYYY-MM-DD\"}. Only include events from the last 90 days that meaningfully deviate from normal conditions. Exclude generic background noise. If multiple articles refer to the same underlying event or situation, merge them into a single card. Use the most recent article as the primary source and cite it. Do not create two cards for the same event. If nothing notable, return []. Return ONLY valid JSON array.`;
+  const systemPrompt = `You are a travel disruption analyst. Return ONLY a JSON array of recent news items from the last 90 days about ${city}, ${country} that are directly relevant to tourists — protests, strikes, transport disruptions, natural events, security incidents. For each item return: {"title":"...","category":"transport|political|security|health|natural|other","status":"current|watch|resolved","summary":"2-sentence factual summary of what happened and what the tourist impact is right now","tourist_impact":"high|medium|low","source_name":"...","source_url":"...","date":"YYYY-MM-DD"}. Do not predict future impact. Do not include background country-level risk information — only specific events. Deduplicate events that appear in multiple articles. If nothing notable, return []. Return ONLY valid JSON array.`;
 
   try {
     const data = await queryPerplexity(perplexityKey, query, systemPrompt);
@@ -220,7 +211,7 @@ async function fetchVisaInfo(
   country: string
 ): Promise<any> {
   const query = `${country} visa requirements entry rules passport validity ${new Date().getFullYear()}`;
-  const systemPrompt = `Return ONLY a JSON object about visa/entry requirements for ${country}: {\"passport_validity_months\":6,\"passport_validity_text\":\"6 months beyond departure\",\"visa_free_nationalities\":[\"US\",\"UK\",\"EU\",...up to 15 most common],\"evisa_available\":true/false,\"visa_required\":false,\"evisa_url\":null or \"https://...\",\"is_schengen\":true/false,\"entry_framework_note\":\"contextual note about the country's entry system e.g. Schengen, ASEAN, Mercosur etc.\",\"active_restrictions\":null or \"description\",\"source_url\":\"https://...\"}. Be concise. Return ONLY valid JSON.`;
+  const systemPrompt = `Return ONLY a JSON object about visa/entry requirements for ${country}: {"passport_validity_months":6,"passport_validity_text":"6 months beyond departure","visa_free_nationalities":["US","UK","EU",...up to 15 most common],"evisa_available":true/false,"visa_required":false,"evisa_url":null or "https://...","is_schengen":true/false,"entry_framework_note":"contextual note about the country's entry system e.g. Schengen, ASEAN, Mercosur etc.","active_restrictions":null or "description","source_url":"https://..."}. Be concise. Return ONLY valid JSON.`;
 
   try {
     const data = await queryPerplexity(perplexityKey, query, systemPrompt);
@@ -242,8 +233,9 @@ async function synthesize(
   travelMonth: string,
   advisories: any[],
   disruptions: any[]
-): Promise<{ verdict: string; verdictLevel: string; summaryParagraph: string; safetyGuidance: any[] }> {
-  const prompt = `Given official advisory data and current news disruptions for ${city}, ${country} for a trip in ${travelMonth}:
+): Promise<{ verdict: string; verdictLevel: string; forwardAssessment: string; safetyGuidance: any[] }> {
+  const year = new Date().getFullYear();
+  const prompt = `You have official advisory data and recent news disruptions for ${city}, ${country} for a trip in ${travelMonth} ${year}.
 
 OFFICIAL ADVISORIES:
 ${JSON.stringify(advisories)}
@@ -253,9 +245,9 @@ ${JSON.stringify(disruptions)}
 
 Return a JSON object:
 {
-  "verdict": "Single plain-English sentence. Calm, honest. Do NOT use the word 'precautions'. Example: 'Seville is safe to visit in February — one transport issue worth monitoring.'",
+  "verdict": "2–3 sentences that: (1) give the overall safety picture drawing on all three advisories and reconciling any differences between them honestly, (2) mention any current news events that are relevant to a tourist right now, (3) include a brief honest note on whether any current issues are likely to still be relevant in ${travelMonth}. Be calm, specific to ${city} not just ${country}, and write for someone who is deciding whether to book. Do not use the word 'precautions'. Do not exceed 3 sentences.",
   "verdictLevel": "green" if all advisories <=2 and no high-impact disruptions, "amber" if any advisory is 3 or any high-impact disruption, "red" if any advisory is 4,
-  "summaryParagraph": "One paragraph contextualising the situation for a tourist. Do not sensationalise. Do not repeat the verdict. Focus on what this means practically.",
+  "forwardAssessment": "1–2 sentences about which if any of the recent events are most likely to still affect travel in ${travelMonth}. Be honest about uncertainty — if you cannot assess with confidence, say so briefly. Keep it under 40 words.",
   "safetyGuidance": [
     {"header": "On the Street", "points": ["2-3 points in second person active voice, e.g. 'Watch your bags in crowded areas'"]},
     {"header": "Getting Around", "points": ["2-3 points"]},
@@ -350,7 +342,6 @@ serve(async (req) => {
     let emergencyContacts: any[] = [];
     let emergencyNote: string | null = null;
 
-    // Try Perplexity for emergency numbers
     try {
       const emergencyData = await queryPerplexity(
         PERPLEXITY_API_KEY,
@@ -440,7 +431,7 @@ serve(async (req) => {
     const result = {
       verdict: synthesis.verdict,
       verdictLevel: synthesis.verdictLevel || "green",
-      summaryParagraph: synthesis.summaryParagraph,
+      forwardAssessment: synthesis.forwardAssessment || "",
       officialAdvisories: advisories,
       currentIssues,
       safetyGuidance: synthesis.safetyGuidance || [],

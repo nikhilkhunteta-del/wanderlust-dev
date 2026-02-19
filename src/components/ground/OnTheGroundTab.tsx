@@ -46,22 +46,27 @@ export const OnTheGroundTab = ({ city, country, travelMonth }: OnTheGroundTabPro
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 space-y-8">
-      {/* Section 1 — Verdict */}
+      {/* Section 1 — Verdict (expanded master synthesis) */}
       <VerdictBar verdict={data.verdict} level={data.verdictLevel} />
 
-      {/* Section 2 — Official Advisories */}
+      {/* Section 2 — Advisory pills (reference-only, no additional paragraph) */}
       <OfficialAdvisoryStrip advisories={data.officialAdvisories} />
 
-      {/* Section 3 — Current Issues */}
+      {/* Section 3 — What's Happening Now (factual news cards + forward assessment) */}
       <section className="space-y-3">
         <h3 className="text-lg font-semibold text-foreground">What's Happening Now</h3>
-        {data.summaryParagraph && (
-          <p className="text-sm text-muted-foreground leading-relaxed">{data.summaryParagraph}</p>
-        )}
         {data.currentIssues.length > 0 ? (
-          <CurrentIssues issues={data.currentIssues} />
+          <>
+            <CurrentIssues issues={data.currentIssues} />
+            {data.forwardAssessment && (
+              <p className="text-sm leading-relaxed text-muted-foreground/70 pt-1">
+                <span className="text-muted-foreground/50 italic">Looking ahead — </span>
+                {data.forwardAssessment}
+              </p>
+            )}
+          </>
         ) : (
-          <p className="text-muted-foreground text-sm">No significant disruptions reported for this period.</p>
+          <p className="text-muted-foreground text-sm">No significant disruptions reported in the last 90 days.</p>
         )}
       </section>
 
