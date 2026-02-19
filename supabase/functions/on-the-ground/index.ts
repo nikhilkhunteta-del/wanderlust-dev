@@ -262,27 +262,32 @@ Guidelines:
 - Tone: calm, well-informed friend
 Return ONLY valid JSON.`;
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${lovableKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: "You are a travel safety advisor. Write like a calm, well-informed friend — not a government briefing. Return only valid JSON." },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.3,
-    }),
-  });
-
-  if (!res.ok) {
+  const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
+  let res: Response | null = null;
+  for (const model of models) {
+    console.log("Synthesis trying model:", model);
+    res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: "You are a travel safety advisor. Write like a calm, well-informed friend — not a government briefing. Return only valid JSON." },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.3,
+      }),
+    });
+    if (res.ok) break;
+    const errText = await res.text();
+    console.error(`Synthesis error with ${model}:`, res.status, errText);
     if (res.status === 429) throw new Error("Rate limits exceeded, please try again later.");
     if (res.status === 402) throw new Error("Payment required, please add funds to your workspace.");
-    throw new Error(`AI Gateway error: ${res.status}`);
   }
+  if (!res || !res.ok) throw new Error(`AI Gateway error: 500`);
 
   const aiData = await res.json();
   const content = aiData.choices?.[0]?.message?.content;
