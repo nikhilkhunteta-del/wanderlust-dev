@@ -1,13 +1,12 @@
 import { useRef } from "react";
-import { useHealthNotices } from "@/hooks/useCityData";
-import { HealthStatusBanner } from "./HealthStatusBanner";
-import { CurrentNotices } from "./CurrentNotices";
-import { VaccineGuidance } from "./VaccineGuidance";
-import { WaterFoodSafety } from "./WaterFoodSafety";
-import { MedicalFacilities } from "./MedicalFacilities";
-import { HealthPackingList } from "./HealthPackingList";
-import { TravelInsuranceNote } from "./TravelInsuranceNote";
-import { ContextualHealthInsights } from "./ContextualHealthInsights";
+import { useHealthData } from "@/hooks/useCityData";
+import { HealthSummarySection } from "./HealthSummarySection";
+import { ActiveNoticesSection } from "./ActiveNoticesSection";
+import { VaccineSection } from "./VaccineSection";
+import { WaterFoodSection } from "./WaterFoodSection";
+import { MedicalFacilitiesSection } from "./MedicalFacilitiesSection";
+import { SeasonalHealthSection } from "./SeasonalHealthSection";
+import { PackingSuggestionsSection } from "./PackingSuggestionsSection";
 import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, HeartPulse } from "lucide-react";
 
@@ -22,9 +21,9 @@ export const HealthNoticesTab = ({
   country,
   travelMonth,
 }: HealthNoticesTabProps) => {
-  const { data: healthData, isLoading, isFetching, error, dataUpdatedAt } = useHealthNotices(city, country, travelMonth);
+  const { data: healthData, isLoading, isFetching, error, dataUpdatedAt } = useHealthData(city, country, travelMonth);
   const initialLoadTime = useRef<number | null>(null);
-  
+
   if (healthData && !initialLoadTime.current) {
     initialLoadTime.current = Date.now();
   }
@@ -64,68 +63,43 @@ export const HealthNoticesTab = ({
       <div className="flex justify-end">
         <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
       </div>
-      
-      {/* Health Status Banner */}
-      <HealthStatusBanner
+
+      {/* Section 1: Health Summary */}
+      <HealthSummarySection
+        summary={healthData.healthSummary}
         hasActiveAlerts={healthData.hasActiveAlerts}
-        alertSummary={healthData.alertSummary}
       />
 
-      {/* Current Notices */}
-      {healthData.currentNotices.length > 0 && (
-        <section>
-          <CurrentNotices notices={healthData.currentNotices} />
-        </section>
+      {/* Section 2: Active Notices (only if relevant) */}
+      {healthData.activeNotices.length > 0 && (
+        <ActiveNoticesSection notices={healthData.activeNotices} />
       )}
 
-      {/* Two-column grid for compact sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Vaccines */}
-        <section>
-          <VaccineGuidance vaccines={healthData.vaccines} />
-        </section>
+      {/* Section 3: Vaccinations */}
+      <VaccineSection vaccines={healthData.vaccines} />
 
-        {/* Water & Food Safety */}
-        <section>
-          <WaterFoodSafety
-            waterSafety={healthData.waterSafety}
-            foodSafetyTips={healthData.foodSafetyTips}
-          />
-        </section>
-      </div>
+      {/* Section 4: Water & Food Safety */}
+      <WaterFoodSection
+        waterSafety={healthData.waterSafety}
+        foodSafety={healthData.foodSafety}
+      />
 
-      {/* Medical Facilities - full width */}
-      <section>
-        <MedicalFacilities
-          standard={healthData.medicalFacilities.standard}
-          pharmacyAvailability={healthData.medicalFacilities.pharmacyAvailability}
-          emergencyNumber={healthData.medicalFacilities.emergencyNumber}
-        />
-      </section>
+      {/* Section 5: Medical Facilities */}
+      <MedicalFacilitiesSection facilities={healthData.medicalFacilities} />
 
-      {/* Contextual Insights */}
-      {healthData.contextualInsights.length > 0 && (
-        <section>
-          <ContextualHealthInsights insights={healthData.contextualInsights} />
-        </section>
+      {/* Section 6: Seasonal Health Considerations */}
+      {healthData.seasonalConsiderations.length > 0 && (
+        <SeasonalHealthSection considerations={healthData.seasonalConsiderations} />
       )}
 
-      {/* Two-column for packing and insurance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <section>
-          <HealthPackingList items={healthData.packingList} />
-        </section>
-        <section>
-          <TravelInsuranceNote note={healthData.travelInsuranceNote} />
-        </section>
-      </div>
+      {/* Section 7: Packing Suggestions */}
+      <PackingSuggestionsSection suggestions={healthData.packingSuggestions} />
 
-      {/* Footer */}
+      {/* Section 8: Footer */}
       <footer className="pt-8 border-t border-border/40">
         <p className="text-xs text-muted-foreground/60 leading-relaxed">
-          Health information is synthesized from official sources including WHO, CDC, and NaTHNaC. 
-          This is general guidance only. Consult a travel health professional for personalized medical advice.
-          <span className="block mt-1">Last updated: {healthData.lastUpdated}</span>
+          Health information synthesised from CDC, WHO, and NaTHNaC. This is general guidance only
+          — consult a travel health professional for personalised medical advice.
         </p>
       </footer>
     </div>
