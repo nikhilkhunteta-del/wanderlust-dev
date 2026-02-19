@@ -163,7 +163,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
             { role: "system", content: "You are a travel accommodation expert. Respond only with valid JSON." },
             { role: "user", content: prompt },
           ],
-          temperature: 0.7,
+          ...(model.startsWith("google/") ? { temperature: 0.7 } : {}),
         }),
       });
       if (response.ok) break;
