@@ -4,6 +4,7 @@ import { getSeasonalHighlights } from "@/lib/seasonalHighlights";
 import { getCityWeather } from "@/lib/weather";
 import { getTravelAdvisory } from "@/lib/travelAdvisory";
 import { getHealthNotices } from "@/lib/healthNotices";
+import { fetchHealthData } from "@/lib/healthData";
 import { getSituationalAwareness } from "@/lib/situationalAwareness";
 import { getOnTheGround } from "@/lib/onTheGround";
 import { getFlightInsights } from "@/lib/flightInsights";
@@ -60,6 +61,15 @@ export function useHealthNotices(city: string, country: string, travelMonth: str
   return useQuery({
     queryKey: ["health-notices", city, country, travelMonth],
     queryFn: () => getHealthNotices({ city, country, travelMonth }),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  });
+}
+
+export function useHealthData(city: string, country: string, travelMonth: string) {
+  return useQuery({
+    queryKey: ["health-data", city, country, travelMonth],
+    queryFn: () => fetchHealthData({ city, country, travelMonth }),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });

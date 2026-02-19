@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.on-the-ground]
 verify_jwt = false
+
+[functions.fetch-health-data]
+verify_jwt = false
