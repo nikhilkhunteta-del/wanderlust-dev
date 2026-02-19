@@ -53,18 +53,17 @@ export const OnTheGroundTab = ({ city, country, travelMonth }: OnTheGroundTabPro
       <OfficialAdvisoryStrip advisories={data.officialAdvisories} />
 
       {/* Section 3 — Current Issues */}
-      {data.currentIssues.length > 0 && (
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold text-foreground">What's Happening Now</h3>
+      <section className="space-y-3">
+        <h3 className="text-lg font-semibold text-foreground">What's Happening Now</h3>
+        {data.summaryParagraph && (
+          <p className="text-sm text-muted-foreground leading-relaxed">{data.summaryParagraph}</p>
+        )}
+        {data.currentIssues.length > 0 ? (
           <CurrentIssues issues={data.currentIssues} />
-        </section>
-      )}
-      {data.currentIssues.length === 0 && (
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold text-foreground">What's Happening Now</h3>
+        ) : (
           <p className="text-muted-foreground text-sm">No significant disruptions reported for this period.</p>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Section 4 — Safety Guidance */}
       <section className="space-y-3">
