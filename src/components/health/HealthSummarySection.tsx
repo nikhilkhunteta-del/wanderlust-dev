@@ -20,9 +20,11 @@ export const HealthSummarySection = ({ summary, hasActiveAlerts }: HealthSummary
 
   return (
     <section>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        {summary}
-      </p>
+      <div className="border-l-[3px] border-emerald-500 pl-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {summary}
+        </p>
+      </div>
     </section>
   );
 };
