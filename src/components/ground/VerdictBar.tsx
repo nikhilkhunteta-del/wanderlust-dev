@@ -1,5 +1,3 @@
-import { OnTheGroundData } from "@/types/onTheGround";
-
 interface VerdictBarProps {
   verdict: string;
   level: "green" | "amber" | "red";
@@ -14,7 +12,7 @@ const borderColors: Record<string, string> = {
 export const VerdictBar = ({ verdict, level }: VerdictBarProps) => {
   return (
     <div className={`border-l-4 ${borderColors[level]} pl-5 py-4`}>
-      <p className="text-lg font-medium text-foreground leading-relaxed">{verdict}</p>
+      <p className="text-base text-foreground leading-relaxed">{verdict}</p>
     </div>
   );
 };
