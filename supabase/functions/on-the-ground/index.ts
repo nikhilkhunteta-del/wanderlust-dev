@@ -7,26 +7,67 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// --- Helpers ---
+
+function fetchWithTimeout(url: string, timeoutMs = 15000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/['']/g, "").replace(/\s+/g, "-");
+}
+
 // --- Government Advisory Fetchers ---
 
 async function fetchUSAdvisory(country: string): Promise<any> {
   try {
-    const res = await fetch("https://cadataapi.state.gov/api/TravelAdvisories");
+    const res = await fetchWithTimeout("https://cadataapi.state.gov/api/TravelAdvisories");
     if (!res.ok) throw new Error(`US API ${res.status}`);
-    const data = await res.json();
-    const match = data?.find?.((a: any) =>
-      a.country_name?.toLowerCase() === country.toLowerCase() ||
-      a.iso_code?.toLowerCase() === country.toLowerCase()
-    );
-    if (!match) return null;
+    const raw = await res.json();
+    // The API may return an array directly or nested in a wrapper
+    const items = Array.isArray(raw) ? raw : (raw?.data || raw?.advisories || raw?.Data || []);
+    if (!Array.isArray(items) || items.length === 0) {
+      console.warn("US API returned unexpected shape, keys:", Object.keys(raw || {}));
+      throw new Error("Unexpected US API response format");
+    }
+    
+    const cl = country.toLowerCase();
+    const match = items.find((a: any) => {
+      // Fields: Title ("Spain - Level 2: Exercise Increased Caution"), Link, Category, Summary, id, Published, Updated
+      const title = (a.Title || a.title || a.country_name || a.country || a.name || "").toLowerCase();
+      const iso = (a.iso_code || a.isoCode || a.ISO || a.code || "").toLowerCase();
+      // Title format: "Country - Level X: ..."
+      const titleCountry = title.split(" - ")[0].trim();
+      return titleCountry === cl || iso === cl;
+    });
+    
+    if (!match) {
+      console.warn(`US advisory: no match for "${country}" among ${items.length} entries. Sample keys:`, Object.keys(items[0] || {}));
+      return null;
+    }
+    
+    // Parse "Spain - Level 2: Exercise Increased Caution" format
+    const title = match.Title || match.title || "";
+    const levelMatch = title.match(/Level\s+(\d)/i);
+    const level = levelMatch ? parseInt(levelMatch[1]) : 1;
+    const levelLabels: Record<number, string> = {
+      1: "Exercise Normal Precautions",
+      2: "Exercise Increased Caution",
+      3: "Reconsider Travel",
+      4: "Do Not Travel",
+    };
+    const slug = toSlug(country);
+    
     return {
       source: "us",
       sourceName: "US State Department",
-      level: match.advisory_text || `Level ${match.advisory_level}`,
-      levelNumeric: parseInt(match.advisory_level) || 1,
-      summary: match.advisory_text || "",
-      sourceUrl: "https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories.html",
-      lastUpdated: match.date_updated || new Date().toISOString().split("T")[0],
+      level: levelLabels[level] || `Level ${level}`,
+      levelNumeric: level,
+      summary: (match.Summary || match.summary || levelLabels[level] || "").replace(/<[^>]*>/g, "").slice(0, 200),
+      sourceUrl: match.Link || `https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/${slug}-travel-advisory.html`,
+      lastUpdated: (match.Updated || match.Published || match.date_updated || "").split("T")[0] || new Date().toISOString().split("T")[0],
     };
   } catch (e) {
     console.warn("US advisory fetch failed:", e);
@@ -35,26 +76,36 @@ async function fetchUSAdvisory(country: string): Promise<any> {
 }
 
 async function fetchUKAdvisory(country: string): Promise<any> {
+  // UK FCDO uses specific slugs that may differ from simple lowercasing
+  const specialSlugs: Record<string, string> = {
+    "united states": "usa",
+    "united states of america": "usa",
+  };
+  const slug = specialSlugs[country.toLowerCase()] || toSlug(country);
+  
   try {
-    const slug = country.toLowerCase().replace(/\s+/g, "-");
-    const res = await fetch(`https://www.gov.uk/api/content/foreign-travel-advice/${slug}`);
-    if (!res.ok) throw new Error(`UK API ${res.status}`);
+    const res = await fetchWithTimeout(`https://www.gov.uk/api/content/foreign-travel-advice/${slug}`);
+    if (!res.ok) throw new Error(`UK API ${res.status} for slug "${slug}"`);
     const data = await res.json();
     const alertStatus = data.details?.alert_status || [];
-    const summary = data.details?.summary?.replace(/<[^>]*>/g, "")?.slice(0, 200) || "";
-    const level = alertStatus.length > 0 ? alertStatus[0] : "normal";
+    const summaryHtml = data.details?.summary || "";
+    const summary = summaryHtml.replace(/<[^>]*>/g, "").slice(0, 200);
+    const level = Array.isArray(alertStatus) && alertStatus.length > 0 ? alertStatus[0] : "normal";
     const levelMap: Record<string, number> = {
-      "avoid_all_travel_to_parts": 3, "avoid_all_but_essential_travel_to_parts": 2,
-      "avoid_all_travel_to_whole_country": 4, "avoid_all_but_essential_travel_to_whole_country": 3,
+      "avoid_all_travel_to_parts": 3,
+      "avoid_all_but_essential_travel_to_parts": 2,
+      "avoid_all_travel_to_whole_country": 4,
+      "avoid_all_but_essential_travel_to_whole_country": 3,
     };
+    const humanLevel = level === "normal" ? "Normal" : level.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
     return {
       source: "uk",
       sourceName: "UK FCDO",
-      level: level.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
+      level: humanLevel,
       levelNumeric: levelMap[level] || 1,
       summary,
       sourceUrl: `https://www.gov.uk/foreign-travel-advice/${slug}`,
-      lastUpdated: data.updated_at?.split("T")[0] || new Date().toISOString().split("T")[0],
+      lastUpdated: (data.updated_at || data.public_updated_at || "").split("T")[0] || new Date().toISOString().split("T")[0],
     };
   } catch (e) {
     console.warn("UK advisory fetch failed:", e);
@@ -64,34 +115,53 @@ async function fetchUKAdvisory(country: string): Promise<any> {
 
 async function fetchCAAdvisory(country: string): Promise<any> {
   try {
-    const res = await fetch("https://data.international.gc.ca/travel-voyage/index-alpha-eng.json");
+    const res = await fetchWithTimeout("https://data.international.gc.ca/travel-voyage/index-alpha-eng.json");
     if (!res.ok) throw new Error(`CA API ${res.status}`);
-    const data = await res.json();
-    const items = data?.data || data;
-    const match = (Array.isArray(items) ? items : []).find((a: any) =>
-      a["country-pays"]?.eng?.toLowerCase() === country.toLowerCase() ||
-      a["advisory-text"]?.eng?.toLowerCase()?.includes(country.toLowerCase())
-    );
-    if (!match) return null;
-    const advisoryText = match["advisory-text"]?.eng || match["advisory-conseil"]?.eng || "";
-    const levelMap: Record<string, number> = {
-      "exercise normal security precautions": 1,
-      "exercise a high degree of caution": 2,
-      "avoid non-essential travel": 3,
-      "avoid all travel": 4,
+    const raw = await res.json();
+    // Structure: { data: { entities: { ... } } } or top-level array
+    let items: any[] = [];
+    if (Array.isArray(raw)) {
+      items = raw;
+    } else if (raw?.data) {
+      if (Array.isArray(raw.data)) {
+        items = raw.data;
+      } else if (raw.data.entities) {
+        items = Object.values(raw.data.entities);
+      } else {
+        items = Object.values(raw.data);
+      }
+    }
+    
+    const cl = country.toLowerCase();
+    const match = items.find((a: any) => {
+      const name = (a["country-eng"] || a["country-pays"]?.eng || a.country || a.name || "").toString().toLowerCase();
+      return name === cl || name.includes(cl);
+    });
+    
+    if (!match) {
+      console.warn(`CA advisory: no match for "${country}" among ${items.length} entries. Sample:`, JSON.stringify(items[0] || {}).slice(0, 200));
+      return null;
+    }
+    
+    // advisory-state is numeric: 1=normal, 2=high caution, 3=avoid non-essential, 4=avoid all
+    const advisoryState = parseInt(match["advisory-state"]) || 1;
+    const levelLabels: Record<number, string> = {
+      1: "Exercise Normal Security Precautions",
+      2: "Exercise a High Degree of Caution",
+      3: "Avoid Non-essential Travel",
+      4: "Avoid All Travel",
     };
-    const numLevel = Object.entries(levelMap).find(([k]) =>
-      advisoryText.toLowerCase().includes(k)
-    )?.[1] || 1;
-    const slug = country.toLowerCase().replace(/\s+/g, "-");
+    
+    const slug = toSlug(country);
+    const iso = (match["country-iso"] || "").toUpperCase();
     return {
       source: "ca",
       sourceName: "Government of Canada",
-      level: advisoryText.slice(0, 60),
-      levelNumeric: numLevel,
-      summary: advisoryText,
+      level: levelLabels[advisoryState] || `Level ${advisoryState}`,
+      levelNumeric: advisoryState,
+      summary: levelLabels[advisoryState] || "",
       sourceUrl: `https://travel.gc.ca/destinations/${slug}`,
-      lastUpdated: match["date-published"]?.["#text"] || new Date().toISOString().split("T")[0],
+      lastUpdated: match["date-published"]?.date?.split(" ")[0] || new Date().toISOString().split("T")[0],
     };
   } catch (e) {
     console.warn("CA advisory fetch failed:", e);
