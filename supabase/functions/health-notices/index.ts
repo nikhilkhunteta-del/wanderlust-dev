@@ -205,7 +205,7 @@ Be factual and neutral. No alarmist language. No personalized medical advice.`;
             { role: "system", content: "You are a travel health data API. Return only valid JSON. When provided with real CDC data, extract actual notices and alerts accurately." },
             { role: "user", content: prompt },
           ],
-          temperature: 0.3,
+          ...(model.startsWith("google/") ? { temperature: 0.3 } : {}),
         }),
       });
       if (response.ok) break;

@@ -278,7 +278,7 @@ Return ONLY valid JSON.`;
           { role: "system", content: "You are a travel safety advisor. Write like a calm, well-informed friend — not a government briefing. Return only valid JSON." },
           { role: "user", content: prompt },
         ],
-        temperature: 0.3,
+        ...(model.startsWith("google/") ? { temperature: 0.3 } : {}),
       }),
     });
     if (res.ok) break;
