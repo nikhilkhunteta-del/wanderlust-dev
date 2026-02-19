@@ -27,9 +27,11 @@ export interface HealthData {
     qualityDetail: string;
     pharmacy: string;
     emergencyNumber: string;
+    emergencyDescriptor?: string;
   };
   seasonalConsiderations: string[];
   packingSuggestions: string[];
+  reassuranceLine?: string | null;
   lastUpdated: string;
   dataSources: string[];
 }

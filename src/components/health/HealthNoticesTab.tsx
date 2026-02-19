@@ -7,7 +7,6 @@ import { WaterFoodSection } from "./WaterFoodSection";
 import { MedicalFacilitiesSection } from "./MedicalFacilitiesSection";
 import { SeasonalHealthSection } from "./SeasonalHealthSection";
 import { PackingSuggestionsSection } from "./PackingSuggestionsSection";
-import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, HeartPulse } from "lucide-react";
 
 interface HealthNoticesTabProps {
@@ -21,13 +20,7 @@ export const HealthNoticesTab = ({
   country,
   travelMonth,
 }: HealthNoticesTabProps) => {
-  const { data: healthData, isLoading, isFetching, error, dataUpdatedAt } = useHealthData(city, country, travelMonth);
-  const initialLoadTime = useRef<number | null>(null);
-
-  if (healthData && !initialLoadTime.current) {
-    initialLoadTime.current = Date.now();
-  }
-  const isFromCache = healthData && !isLoading && dataUpdatedAt < Date.now() - 100;
+  const { data: healthData, isLoading, isFetching, error } = useHealthData(city, country, travelMonth);
 
   if (isLoading) {
     return (
@@ -60,10 +53,6 @@ export const HealthNoticesTab = ({
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 space-y-10">
-      <div className="flex justify-end">
-        <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
-      </div>
-
       {/* Section 1: Health Summary */}
       <HealthSummarySection
         summary={healthData.healthSummary}
@@ -87,13 +76,20 @@ export const HealthNoticesTab = ({
       {/* Section 5: Medical Facilities */}
       <MedicalFacilitiesSection facilities={healthData.medicalFacilities} />
 
-      {/* Section 6: Seasonal Health Considerations */}
+      {/* Section 6: Seasonal Health Considerations (only if 2+ items) */}
       {healthData.seasonalConsiderations.length > 0 && (
         <SeasonalHealthSection considerations={healthData.seasonalConsiderations} />
       )}
 
       {/* Section 7: Packing Suggestions */}
       <PackingSuggestionsSection suggestions={healthData.packingSuggestions} />
+
+      {/* Reassurance line */}
+      {healthData.reassuranceLine && (
+        <p className="text-xs text-muted-foreground/70 leading-relaxed">
+          {healthData.reassuranceLine}
+        </p>
+      )}
 
       {/* Section 8: Footer */}
       <footer className="pt-8 border-t border-border/40">

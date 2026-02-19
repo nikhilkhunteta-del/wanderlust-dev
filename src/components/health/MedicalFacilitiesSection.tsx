@@ -7,10 +7,16 @@ interface MedicalFacilitiesSectionProps {
     qualityDetail: string;
     pharmacy: string;
     emergencyNumber: string;
+    emergencyDescriptor?: string;
   };
 }
 
 export const MedicalFacilitiesSection = ({ facilities }: MedicalFacilitiesSectionProps) => {
+  const hasMultipleNumbers = facilities.emergencyNumber.includes("/") || facilities.emergencyNumber.includes("(");
+  const descriptor = facilities.emergencyDescriptor || (
+    hasMultipleNumbers ? facilities.emergencyNumber : "All emergency services — police, ambulance, fire"
+  );
+
   return (
     <section className="space-y-4">
       <h3 className="text-lg font-semibold">Medical Facilities</h3>
@@ -45,8 +51,8 @@ export const MedicalFacilitiesSection = ({ facilities }: MedicalFacilitiesSectio
               <Phone className="w-4 h-4 text-destructive" />
             </div>
             <div>
-              <p className="font-medium text-sm">Emergency</p>
-              <p className="text-xs text-muted-foreground mt-1">{facilities.emergencyNumber}</p>
+              <p className="font-medium text-sm">Emergency: {facilities.emergencyNumber}</p>
+              <p className="text-xs text-muted-foreground mt-1">{descriptor}</p>
             </div>
           </CardContent>
         </Card>

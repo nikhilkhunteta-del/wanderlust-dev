@@ -124,7 +124,7 @@ async function fetchPerplexityHealth(
   "medical_quality": {"level":"Excellent"|"Good"|"Basic","detail":"one sentence"},
   "pharmacy": "one sentence about pharmacy availability in ${city}",
   "seasonal_considerations": ["array of considerations specific to ${travelMonth}, empty if none"],
-  "packing_suggestions": ["only items specifically needed for ${city} in ${travelMonth}, empty if standard travel prep suffices"]
+  "packing_suggestions": ["only items specifically needed for ${city} in ${travelMonth}, empty if standard travel prep suffices. INSECT REPELLENT RULE: Only include insect repellent if the destination has documented mosquito-borne disease risk (dengue, malaria, Zika) or the travel month falls in peak mosquito season for that region. For major European cities in spring/autumn, do NOT include insect repellent unless there is a specific reason. Every packing item must have a clear destination-specific reason."]
 }
 Return ONLY valid JSON.`,
           },
@@ -254,7 +254,9 @@ serve(async (req) => {
         const vaccineJson = await callAI(
           LOVABLE_API_KEY,
           "You are a travel health data filter. Return ONLY valid JSON.",
-          `Filter this CDC vaccine data for a tourist visiting ${city} in ${travelMonth}. Remove vaccines only relevant to: rural or remote travel, long-stay travellers (6+ months), healthcare workers, or areas far from ${city}. Return only vaccines genuinely recommended or required for this specific city and tourist travel context.
+          `Filter this CDC vaccine data for a tourist visiting ${city}, ${resolvedCountry} in ${travelMonth}. Remove vaccines only relevant to: rural or remote travel, long-stay travellers (6+ months), healthcare workers, or areas far from ${city}. Return only vaccines genuinely recommended or required for this specific city and tourist travel context.
+
+HEPATITIS A RULE: If Hepatitis A is listed solely due to generic international travel guidance and the destination country has low documented incidence (e.g. Western Europe, North America, Australia, Japan, South Korea), do NOT show it as a standalone "Recommended" entry. Instead include it as "Routine" with reason: "Hepatitis A — consider if eating street food or travelling outside major restaurants."
 
 CDC DATA:
 ${cdcData.substring(0, 4000)}
@@ -277,6 +279,8 @@ Return ONLY valid JSON array.`
           LOVABLE_API_KEY,
           "You are a travel health data API. Return ONLY valid JSON.",
           `What vaccines are recommended for a tourist visiting ${city}, ${resolvedCountry} in ${travelMonth}? Only include vaccines genuinely relevant for a short-stay tourist visiting the city. Do NOT include Yellow Fever unless required/recommended for this destination. Do NOT include Rabies unless there is documented high risk. Do NOT include Tick-borne encephalitis for major urban destinations.
+
+HEPATITIS A RULE: If Hepatitis A is listed solely due to generic international travel guidance and the destination country has low documented incidence (e.g. Western Europe, North America, Australia, Japan, South Korea), do NOT show it as a standalone "Recommended" entry. Instead include it as "Routine" with reason: "Hepatitis A — consider if eating street food or travelling outside major restaurants."
 
 Return a JSON array: [{"name":"vaccine name","recommendation_level":"Routine"|"Recommended"|"Required","reason":"one sentence reason specific to ${city}"}]
 Return ONLY valid JSON array.`
@@ -342,9 +346,13 @@ Return ONLY valid JSON.`
     const seasonalConsiderations: string[] = pxHealth?.seasonal_considerations || [];
     const packingSuggestions: string[] = pxHealth?.packing_suggestions || [];
 
-    // --- Step D: AI Health Summary ---
+    // --- Step D: AI Health Summary (fold minor seasonal into summary) ---
     let healthSummary = "";
     let hasActiveAlerts = activeNotices.length > 0;
+    let displaySeasonalConsiderations = seasonalConsiderations;
+
+    // If only one minor seasonal consideration, fold it into summary
+    const foldSeasonal = seasonalConsiderations.length === 1;
 
     try {
       const summaryInput = {
@@ -356,6 +364,7 @@ Return ONLY valid JSON.`
         waterStatus: waterSafety.status,
         medicalLevel: medicalQuality.level,
         vaccineCount: vaccines.filter((v) => v.recommendation_level !== "Routine").length,
+        seasonalNote: foldSeasonal ? seasonalConsiderations[0] : null,
       };
 
       healthSummary = await callAI(
@@ -365,15 +374,40 @@ Return ONLY valid JSON.`
 
 Context: ${JSON.stringify(summaryInput)}
 
-Lead with the overall risk level for a typical tourist. Mention active notices ONLY if genuinely relevant (${activeNotices.length} active). End with the single most important health action for this trip. Be calm, specific to ${city}, and avoid generic advice that applies to every destination. Return ONLY the 2-3 sentences, nothing else.`
+Lead with the overall risk level for a typical tourist. Mention active notices ONLY if genuinely relevant (${activeNotices.length} active). ${foldSeasonal ? `Incorporate this seasonal note naturally as part of the summary: "${seasonalConsiderations[0]}".` : ""} End with the single most important health action for this trip. Be calm, specific to ${city}, and avoid generic advice that applies to every destination. Return ONLY the 2-3 sentences, nothing else.`
       );
+
+      if (foldSeasonal) {
+        displaySeasonalConsiderations = [];
+      }
     } catch (e) {
       console.warn("Health summary generation failed:", e);
       healthSummary = `${city} is generally a safe destination for tourists. Ensure routine vaccinations are current and consider travel insurance.`;
     }
 
-    // Emergency number
+    // --- Step E: Reassurance line ---
+    let reassuranceLine: string | null = null;
+    const qualityLevel = medicalQuality.level;
+    if (qualityLevel === "Excellent" || qualityLevel === "Good") {
+      try {
+        reassuranceLine = await callAI(
+          LOVABLE_API_KEY,
+          "You are a calm travel writer. Return ONLY plain text, one sentence, under 20 words.",
+          `Write one sentence that reassures a tourist about the healthcare infrastructure in ${city} specifically — mention something concrete like English-speaking staff, proximity to major hospitals, or pharmacy availability. Keep it under 20 words.`
+        );
+        // Clean any quotes
+        reassuranceLine = reassuranceLine.replace(/^["']|["']$/g, "").trim();
+      } catch (e) {
+        console.warn("Reassurance line generation failed:", e);
+      }
+    }
+
+    // Emergency number with descriptor
     const emergencyNumber = getEmergencyNumber(resolvedCountry);
+    const hasMultipleNumbers = emergencyNumber.includes("/") || emergencyNumber.includes("(");
+    const emergencyDescriptor = hasMultipleNumbers
+      ? emergencyNumber
+      : `All emergency services — police, ambulance, fire`;
 
     // Build response
     const result = {
@@ -388,9 +422,11 @@ Lead with the overall risk level for a typical tourist. Mention active notices O
         qualityDetail: medicalQuality.detail,
         pharmacy,
         emergencyNumber,
+        emergencyDescriptor,
       },
-      seasonalConsiderations,
+      seasonalConsiderations: displaySeasonalConsiderations,
       packingSuggestions,
+      reassuranceLine,
       lastUpdated: new Date().toISOString().split("T")[0],
       dataSources: [
         cdcData ? "CDC (live)" : null,
