@@ -111,7 +111,7 @@ Generate:
     console.log("Sending prompt to AI gateway...");
 
     // Try with primary model, fallback to stable model if needed
-    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite"];
+    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
     let content: string | null = null;
     let lastError: string | null = null;
 

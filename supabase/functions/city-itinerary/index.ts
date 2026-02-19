@@ -124,21 +124,24 @@ Respond with ONLY valid JSON for a single day:
   ]
 }`;
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [{ role: "user", content: singleDayPrompt }],
-        }),
-      });
-
-      if (!response.ok) {
+      const singleDayModels = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
+      let response: Response | null = null;
+      for (const model of singleDayModels) {
+        console.log("Trying model:", model);
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: "user", content: singleDayPrompt }],
+          }),
+        });
+        if (response.ok) break;
         const errorText = await response.text();
-        console.error("AI gateway error:", response.status, errorText);
+        console.error(`AI gateway error with ${model}:`, response.status, errorText);
         if (response.status === 429) {
           return new Response(
             JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
@@ -151,7 +154,9 @@ Respond with ONLY valid JSON for a single day:
             { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        throw new Error(`AI gateway returned ${response.status}`);
+      }
+      if (!response || !response.ok) {
+        throw new Error("AI gateway returned 500");
       }
 
       const aiResponse = await response.json();
@@ -252,25 +257,27 @@ Create a ${requestData.tripDuration}-day plan with Morning, Afternoon, and Eveni
 
     console.log("Sending prompt to AI gateway...");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
+    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
+    let response: Response | null = null;
+    for (const model of models) {
+      console.log("Trying model:", model);
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+      if (response.ok) break;
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-
+      console.error(`AI gateway error with ${model}:`, response.status, errorText);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
@@ -283,8 +290,9 @@ Create a ${requestData.tripDuration}-day plan with Morning, Afternoon, and Eveni
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      throw new Error(`AI gateway returned ${response.status}`);
+    }
+    if (!response || !response.ok) {
+      throw new Error("AI gateway returned 500");
     }
 
     const aiResponse = await response.json();
