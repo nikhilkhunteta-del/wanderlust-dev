@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      ground_cache: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          data_json: Json
+          fetched_at: string
+          id: string
+          travel_month: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+          travel_month: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+          travel_month?: string
+        }
+        Relationships: []
+      }
+      health_cache: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          data_json: Json
+          fetched_at: string
+          id: string
+          travel_month: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+          travel_month: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+          travel_month?: string
+        }
+        Relationships: []
+      }
       image_cache: {
         Row: {
           attribution_required: boolean

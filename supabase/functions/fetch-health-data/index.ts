@@ -1,11 +1,14 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const HEALTH_CACHE_TTL_HOURS = 6;
 
 // --- Helpers ---
 
@@ -229,6 +232,32 @@ serve(async (req) => {
     if (!city) throw new Error("City is required");
 
     const resolvedCountry = country || city;
+
+    // --- Cache check ---
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const cutoff = new Date(Date.now() - HEALTH_CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
+    const { data: cached } = await supabase
+      .from("health_cache")
+      .select("data_json, fetched_at")
+      .eq("city", city.toLowerCase())
+      .eq("country", resolvedCountry.toLowerCase())
+      .eq("travel_month", (travelMonth || "").toLowerCase())
+      .gte("fetched_at", cutoff)
+      .order("fetched_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (cached?.data_json) {
+      console.log(`Health cache HIT for ${city}, ${resolvedCountry}, ${travelMonth}`);
+      return new Response(JSON.stringify(cached.data_json), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    console.log(`Health cache MISS for ${city}, ${resolvedCountry}, ${travelMonth}`);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
     const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
@@ -441,6 +470,28 @@ Lead with the overall risk level for a typical tourist. Mention active notices O
       water: waterSafety.status,
       sources: result.dataSources,
     });
+
+    // --- Store in cache (delete old + insert new) ---
+    try {
+      const cityL = city.toLowerCase();
+      const countryL = resolvedCountry.toLowerCase();
+      const monthL = (travelMonth || "").toLowerCase();
+      await supabase.from("health_cache")
+        .delete()
+        .eq("city", cityL)
+        .eq("country", countryL)
+        .eq("travel_month", monthL);
+      await supabase.from("health_cache").insert({
+        city: cityL,
+        country: countryL,
+        travel_month: monthL,
+        data_json: result,
+        fetched_at: new Date().toISOString(),
+      });
+      console.log(`Health cache stored for ${city}`);
+    } catch (cacheErr) {
+      console.warn("Failed to store health cache:", cacheErr);
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
