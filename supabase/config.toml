@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.fetch-health-data]
 verify_jwt = false
+
+[functions.seasonal-highlights]
+verify_jwt = false
