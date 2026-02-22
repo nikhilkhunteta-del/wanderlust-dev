@@ -1,12 +1,13 @@
 import { useMemo } from "react";
 import { DailyWeather, WeeklyWeather, ChartSummary } from "@/types/weather";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ComposedChart, Area, Line,
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { TemperatureUnit, formatTempValue } from "./TemperatureToggle";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, MapPin } from "lucide-react";
+import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherChartsProps {
   dailyData: DailyWeather[];
@@ -18,6 +19,7 @@ interface WeatherChartsProps {
 
 export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary }: WeatherChartsProps) => {
   const tempSymbol = unit === "fahrenheit" ? "°F" : "°C";
+  const displayMonth = formatMonthName(month);
 
   const convertedDailyData = useMemo(() => {
     return dailyData.map((day) => ({
@@ -26,14 +28,6 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
       low: formatTempValue(day.low, unit),
     }));
   }, [dailyData, unit]);
-
-  const convertedWeeklyData = useMemo(() => {
-    return weeklyData.map((week) => ({
-      ...week,
-      avgHigh: formatTempValue(week.avgHigh, unit),
-      avgLow: formatTempValue(week.avgLow, unit),
-    }));
-  }, [weeklyData, unit]);
 
   const tooltipStyle = {
     backgroundColor: "hsl(var(--card))",
@@ -48,7 +42,7 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
       <Card className="border-border/50">
         <div className="p-5 pb-2">
           <h4 className="text-base font-semibold">Temperature through the month</h4>
-          <p className="text-sm text-muted-foreground mt-0.5">How highs and lows shift across {month}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">How highs and lows shift across {displayMonth}</p>
         </div>
         <CardContent className="pt-2">
           <div className="h-[250px]">
@@ -64,8 +58,7 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
                 <XAxis dataKey="day" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} className="text-muted-foreground" />
                 <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}°`} className="text-muted-foreground" />
                 <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`${value}${tempSymbol}`]} labelFormatter={(l) => `Day ${l}`} />
-                <Legend wrapperStyle={{ fontSize: "11px" }} />
-                <Area type="monotone" dataKey="high" fill="url(#tempGradient)" stroke="none" />
+                <Area type="monotone" dataKey="high" fill="url(#tempGradient)" stroke="none" legendType="none" />
                 <Line type="monotone" dataKey="high" stroke="hsl(25, 95%, 53%)" strokeWidth={2} dot={false} name="High" />
                 <Line type="monotone" dataKey="low" stroke="hsl(217, 91%, 60%)" strokeWidth={2} dot={false} name="Low" />
               </ComposedChart>
@@ -105,19 +98,33 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
           <p className="text-sm text-muted-foreground">{chartSummary.warmestWeek}</p>
           <p className="text-sm text-muted-foreground">{chartSummary.coolestMornings}</p>
           <p className="text-sm text-muted-foreground">{chartSummary.rainLikelihood}</p>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Outdoor comfort:</span>
-            <div className="flex gap-0.5">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-2.5 h-2.5 rounded-full ${i < chartSummary.outdoorComfortScore ? "bg-primary" : "bg-muted-foreground/20"}`}
-                />
-              ))}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Outdoor comfort:</span>
+              <div className="flex gap-0.5">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2.5 h-2.5 rounded-full ${i < chartSummary.outdoorComfortScore ? "bg-primary" : "bg-muted-foreground/20"}`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">{chartSummary.outdoorComfortScore}/10</span>
             </div>
-            <span className="text-xs text-muted-foreground">{chartSummary.outdoorComfortScore}/10</span>
+            <p className="text-xs text-muted-foreground/70">Outdoor comfort for a typical tourist (1 = very challenging, 10 = ideal)</p>
+            {chartSummary.outdoorComfortExplanation && (
+              <p className="text-xs text-muted-foreground italic">{chartSummary.outdoorComfortExplanation}</p>
+            )}
           </div>
         </div>
+
+        {/* Planning note */}
+        {chartSummary.planningNote && (
+          <div className="mt-4 pt-3 border-t border-border/30 flex items-start gap-2">
+            <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-foreground">{chartSummary.planningNote}</p>
+          </div>
+        )}
       </div>
     </div>
   );

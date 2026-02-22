@@ -10,7 +10,8 @@ import { SensoryNarrative } from "./SensoryNarrative";
 import { MonthComparison } from "./MonthComparison";
 import { TemperatureToggle, TemperatureUnit } from "./TemperatureToggle";
 import { DataFreshness } from "@/components/shared/DataFreshness";
-import { Loader2, CloudOff } from "lucide-react";
+import { Loader2, CloudOff, CloudSun } from "lucide-react";
+import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherTabProps {
   city: string;
@@ -22,6 +23,7 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
   const [tempUnit, setTempUnit] = useState<TemperatureUnit>("celsius");
   const { data: weather, isLoading, isFetching, error, dataUpdatedAt } = useCityWeather(city, country, travelMonth);
   const initialLoadTime = useRef<number | null>(null);
+  const displayMonth = formatMonthName(travelMonth);
 
   if (weather && !initialLoadTime.current) {
     initialLoadTime.current = Date.now();
@@ -33,7 +35,7 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
       <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading weather data for {travelMonth}...</p>
+          <p className="text-muted-foreground">Loading weather data for {displayMonth}...</p>
         </div>
       </div>
     );
@@ -98,6 +100,14 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
       <div className="grid md:grid-cols-2 gap-6">
         <WeatherWatch risks={weather.weatherRisks} />
         <PackingTips tips={weather.packingTips} notNeeded={weather.notNeeded} />
+      </div>
+
+      {/* Weather impact cross-tab note */}
+      <div className="flex items-center gap-2 p-4 rounded-xl bg-muted/20 border border-border/30">
+        <CloudSun className="w-4 h-4 text-muted-foreground shrink-0" />
+        <p className="text-sm text-muted-foreground">
+          Some <span className="font-medium">What's On</span> experiences and <span className="font-medium">Itinerary</span> activities have been adjusted for {displayMonth}'s weather conditions.
+        </p>
       </div>
     </div>
   );

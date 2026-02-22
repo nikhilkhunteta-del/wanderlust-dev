@@ -1,6 +1,7 @@
 import { WeatherStats as WeatherStatsType } from "@/types/weather";
 import { Thermometer, ThermometerSnowflake, Sun, CloudRain, Droplets, CloudDrizzle } from "lucide-react";
 import { TemperatureUnit, formatTempValue } from "./TemperatureToggle";
+import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherStatsProps {
   stats: WeatherStatsType;
@@ -67,7 +68,7 @@ export const WeatherStats = ({ stats, unit, month }: WeatherStatsProps) => {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">What it feels like in {month}</h3>
+      <h3 className="text-lg font-semibold mb-4">What it feels like in {formatMonthName(month)}</h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {statItems.map((item) => (
           <div

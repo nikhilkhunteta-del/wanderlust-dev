@@ -50,14 +50,17 @@ export interface ChartSummary {
   coolestMornings: string;
   rainLikelihood: string;
   outdoorComfortScore: number;
+  outdoorComfortExplanation: string;
+  planningNote: string;
 }
 
 export interface MonthRanking {
   rank: number;
   totalMonths: number;
   rating: "excellent" | "good" | "mixed" | "poor";
-  confidence: "high" | "moderate" | "low";
+  dataYears: number;
   avoidMonths: string;
+  rankingInsight: string;
 }
 
 export interface CityWeather {

@@ -1,5 +1,6 @@
 import { SensoryPeriod } from "@/types/weather";
 import { Sunrise, Sun, Moon } from "lucide-react";
+import { formatMonthName } from "@/lib/formatMonth";
 
 interface SensoryNarrativeProps {
   periods: SensoryPeriod[];
@@ -15,7 +16,7 @@ const periodConfig = {
 export const SensoryNarrative = ({ periods, month }: SensoryNarrativeProps) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">What your days will feel like</h3>
+      <h3 className="text-lg font-semibold">What your days will feel like in {formatMonthName(month)}</h3>
       <div className="grid gap-3">
         {periods.map((period) => {
           const config = periodConfig[period.period];
