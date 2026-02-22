@@ -106,7 +106,7 @@ export const SeasonalTab = ({
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
+    <div className="max-w-6xl mx-auto px-4 md:px-6 pt-7 pb-12">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between gap-3 mb-4">
@@ -126,10 +126,15 @@ export const SeasonalTab = ({
           <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
         </div>
 
-        {/* Single opening statement only — no duplicate intro */}
-        <p className="text-lg text-foreground/75 leading-relaxed max-w-3xl">
-          {data.openingStatement}
-        </p>
+        {/* Opening summary — amber tint, distinct from card callouts */}
+        <div
+          className="rounded-md max-w-3xl"
+          style={{ background: '#FEF3C7', borderLeft: '3px solid #D97706', padding: '12px 16px', borderRadius: '6px' }}
+        >
+          <p className="text-base text-foreground/80 leading-relaxed">
+            {data.openingStatement}
+          </p>
+        </div>
       </div>
 
       {/* Grouped sections */}
@@ -147,11 +152,19 @@ export const SeasonalTab = ({
                 <p className="text-sm text-muted-foreground">{config.description}</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {items.map((highlight, index) => (
-                <SeasonalEventCard key={index} highlight={highlight} city={city} country={country} />
-              ))}
-            </div>
+            {items.length === 1 ? (
+              <div className="flex justify-center">
+                <div className="w-full md:w-[65%]">
+                  <SeasonalEventCard highlight={items[0]} city={city} country={country} />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {items.map((highlight, index) => (
+                  <SeasonalEventCard key={index} highlight={highlight} city={city} country={country} />
+                ))}
+              </div>
+            )}
           </section>
         );
       })}
