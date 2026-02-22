@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { TemperatureUnit, formatTempValue } from "./TemperatureToggle";
-import { Lightbulb, MapPin } from "lucide-react";
+import { Lightbulb, MapPin, Thermometer, ThermometerSnowflake, CloudRain, Sun } from "lucide-react";
 import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherChartsProps {
@@ -37,11 +37,11 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
   };
 
   return (
-    <div className="space-y-6">
-      {/* Temperature Chart */}
-      <Card className="border-border/50">
-        <div className="p-5 pb-2">
-          <h4 className="text-base font-semibold">Temperature through the month</h4>
+    <div className="space-y-12">
+      {/* Temperature Chart — #7 card container with padding, #9 month name */}
+      <Card className="border-[hsl(220,13%,91%)] p-6">
+        <div className="pb-2">
+          <h4 className="text-base font-semibold">Temperature Through {displayMonth}</h4>
           <p className="text-sm text-muted-foreground mt-0.5">How highs and lows shift across {displayMonth}</p>
         </div>
         <CardContent className="pt-2">
@@ -67,10 +67,10 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
         </CardContent>
       </Card>
 
-      {/* Rainfall Chart */}
-      <Card className="border-border/50">
-        <div className="p-5 pb-2">
-          <h4 className="text-base font-semibold">Rainfall pattern</h4>
+      {/* Rainfall Chart — #7 spacing + card container, #9 month name */}
+      <Card className="border-[hsl(220,13%,91%)] p-6">
+        <div className="pb-2">
+          <h4 className="text-base font-semibold">Rainfall in {displayMonth}</h4>
           <p className="text-sm text-muted-foreground mt-0.5">Daily precipitation across the month</p>
         </div>
         <CardContent className="pt-2">
@@ -88,18 +88,28 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
         </CardContent>
       </Card>
 
-      {/* Chart Summary — AI Insights */}
-      <div className="rounded-xl bg-muted/30 border border-border/50 p-5 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
+      {/* #5 Chart Summary — 2×2 card grid */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
           <Lightbulb className="w-4 h-4 text-amber-500" />
-          <h4 className="text-sm font-semibold">What the data tells us</h4>
+          <h4 className="text-base font-semibold">What the Data Tells Us</h4>
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <p className="text-sm text-muted-foreground">{chartSummary.warmestWeek}</p>
-          <p className="text-sm text-muted-foreground">{chartSummary.coolestMornings}</p>
-          <p className="text-sm text-muted-foreground">{chartSummary.rainLikelihood}</p>
-          <div className="space-y-1.5">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 flex items-start gap-3">
+            <Thermometer className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-muted-foreground leading-relaxed">{chartSummary.warmestWeek}</p>
+          </div>
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 flex items-start gap-3">
+            <ThermometerSnowflake className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-muted-foreground leading-relaxed">{chartSummary.coolestMornings}</p>
+          </div>
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 flex items-start gap-3">
+            <CloudRain className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-muted-foreground leading-relaxed">{chartSummary.rainLikelihood}</p>
+          </div>
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 space-y-2">
             <div className="flex items-center gap-2">
+              <Sun className="w-4 h-4 text-amber-500 shrink-0" />
               <span className="text-sm text-muted-foreground">Outdoor comfort:</span>
               <div className="flex gap-0.5">
                 {Array.from({ length: 10 }).map((_, i) => (
@@ -120,7 +130,7 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
 
         {/* Planning note */}
         {chartSummary.planningNote && (
-          <div className="mt-4 pt-3 border-t border-border/30 flex items-start gap-2">
+          <div className="flex items-start gap-2 p-4 rounded-xl border border-primary/20 bg-primary/5">
             <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <p className="text-sm font-medium text-foreground">{chartSummary.planningNote}</p>
           </div>
