@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useCityWeather } from "@/hooks/useCityData";
 import { WeatherVerdict } from "./WeatherVerdict";
 import { WeatherStats } from "./WeatherStats";
@@ -9,7 +9,7 @@ import { WeatherWatch } from "./WeatherWatch";
 import { SensoryNarrative } from "./SensoryNarrative";
 import { MonthComparison } from "./MonthComparison";
 import { TemperatureToggle, TemperatureUnit } from "./TemperatureToggle";
-import { DataFreshness } from "@/components/shared/DataFreshness";
+
 import { Loader2, CloudOff, CloudSun } from "lucide-react";
 import { formatMonthName } from "@/lib/formatMonth";
 
@@ -21,14 +21,8 @@ interface WeatherTabProps {
 
 export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
   const [tempUnit, setTempUnit] = useState<TemperatureUnit>("celsius");
-  const { data: weather, isLoading, isFetching, error, dataUpdatedAt } = useCityWeather(city, country, travelMonth);
-  const initialLoadTime = useRef<number | null>(null);
+  const { data: weather, isLoading, error } = useCityWeather(city, country, travelMonth);
   const displayMonth = formatMonthName(travelMonth);
-
-  if (weather && !initialLoadTime.current) {
-    initialLoadTime.current = Date.now();
-  }
-  const isFromCache = weather && !isLoading && dataUpdatedAt < Date.now() - 100;
 
   if (isLoading) {
     return (
@@ -59,10 +53,9 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-10">
-      {/* Header row: Verdict + controls */}
+      {/* Header row: Verdict + controls — #1 remove Instant badge, keep toggle */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-end gap-3">
-          <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
           <TemperatureToggle unit={tempUnit} onUnitChange={setTempUnit} />
         </div>
         <WeatherVerdict
@@ -73,10 +66,10 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
         />
       </div>
 
-      {/* Travel comfort signals */}
+      {/* Travel comfort signals — #3 primary/secondary layout */}
       <WeatherStats stats={weather.stats} unit={tempUnit} month={travelMonth} />
 
-      {/* Sensory narrative */}
+      {/* Sensory narrative — unchanged */}
       <SensoryNarrative periods={weather.sensoryNarrative} month={travelMonth} />
 
       {/* Charts + Sidebar grid */}
@@ -96,11 +89,11 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
         </div>
       </div>
 
-      {/* Weather Watch & Packing */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* #4 Weather Watch full-width above, Packing below */}
+      {weather.weatherRisks && weather.weatherRisks.length > 0 && (
         <WeatherWatch risks={weather.weatherRisks} />
-        <PackingTips tips={weather.packingTips} notNeeded={weather.notNeeded} />
-      </div>
+      )}
+      <PackingTips tips={weather.packingTips} notNeeded={weather.notNeeded} />
 
       {/* Weather impact cross-tab note */}
       <div className="flex items-center gap-2 p-4 rounded-xl bg-muted/20 border border-border/30">

@@ -20,7 +20,7 @@ export const MonthComparison = ({ monthRanking, month }: MonthComparisonProps) =
         <h3 className="text-lg font-semibold">How {displayMonth} Ranks</h3>
       </div>
 
-      {/* Visual rank bar */}
+      {/* Visual rank bar — #6 redesigned */}
       <div className="rounded-xl bg-card border border-border/50 p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5">
@@ -38,7 +38,7 @@ export const MonthComparison = ({ monthRanking, month }: MonthComparisonProps) =
           </div>
           <span className="text-sm font-semibold">#{monthRanking.rank} of {monthRanking.totalMonths}</span>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1.5 items-center">
           {Array.from({ length: 12 }).map((_, i) => {
             const isCurrent = i + 1 === monthRanking.rank;
             return (
@@ -46,14 +46,17 @@ export const MonthComparison = ({ monthRanking, month }: MonthComparisonProps) =
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
-                      className={`flex-1 rounded-full transition-colors cursor-default ${
-                        isCurrent
-                          ? "h-3 bg-orange-500"
-                          : i < monthRanking.rank
-                            ? "h-2 bg-primary/30"
-                            : "h-2 bg-muted-foreground/10"
-                      }`}
-                    />
+                      className="flex-1 flex justify-center"
+                    >
+                      <div
+                        className="rounded-full transition-colors cursor-default"
+                        style={{
+                          width: isCurrent ? 14 : 10,
+                          height: isCurrent ? 14 : 10,
+                          backgroundColor: isCurrent ? "#EA580C" : "#D1D5DB",
+                        }}
+                      />
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
                     {allMonths[i]}
@@ -63,9 +66,9 @@ export const MonthComparison = ({ monthRanking, month }: MonthComparisonProps) =
             );
           })}
         </div>
-        <div className="flex justify-between mt-1.5">
-          <span className="text-[10px] text-muted-foreground">Best</span>
-          <span className="text-[10px] text-muted-foreground">Worst</span>
+        <div className="flex justify-between mt-2">
+          <span className="text-[10px] text-muted-foreground">← Better for weather</span>
+          <span className="text-[10px] text-muted-foreground">Worse →</span>
         </div>
       </div>
 
