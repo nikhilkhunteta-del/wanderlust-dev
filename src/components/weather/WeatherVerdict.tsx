@@ -1,5 +1,6 @@
 import { MonthRanking } from "@/types/weather";
-import { CloudSun, TrendingUp, Shield } from "lucide-react";
+import { CloudSun, TrendingUp } from "lucide-react";
+import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherVerdictProps {
   verdict: string;
@@ -17,21 +18,15 @@ const ratingConfig = {
 
 export const WeatherVerdict = ({ verdict, month, city, monthRanking }: WeatherVerdictProps) => {
   const config = ratingConfig[monthRanking.rating];
+  const displayMonth = formatMonthName(month);
 
   return (
     <div className="space-y-4">
-      {/* Rating Badge Row */}
+      {/* Rating Badge — verdict label only, no ranking here */}
       <div className="flex flex-wrap items-center gap-3">
         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${config.bg} ${config.border} border ${config.color}`}>
           <TrendingUp className="w-3.5 h-3.5" />
           {config.label} month to visit
-        </span>
-        <span className="text-sm text-muted-foreground">
-          Ranked #{monthRanking.rank} of {monthRanking.totalMonths} months
-        </span>
-        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
-          <Shield className="w-3 h-3" />
-          {monthRanking.confidence} confidence
         </span>
       </div>
 
@@ -42,7 +37,7 @@ export const WeatherVerdict = ({ verdict, month, city, monthRanking }: WeatherVe
         </div>
         <div className="relative">
           <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-            {month} in {city}
+            {displayMonth} in {city}
           </h2>
           <p className="text-lg md:text-xl font-display text-foreground leading-relaxed max-w-3xl">
             {verdict}

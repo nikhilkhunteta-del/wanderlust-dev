@@ -144,15 +144,24 @@ Deno.serve(async (req) => {
     const humidity = estimateHumidity(avgHighTemp, avgLowTemp, totalRainfall, location.latitude);
 
     // Generate all enriched data
+    // Title-case the month name for display
+    const displayMonth = travelMonth.charAt(0).toUpperCase() + travelMonth.slice(1).toLowerCase();
+    const fullMonthNames: Record<string, string> = {
+      jan: "January", feb: "February", mar: "March", apr: "April",
+      may: "May", jun: "June", jul: "July", aug: "August",
+      sep: "September", oct: "October", nov: "November", dec: "December",
+    };
+    const monthFull = fullMonthNames[travelMonth.toLowerCase()] || displayMonth;
+
     const insights = generateInsights(weeklyData, avgHighTemp, totalRainfall, sunshineHours);
-    const monthRanking = generateMonthRanking(avgHighTemp, avgLowTemp, totalRainfall, sunshineHours, rainyDays);
-    const verdict = generateVerdict(city, travelMonth, avgHighTemp, avgLowTemp, totalRainfall, sunshineHours, monthRanking.rating);
-    const bestTimeToVisit = generateBestTime(weeklyData, travelMonth);
+    const monthRanking = generateMonthRanking(avgHighTemp, avgLowTemp, totalRainfall, sunshineHours, rainyDays, monthFull, city, allYearlyData.length);
+    const verdict = generateVerdict(city, monthFull, avgHighTemp, avgLowTemp, totalRainfall, sunshineHours, monthRanking.rating);
+    const bestTimeToVisit = generateBestTime(weeklyData, monthFull);
     const packingTips = generatePackingTips(avgHighTemp, avgLowTemp, totalRainfall, sunshineHours);
     const notNeeded = generateNotNeeded(avgHighTemp, avgLowTemp, totalRainfall);
     const weatherRisks = generateWeatherRisks(avgHighTemp, avgLowTemp, totalRainfall, rainyDays, sunshineHours);
-    const sensoryNarrative = generateSensoryNarrative(avgHighTemp, avgLowTemp, sunshineHours, totalRainfall, travelMonth);
-    const chartSummary = generateChartSummary(weeklyData, dailyData, sunshineHours, avgHighTemp, totalRainfall);
+    const sensoryNarrative = generateSensoryNarrative(avgHighTemp, avgLowTemp, sunshineHours, totalRainfall, monthFull);
+    const chartSummary = generateChartSummary(weeklyData, dailyData, sunshineHours, avgHighTemp, totalRainfall, monthFull, city);
 
     const result = {
       verdict,
@@ -221,27 +230,19 @@ interface WeekData {
   totalRainfall: number;
 }
 
-function generateMonthRanking(avgHigh: number, avgLow: number, rainfall: number, sunshine: number, rainyDays: number): {
-  rank: number; totalMonths: number; rating: "excellent" | "good" | "mixed" | "poor"; confidence: "high" | "moderate" | "low"; avoidMonths: string;
+function generateMonthRanking(avgHigh: number, avgLow: number, rainfall: number, sunshine: number, rainyDays: number, month: string, city: string, dataYears: number): {
+  rank: number; totalMonths: number; rating: "excellent" | "good" | "mixed" | "poor"; dataYears: number; avoidMonths: string; rankingInsight: string;
 } {
-  // Score this month
   let score = 0;
-  // Comfortable temperature (18-28 is ideal)
   if (avgHigh >= 18 && avgHigh <= 28) score += 3;
   else if (avgHigh >= 15 && avgHigh <= 33) score += 2;
   else if (avgHigh >= 10 && avgHigh <= 38) score += 1;
-  
-  // Sunshine
   if (sunshine >= 8) score += 3;
   else if (sunshine >= 6) score += 2;
   else if (sunshine >= 4) score += 1;
-
-  // Low rainfall
   if (rainfall < 30) score += 3;
   else if (rainfall < 80) score += 2;
   else if (rainfall < 150) score += 1;
-
-  // Few rainy days
   if (rainyDays <= 3) score += 2;
   else if (rainyDays <= 7) score += 1;
 
@@ -261,7 +262,12 @@ function generateMonthRanking(avgHigh: number, avgLow: number, rainfall: number,
   else if (avgHigh < 5) avoidMonths = "Deep winter months may be too cold for comfortable sightseeing";
   else avoidMonths = "No months are strongly discouraged, but shoulder seasons offer the best balance";
 
-  return { rank, totalMonths: 12, rating, confidence: pct >= 0.55 ? "high" : "moderate", avoidMonths };
+  // Generate ranking insight
+  const primaryReason = avgHigh > 35 ? "intense heat" : avgHigh < 10 ? "cold temperatures" : rainfall > 100 ? "heavy rainfall" : rainfall > 50 ? "moderate rainfall" : sunshine < 4 ? "limited sunshine" : "mixed conditions";
+  const bestMonthSuggestion = avgHigh > 30 ? "October–February" : avgHigh < 15 ? "April–June" : rainfall > 100 ? "November–March" : "March–May and September–November";
+  const rankingInsight = `${month} ranks #${rank} because of ${primaryReason}. The best months to visit ${city} for weather are ${bestMonthSuggestion}.`;
+
+  return { rank, totalMonths: 12, rating, dataYears, avoidMonths, rankingInsight };
 }
 
 function generateVerdict(city: string, month: string, avgHigh: number, avgLow: number, rainfall: number, sunshine: number, rating: string): string {
@@ -280,8 +286,8 @@ function generateVerdict(city: string, month: string, avgHigh: number, avgLow: n
   }
 }
 
-function generateChartSummary(weeklyData: WeekData[], dailyData: { day: number; high: number; low: number; rainfall: number }[], sunshine: number, avgHigh: number, totalRainfall: number): {
-  warmestWeek: string; coolestMornings: string; rainLikelihood: string; outdoorComfortScore: number;
+function generateChartSummary(weeklyData: WeekData[], dailyData: { day: number; high: number; low: number; rainfall: number }[], sunshine: number, avgHigh: number, totalRainfall: number, month: string, city: string): {
+  warmestWeek: string; coolestMornings: string; rainLikelihood: string; outdoorComfortScore: number; outdoorComfortExplanation: string; planningNote: string;
 } {
   const warmest = [...weeklyData].sort((a, b) => b.avgHigh - a.avgHigh)[0];
   const coolestMorning = [...weeklyData].sort((a, b) => a.avgLow - b.avgLow)[0];
@@ -289,7 +295,6 @@ function generateChartSummary(weeklyData: WeekData[], dailyData: { day: number; 
   const rainyDays = dailyData.filter(d => d.rainfall > 1).length;
   const rainPct = Math.round((rainyDays / dailyData.length) * 100);
 
-  // Outdoor comfort: 0-10 scale
   let comfort = 5;
   if (avgHigh >= 18 && avgHigh <= 28) comfort += 2;
   else if (avgHigh > 35 || avgHigh < 8) comfort -= 2;
@@ -298,11 +303,27 @@ function generateChartSummary(weeklyData: WeekData[], dailyData: { day: number; 
   else if (totalRainfall > 100) comfort -= 1.5;
   comfort = Math.max(1, Math.min(10, Math.round(comfort)));
 
+  // Generate outdoor comfort explanation
+  const primaryFactor = avgHigh > 35 ? "intense heat" : avgHigh > 30 ? "high temperatures" : avgHigh < 10 ? "cold temperatures" : totalRainfall > 100 ? "heavy rainfall" : sunshine < 4 ? "limited sunshine" : "moderate temperatures";
+  const secondaryFactor = totalRainfall > 80 ? "frequent afternoon rain" : totalRainfall > 40 ? "occasional showers" : sunshine < 5 ? "cloud cover" : avgHigh - (coolestMorning?.avgLow || 15) > 15 ? "large temperature swings" : "comfortable humidity";
+  const bestPeriod = avgHigh > 32 ? "early mornings" : totalRainfall > 80 ? "mornings before rain" : "throughout the day";
+  const outdoorComfortExplanation = `What drives this score: ${primaryFactor} + ${secondaryFactor} — best experienced in ${bestPeriod}.`;
+
+  // Planning note - best week within the month
+  const scored = weeklyData.map(w => ({ ...w, score: w.avgHigh - (w.totalRainfall * 0.5) + (sunshine * 0.3) }));
+  const bestWeek = [...scored].sort((a, b) => b.score - a.score)[0];
+  const ordinals = ["first", "second", "third", "fourth"];
+  const weekOrd = ordinals[(bestWeek?.week || 1) - 1] || "first";
+  const weekReason = bestWeek?.totalRainfall < 10 ? "lower rainfall and warmer days" : bestWeek?.avgHigh > avgHigh ? "peak warmth with manageable rain" : "the best balance of temperature and dry days";
+  const planningNote = `If your dates are flexible, the best window within ${month} for ${city} is the ${weekOrd} week — ${weekReason}.`;
+
   return {
     warmestWeek: `Week ${warmest?.week || 1} tends to be the warmest, with highs averaging ${warmest?.avgHigh || avgHigh}°C.`,
     coolestMornings: `Early mornings in week ${coolestMorning?.week || 1} dip to around ${coolestMorning?.avgLow || 15}°C — light layers help.`,
     rainLikelihood: `About ${rainPct}% of days see measurable rainfall${rainPct < 20 ? " — mostly dry conditions" : rainPct > 50 ? " — carry rain gear daily" : ""}.`,
     outdoorComfortScore: comfort,
+    outdoorComfortExplanation,
+    planningNote,
   };
 }
 

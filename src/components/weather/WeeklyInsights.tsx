@@ -1,4 +1,5 @@
 import { WeatherInsight } from "@/types/weather";
+import { formatMonthName } from "@/lib/formatMonth";
 import { TrendingUp, TrendingDown, Minus, Sparkles, Camera, Armchair } from "lucide-react";
 
 interface WeeklyInsightsProps {
