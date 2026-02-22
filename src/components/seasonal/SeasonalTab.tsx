@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useSeasonalHighlights } from "@/hooks/useCityData";
 import { SeasonalEventCard } from "./SeasonalEventCard";
 import { DataFreshness } from "@/components/shared/DataFreshness";
@@ -11,6 +10,9 @@ interface SeasonalTabProps {
   city: string;
   country: string;
   travelMonth: string;
+  userInterests?: string[];
+  travelCompanions?: string;
+  styleTags?: string[];
   onSwitchTab?: (tab: string) => void;
 }
 
@@ -41,8 +43,18 @@ const SECTION_CONFIG: Record<SeasonalSection, { title: string; icon: React.React
 
 const SECTION_ORDER: SeasonalSection[] = ["festivals_cultural", "food_traditions", "weather_driven"];
 
-export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: SeasonalTabProps) => {
-  const { data, isLoading, isFetching, error, dataUpdatedAt } = useSeasonalHighlights(city, country, travelMonth);
+export const SeasonalTab = ({
+  city,
+  country,
+  travelMonth,
+  userInterests,
+  travelCompanions,
+  styleTags,
+  onSwitchTab,
+}: SeasonalTabProps) => {
+  const { data, isLoading, isFetching, error, dataUpdatedAt } = useSeasonalHighlights(
+    city, country, travelMonth, userInterests, travelCompanions, styleTags
+  );
   const monthDisplay = MONTH_DISPLAY[travelMonth] || travelMonth;
   const initialLoadTime = useRef<number | null>(null);
 
@@ -57,7 +69,7 @@ export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: Seasona
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Finding what's happening in {monthDisplay}…
+            Researching what's happening in {monthDisplay}…
           </p>
         </div>
       </div>
@@ -107,24 +119,15 @@ export const SeasonalTab = ({ city, country, travelMonth, onSwitchTab }: Seasona
                 What's Happening in {monthDisplay}
               </h2>
               <p className="text-muted-foreground text-sm">
-                Time-sensitive experiences you won't want to miss
+                Verified events and time-sensitive experiences
               </p>
             </div>
           </div>
           <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
         </div>
 
-        {/* Month summary insight */}
-        {data.monthSummary && (
-          <div className="bg-accent/40 border border-accent rounded-xl px-5 py-4 mt-4">
-            <p className="text-base text-foreground/85 leading-relaxed italic">
-              {data.monthSummary}
-            </p>
-          </div>
-        )}
-
-        {/* Opening statement */}
-        <p className="text-lg text-foreground/75 leading-relaxed max-w-3xl mt-4">
+        {/* Single opening statement only — no duplicate intro */}
+        <p className="text-lg text-foreground/75 leading-relaxed max-w-3xl">
           {data.openingStatement}
         </p>
       </div>

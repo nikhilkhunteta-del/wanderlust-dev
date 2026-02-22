@@ -1,6 +1,5 @@
 import { SeasonalHighlight, SeasonalCategory, SeasonalUrgency } from "@/types/seasonalHighlights";
-import { Button } from "@/components/ui/button";
-import { ExternalLink, Search, Calendar, Sparkles, Leaf, Utensils, Church, Music, Star, Clock, Flame } from "lucide-react";
+import { ExternalLink, Calendar, Sparkles, Leaf, Utensils, Church, Music, Star, Clock, Flame, Trophy, MapPin, Heart, AlertCircle } from "lucide-react";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
 
 interface SeasonalEventCardProps {
@@ -35,6 +34,11 @@ const categoryConfig: Record<SeasonalCategory, { label: string; icon: React.Reac
     icon: <Music className="w-3 h-3" />,
     color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300"
   },
+  sport: {
+    label: "Sport",
+    icon: <Trophy className="w-3 h-3" />,
+    color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300"
+  },
   other: { 
     label: "Experience", 
     icon: <Star className="w-3 h-3" />,
@@ -56,6 +60,22 @@ const urgencyConfig: Record<NonNullable<SeasonalUrgency>, { label: string; icon:
     icon: <Clock className="w-3 h-3" />,
   },
 };
+
+function extractDomain(url: string): string {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, "");
+    // Return a readable name
+    if (hostname.includes("wikipedia")) return "Wikipedia";
+    if (hostname.includes("timeout")) return "Time Out";
+    if (hostname.includes("lonelyplanet")) return "Lonely Planet";
+    if (hostname.includes("tripadvisor")) return "TripAdvisor";
+    // Capitalize first part
+    const parts = hostname.split(".");
+    return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  } catch {
+    return "Source";
+  }
+}
 
 export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCardProps) => {
   const category = categoryConfig[highlight.category] || categoryConfig.other;
@@ -89,16 +109,42 @@ export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCar
               {urgency.label}
             </span>
           )}
+          {highlight.matchesInterests && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+              <Heart className="w-3 h-3" />
+              Matches your interests
+            </span>
+          )}
+          {highlight.notToBeMissed && !highlight.matchesInterests && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
+              <AlertCircle className="w-3 h-3" />
+              Not to be missed
+            </span>
+          )}
         </div>
+        {/* AI-generated label */}
+        {highlight.isAiGenerated && (
+          <div className="absolute top-3 right-3 z-10">
+            <span className="px-2 py-1 rounded-full text-[10px] font-medium bg-muted/80 text-muted-foreground backdrop-blur-sm">
+              Seasonal insight
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-5 flex flex-col flex-1">
-        {/* Timing */}
+        {/* Timing & Location */}
         <div className="flex items-center gap-2 mb-2">
           <Calendar className="w-4 h-4 text-primary/70 flex-shrink-0" />
           <span className="text-sm font-medium text-primary/80">{highlight.timing}</span>
         </div>
+        {highlight.location && (
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-sm text-muted-foreground">{highlight.location}</span>
+          </div>
+        )}
 
         <h3 className="text-lg font-semibold text-foreground mb-1.5">
           {highlight.title}
@@ -110,7 +156,7 @@ export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCar
 
         {/* Why seasonal callout */}
         {highlight.whySeasonal && (
-          <div className="bg-accent/50 rounded-lg px-3 py-2 mb-4 flex-1">
+          <div className="bg-accent/50 rounded-lg px-3 py-2 mb-2">
             <p className="text-xs text-accent-foreground/80 italic leading-relaxed">
               <Sparkles className="w-3 h-3 inline mr-1 text-primary/60" />
               {highlight.whySeasonal}
@@ -118,39 +164,36 @@ export const SeasonalEventCard = ({ highlight, city, country }: SeasonalEventCar
           </div>
         )}
 
-        {/* Links */}
-        <div className="flex flex-wrap gap-2 mt-auto">
-          {highlight.wikipediaUrl && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs"
-              onClick={() => window.open(highlight.wikipediaUrl!, "_blank")}
+        {/* Miss note for time-sensitive events */}
+        {highlight.missNote && (
+          <p className="text-xs text-muted-foreground/70 italic mb-4">
+            {highlight.missNote}
+          </p>
+        )}
+
+        {/* Source link */}
+        <div className="mt-auto pt-2">
+          {highlight.sourceUrl ? (
+            <a
+              href={highlight.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ExternalLink className="w-3 h-3" />
-              Wikipedia
-            </Button>
-          )}
-          {highlight.officialUrl && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs"
-              onClick={() => window.open(highlight.officialUrl!, "_blank")}
+              Source: {highlight.sourceName || extractDomain(highlight.sourceUrl)} →
+            </a>
+          ) : highlight.wikipediaUrl ? (
+            <a
+              href={highlight.wikipediaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ExternalLink className="w-3 h-3" />
-              Official Site
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-xs"
-            onClick={() => window.open(highlight.googleSearchUrl, "_blank")}
-          >
-            <Search className="w-3 h-3" />
-            Search
-          </Button>
+              Wikipedia →
+            </a>
+          ) : highlight.isAiGenerated ? (
+            <span className="text-xs text-muted-foreground/60">Seasonal insight</span>
+          ) : null}
         </div>
       </div>
     </article>

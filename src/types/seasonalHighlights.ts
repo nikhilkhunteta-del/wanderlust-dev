@@ -4,6 +4,7 @@ export type SeasonalCategory =
   | "food" 
   | "religious" 
   | "music" 
+  | "sport"
   | "other";
 
 export type SeasonalUrgency = 
@@ -26,14 +27,23 @@ export interface SeasonalHighlight {
   whySeasonal: string;
   urgency: SeasonalUrgency;
   imageQuery: string;
+  sourceUrl: string | null;
+  sourceName: string | null;
   wikipediaUrl: string | null;
-  officialUrl: string | null;
-  googleSearchUrl: string;
+  location: string | null;
+  matchesInterests: boolean;
+  notToBeMissed: boolean;
+  isAiGenerated: boolean;
+  missNote: string | null;
+  /** @deprecated Use sourceUrl instead */
+  officialUrl?: string | null;
+  /** @deprecated Use sourceUrl instead */
+  googleSearchUrl?: string;
 }
 
 export interface SeasonalHighlightsData {
   openingStatement: string;
-  monthSummary: string;
+  monthSummary?: string;
   highlights: SeasonalHighlight[];
 }
 
@@ -41,4 +51,7 @@ export interface SeasonalHighlightsRequest {
   city: string;
   country: string;
   travelMonth: string;
+  userInterests?: string[];
+  travelCompanions?: string;
+  styleTags?: string[];
 }

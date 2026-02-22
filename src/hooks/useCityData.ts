@@ -30,10 +30,17 @@ export function useCityHighlights(request: CityHighlightsRequest | null) {
   });
 }
 
-export function useSeasonalHighlights(city: string, country: string, travelMonth: string) {
+export function useSeasonalHighlights(
+  city: string,
+  country: string,
+  travelMonth: string,
+  userInterests?: string[],
+  travelCompanions?: string,
+  styleTags?: string[],
+) {
   return useQuery({
-    queryKey: ["seasonal-highlights", city, country, travelMonth],
-    queryFn: () => getSeasonalHighlights({ city, country, travelMonth }),
+    queryKey: ["seasonal-highlights", city, country, travelMonth, userInterests, travelCompanions],
+    queryFn: () => getSeasonalHighlights({ city, country, travelMonth, userInterests, travelCompanions, styleTags }),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });
