@@ -186,7 +186,7 @@ async function queryRouteIntelligence(
   travelYear: string,
 ): Promise<string> {
   try {
-    const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window that yields the best prices for this route? Return factual information only — no generic travel advice.`;
+    const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window for the best prices on flights from ${originCity} to ${destinationCity} in ${travelMonth}? For example, is it better to book 2 weeks, 4 weeks, 8 weeks, or further in advance? Be specific to this route and month. Return factual information only — no generic travel advice.`;
 
     const resp = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",
@@ -239,10 +239,13 @@ async function generateSynthesis(
   weeklyPricing: any[],
   routeIntelligence: string,
   currency: string,
+  perplexityKey: string | null,
 ): Promise<Synthesis> {
+  const HARDCODED_BOOKING_FALLBACK = `For this route, booking 6–8 weeks in advance typically yields better fares than last-minute purchases — set a price alert to track changes.`;
+
   const fallback: Synthesis = {
     priceVerdict: `Flights from ${originCity} to ${destinationCity} in ${travelMonth} typically start around ${currency} ${pricing.lowestPrice ?? "N/A"}.`,
-    bookingTiming: `Book at least 6-8 weeks ahead for the best prices on this route.`,
+    bookingTiming: HARDCODED_BOOKING_FALLBACK,
     bestWeekReason: `Check weekly pricing variations within ${travelMonth} for potential savings.`,
     insight_route: `${originCity} to ${destinationCity} is typically served with one-stop connections. Journey times vary by airline and routing.`,
     insight_flexibility: `Compare prices across different ${originCity} airports for potential savings.`,
@@ -256,14 +259,18 @@ async function generateSynthesis(
       ? `cheapest origin airport ${cheapestOrigin.airport} saving ${currency} ${primaryOrigin.lowestPrice - cheapestOrigin.lowestPrice} vs primary hub ${primaryOrigin.airport}`
       : "primary hub is cheapest";
 
+    const priceHistoryNote = pricing.priceHistory
+      ? `\nPrice history data: ${JSON.stringify(pricing.priceHistory)}. Based on this price history, what does the booking curve suggest about when to book for this route?`
+      : "";
+
     const prompt = `You have the following data for flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}:
 Pricing data: lowest price ${currency} ${pricing.lowestPrice}, typical range ${pricing.typicalRange?.[0]}–${pricing.typicalRange?.[1]}, price level ${pricing.priceLevel}, ${savingNote}.
 Weekly pricing: ${weeklyStr}.
-Route intelligence: ${routeIntelligence || "No additional route data available."}
+Route intelligence: ${routeIntelligence || "No additional route data available."}${priceHistoryNote}
 
 Generate exactly these seven outputs — all must be specific to this exact route and month, never generic:
 (1) priceVerdict: one sentence — is this good value or expensive for this route, and what should a traveller budget including the range?
-(2) bookingTiming: one sentence — how far in advance to book for this specific route and month based on the data?
+(2) bookingTiming: one sentence — how many weeks in advance should travellers book for this specific route in ${travelMonth} to get the best fares? Be specific with a number of weeks. Use the route intelligence and price history data.
 (3) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data?
 (4) insight_route: two sentences about the typical journey — hubs, airlines, total time specific to this route?
 (5) insight_flexibility: one sentence about airport or date flexibility specific to ${originCity}?
@@ -299,9 +306,50 @@ Return as a clean JSON object with these exact seven keys. No markdown.`;
     if (!jsonMatch) return fallback;
 
     const parsed = JSON.parse(jsonMatch[0]);
+    let bookingTiming = parsed.bookingTiming || "";
+
+    // Check if bookingTiming is broken / no-data
+    const brokenPhrases = ["no data", "not available", "cannot determine", "insufficient", "n/a", "no information"];
+    const isBroken = !bookingTiming || brokenPhrases.some((p) => bookingTiming.toLowerCase().includes(p));
+
+    if (isBroken && perplexityKey) {
+      console.log("bookingTiming broken, running Perplexity fallback");
+      try {
+        const fallbackResp = await fetch("https://api.perplexity.ai/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${perplexityKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "sonar",
+            messages: [
+              { role: "system", content: "Provide a single concise sentence answer. No markdown." },
+              { role: "user", content: `When is the best time to book flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear} to get the lowest fares? Provide a specific number of weeks in advance.` },
+            ],
+            temperature: 0.2,
+          }),
+        });
+        if (fallbackResp.ok) {
+          const fbData = await fallbackResp.json();
+          const fbContent = fbData.choices?.[0]?.message?.content || "";
+          if (fbContent && !brokenPhrases.some((p) => fbContent.toLowerCase().includes(p))) {
+            bookingTiming = fbContent.split("\n")[0].trim();
+          }
+        }
+      } catch (e) {
+        console.error("Perplexity booking fallback failed:", e);
+      }
+    }
+
+    // Final hardcoded fallback
+    if (!bookingTiming || brokenPhrases.some((p) => bookingTiming.toLowerCase().includes(p))) {
+      bookingTiming = HARDCODED_BOOKING_FALLBACK;
+    }
+
     return {
       priceVerdict: parsed.priceVerdict || fallback.priceVerdict,
-      bookingTiming: parsed.bookingTiming || fallback.bookingTiming,
+      bookingTiming,
       bestWeekReason: parsed.bestWeekReason || fallback.bestWeekReason,
       insight_route: parsed.insight_route || fallback.insight_route,
       insight_flexibility: parsed.insight_flexibility || fallback.insight_flexibility,
@@ -394,6 +442,7 @@ serve(async (req) => {
         lowestPrice: pi.lowest_price,
         priceLevel: pi.price_level ?? null,
         typicalRange: pi.typical_price_range ?? null,
+        priceHistory: pi.price_history ?? null,
         bestFlight: extractBestFlight(data),
       });
     }
@@ -420,7 +469,7 @@ serve(async (req) => {
 
     const mainSerpData = cheapestResult || primaryResult;
     const mainPricing = mainSerpData
-      ? { lowestPrice: mainSerpData.lowestPrice, priceLevel: mainSerpData.priceLevel, typicalRange: mainSerpData.typicalRange, priceHistory: null }
+      ? { lowestPrice: mainSerpData.lowestPrice, priceLevel: mainSerpData.priceLevel, typicalRange: mainSerpData.typicalRange, priceHistory: mainSerpData.priceHistory ?? null }
       : { lowestPrice: null, priceLevel: null, typicalRange: null, priceHistory: null };
     const mainBestFlight = mainSerpData?.bestFlight ?? null;
 
@@ -509,6 +558,7 @@ serve(async (req) => {
       ? await generateSynthesis(
           LOVABLE_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString(),
           mainPricing, cheapestOrigin, primaryOrigin, weeklyPricing, routeIntelligence, currency,
+          PERPLEXITY_API_KEY || null,
         )
       : {
           priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${currency} ${mainPricing.lowestPrice ?? "N/A"}.`,
