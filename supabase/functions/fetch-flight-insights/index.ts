@@ -224,6 +224,7 @@ interface Synthesis {
   insight_route: string;
   insight_flexibility: string;
   insight_hiddencosts: string | null;
+  carbonComparison: string | null;
 }
 
 async function generateSynthesis(
@@ -246,6 +247,7 @@ async function generateSynthesis(
     insight_route: `${originCity} to ${destinationCity} is typically served with one-stop connections. Journey times vary by airline and routing.`,
     insight_flexibility: `Compare prices across different ${originCity} airports for potential savings.`,
     insight_hiddencosts: null,
+    carbonComparison: null,
   };
 
   try {
@@ -259,15 +261,16 @@ Pricing data: lowest price ${currency} ${pricing.lowestPrice}, typical range ${p
 Weekly pricing: ${weeklyStr}.
 Route intelligence: ${routeIntelligence || "No additional route data available."}
 
-Generate exactly these six outputs — all must be specific to this exact route and month, never generic:
+Generate exactly these seven outputs — all must be specific to this exact route and month, never generic:
 (1) priceVerdict: one sentence — is this good value or expensive for this route, and what should a traveller budget including the range?
 (2) bookingTiming: one sentence — how far in advance to book for this specific route and month based on the data?
 (3) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data?
 (4) insight_route: two sentences about the typical journey — hubs, airlines, total time specific to this route?
 (5) insight_flexibility: one sentence about airport or date flexibility specific to ${originCity}?
 (6) insight_hiddencosts: one sentence flagging any baggage or layover visa consideration specific to this route — if none, return null?
+(7) carbonComparison: given the carbon emissions for this flight, write a brief relatable comparison to another commonly known route, under 10 words — if no carbon data available, return null?
 
-Return as a clean JSON object with these exact six keys. No markdown.`;
+Return as a clean JSON object with these exact seven keys. No markdown.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -278,7 +281,7 @@ Return as a clean JSON object with these exact six keys. No markdown.`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are a flight analyst API. Return only valid JSON with exactly the six requested keys. Be specific to the route — never generic." },
+          { role: "system", content: "You are a flight analyst API. Return only valid JSON with exactly the seven requested keys. Be specific to the route — never generic." },
           { role: "user", content: prompt },
         ],
         temperature: 0.3,
@@ -303,6 +306,7 @@ Return as a clean JSON object with these exact six keys. No markdown.`;
       insight_route: parsed.insight_route || fallback.insight_route,
       insight_flexibility: parsed.insight_flexibility || fallback.insight_flexibility,
       insight_hiddencosts: parsed.insight_hiddencosts ?? null,
+      carbonComparison: parsed.carbonComparison ?? null,
     };
   } catch (err) {
     console.error("AI synthesis failed:", err);
@@ -513,6 +517,7 @@ serve(async (req) => {
           insight_route: `${originCity} to ${destinationCity} is typically served with connections.`,
           insight_flexibility: `Compare ${originCity} airports for savings.`,
           insight_hiddencosts: null,
+          carbonComparison: null,
         };
 
     const result = {

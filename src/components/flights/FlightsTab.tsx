@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMonthName } from "@/lib/formatMonth";
-import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info } from "lucide-react";
+import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info, ExternalLink } from "lucide-react";
 
 interface FlightsTabProps {
   departureCity: string;
@@ -60,6 +60,7 @@ interface FlightInsightsData {
     insight_route: string;
     insight_flexibility: string;
     insight_hiddencosts: string | null;
+    carbonComparison: string | null;
   };
 }
 
@@ -211,6 +212,12 @@ export const FlightsTab = ({
 
       {/* Section 5: Smart Flying Insights */}
       <SmartFlyingInsights data={data} />
+
+      {/* Section 6: Carbon Context */}
+      <CarbonContext data={data} />
+
+      {/* Section 7: Book Your Flights CTA */}
+      <BookFlightsCTA data={data} monthName={monthName} travelMonth={travelMonth} />
     </div>
   );
 };
@@ -565,4 +572,87 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
       </div>
     </div>
   );
+}
+
+// === Section 6: Carbon Context ===
+function CarbonContext({ data }: { data: FlightInsightsData }) {
+  if (!data.bestFlight?.carbonEmissions) return null;
+
+  const kgCO2 = Math.round(data.bestFlight.carbonEmissions / 1000);
+
+  return (
+    <div className="mt-8">
+      <p className="text-[13px] text-muted-foreground">
+        ✈ Estimated emissions: {kgCO2}kg CO₂ per passenger
+        {data.synthesis?.carbonComparison && (
+          <span className="text-muted-foreground/60"> · {data.synthesis.carbonComparison}</span>
+        )}
+      </p>
+    </div>
+  );
+}
+
+// === Section 7: Book Your Flights CTA ===
+function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsightsData; monthName: string; travelMonth: string }) {
+  const originCity = data.route.origin.city;
+  const destCity = data.route.destination.city;
+  const year = new Date().getFullYear();
+
+  const googleFlightsUrl = `https://www.google.com/travel/flights?q=flights+from+${encodeURIComponent(originCity)}+to+${encodeURIComponent(destCity)}+in+${encodeURIComponent(monthName)}+${year}`;
+  const skyscannerUrl = `https://www.skyscanner.net/transport/flights/${encodeURIComponent(originCity)}/${encodeURIComponent(destCity)}/?oym=${year}${String(parseMonthNumber(travelMonth)).padStart(2, "0")}`;
+  const kayakUrl = `https://www.kayak.com/flights/${encodeURIComponent(originCity)}-${encodeURIComponent(destCity)}/${year}-${String(parseMonthNumber(travelMonth)).padStart(2, "0")}`;
+
+  return (
+    <div className="mt-12 border-t pt-8" style={{ borderColor: "#E5E7EB" }}>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        {/* Left side */}
+        <div>
+          <h3 className="text-[17px] font-bold text-foreground">
+            Ready to check live fares?
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Search directly on your preferred platform — prices update in real time
+          </p>
+        </div>
+
+        {/* Right side */}
+        <div className="flex flex-col items-start md:items-end gap-3 flex-shrink-0">
+          <a
+            href={googleFlightsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Search on Google Flights
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+
+          <p className="text-sm text-muted-foreground">
+            Also check:{" "}
+            <a href={skyscannerUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Skyscanner</a>
+            {" · "}
+            <a href={kayakUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Kayak</a>
+          </p>
+
+          <a
+            href={googleFlightsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Track price changes: Set a Google Flights alert for this route →
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function parseMonthNumber(month: string): number {
+  const map: Record<string, number> = {
+    january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+    july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+    jan: 1, feb: 2, mar: 3, apr: 4, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  };
+  return map[month.toLowerCase().trim()] || 1;
 }
