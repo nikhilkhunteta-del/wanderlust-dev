@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useFlightInsights } from "@/hooks/useCityData";
+import { supabase } from "@/integrations/supabase/client";
 import { RouteOverview } from "./RouteOverview";
 import { FlightSearchControls } from "./FlightSearchControls";
 import { PriceSnapshotCard } from "./PriceSnapshotCard";
@@ -34,6 +35,36 @@ export const FlightsTab = ({
     initialLoadTime.current = Date.now();
   }
   const isFromCache = data && !isLoading && dataUpdatedAt < Date.now() - 100;
+
+  // === TEST CALL: fetch-flight-insights (remove after verification) ===
+  const testCallMade = useRef(false);
+  useEffect(() => {
+    if (testCallMade.current || !departureCity || !destinationCity) return;
+    testCallMade.current = true;
+    
+    console.log("[FlightsTab] Testing fetch-flight-insights...");
+    supabase.functions.invoke("fetch-flight-insights", {
+      body: {
+        originCity: departureCity,
+        destinationCity: destinationCity,
+        destinationAirport: "JAI", // hardcoded for test
+        travelMonth: travelMonth || "April",
+        travelYear: "2026",
+        tripDuration: 7,
+        passengers: 2,
+        cabinClass: "economy",
+        currency: "GBP",
+      },
+    }).then(({ data: testData, error: testError }) => {
+      if (testError) {
+        console.error("[fetch-flight-insights TEST] Error:", testError);
+      } else {
+        console.log("[fetch-flight-insights TEST] Full response:", JSON.stringify(testData, null, 2));
+      }
+    });
+  }, [departureCity, destinationCity, travelMonth]);
+  // === END TEST CALL ===
+
   if (!departureCity) {
     return (
       <div className="flex items-center justify-center py-24">
