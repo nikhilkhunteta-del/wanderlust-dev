@@ -22,8 +22,11 @@ interface OriginResult {
 
 interface BestFlight {
   totalDuration: number | null;
+  durationRange: { min: number; p75: number } | null;
   stops: number;
+  mostCommonStops: number;
   layoverAirports: string[];
+  mostCommonHubs: string[];
   airlines: string[];
   carbonEmissions: number | null;
 }
@@ -267,12 +270,21 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
       {/* Journey summary */}
       {data.bestFlight && (
         <p className="mt-3 text-[13px] text-muted-foreground">
-          Typical journey: {data.bestFlight.totalDuration ? formatDuration(data.bestFlight.totalDuration) : "—"}
+          Typical journey:{" "}
+          {data.bestFlight.durationRange
+            ? `${formatDuration(data.bestFlight.durationRange.min)} — ${formatDuration(data.bestFlight.durationRange.p75)}`
+            : data.bestFlight.totalDuration
+              ? formatDuration(data.bestFlight.totalDuration)
+              : "—"}
           {" · "}
-          {formatStops(data.bestFlight.stops)}
-          {data.bestFlight.stops > 0 && data.bestFlight.layoverAirports[0] && (
-            <> via {data.bestFlight.layoverAirports[0]}</>
-          )}
+          {formatStops(data.bestFlight.mostCommonStops ?? data.bestFlight.stops)}
+          {(data.bestFlight.mostCommonStops ?? data.bestFlight.stops) > 0 && (() => {
+            const hubs = data.bestFlight!.mostCommonHubs;
+            if (hubs && hubs.length >= 2) return <> via {hubs[0]} or {hubs[1]}</>;
+            if (hubs && hubs.length === 1) return <> via {hubs[0]}</>;
+            if (data.bestFlight!.layoverAirports[0]) return <> via {data.bestFlight!.layoverAirports[0]}</>;
+            return null;
+          })()}
         </p>
       )}
     </div>
