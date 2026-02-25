@@ -59,6 +59,7 @@ interface FlightInsightsData {
     bestWeekReason: string;
     insight_route: string;
     insight_flexibility: string;
+    insight_timing: string;
     insight_hiddencosts: string | null;
     carbonComparison: string | null;
   };
@@ -213,10 +214,7 @@ export const FlightsTab = ({
       {/* Section 5: Smart Flying Insights */}
       <SmartFlyingInsights data={data} />
 
-      {/* Section 6: Carbon Context */}
-      <CarbonContext data={data} />
-
-      {/* Section 7: Book Your Flights CTA */}
+      {/* Section 6: Book Your Flights CTA */}
       <BookFlightsCTA data={data} monthName={monthName} travelMonth={travelMonth} />
     </div>
   );
@@ -539,17 +537,18 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
   const cards: { icon: React.ElementType; title: string; body: string | null }[] = [
     { icon: Route, title: "The journey", body: s.insight_route },
     { icon: Calendar, title: "When to book", body: s.bookingTiming },
-    { icon: ArrowLeftRight, title: "Be flexible", body: s.insight_flexibility },
+    { icon: ArrowLeftRight, title: "Be flexible", body: s.insight_timing || s.insight_flexibility },
   ];
 
-  // Card 4: hidden costs or carbon fallback
   if (s.insight_hiddencosts) {
     cards.push({ icon: Info, title: "Watch out for", body: s.insight_hiddencosts });
   } else if (data.bestFlight?.carbonEmissions) {
+    const kgCO2 = Math.round(data.bestFlight.carbonEmissions / 1000);
+    const comparison = s.carbonComparison ? ` — ${s.carbonComparison}` : "";
     cards.push({
       icon: Info,
       title: "Carbon context",
-      body: `This route produces approximately ${Math.round(data.bestFlight.carbonEmissions / 1000)} kg CO₂ per passenger.`,
+      body: `This route produces approximately ${kgCO2} kg CO₂ per passenger${comparison}.`,
     });
   }
 
@@ -584,25 +583,8 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
   );
 }
 
-// === Section 6: Carbon Context ===
-function CarbonContext({ data }: { data: FlightInsightsData }) {
-  if (!data.bestFlight?.carbonEmissions) return null;
 
-  const kgCO2 = Math.round(data.bestFlight.carbonEmissions / 1000);
-
-  return (
-    <div className="mt-8">
-      <p className="text-[13px] text-muted-foreground">
-        ✈ Estimated emissions: {kgCO2}kg CO₂ per passenger
-        {data.synthesis?.carbonComparison && (
-          <span className="text-muted-foreground/60"> · {data.synthesis.carbonComparison}</span>
-        )}
-      </p>
-    </div>
-  );
-}
-
-// === Section 7: Book Your Flights CTA ===
+// === Section 6: Book Your Flights CTA ===
 function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsightsData; monthName: string; travelMonth: string }) {
   const originCity = data.route.origin.city;
   const destCity = data.route.destination.city;
