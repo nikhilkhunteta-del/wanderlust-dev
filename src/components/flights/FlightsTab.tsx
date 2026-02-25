@@ -260,7 +260,7 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
             <span key={r.airport}>
               {i > 0 && <span className="mx-1.5">·</span>}
               <span className="font-medium text-foreground/80">{r.airport}</span>
-              <span> — {sym}{r.lowestPrice.toLocaleString()}</span>
+              <span> — {sym}{Math.round(r.lowestPrice / 2).toLocaleString()}/pp</span>
             </span>
           ))}
         </div>
@@ -308,18 +308,28 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
         <div className="flex-1 md:w-[60%]">
           {/* Label */}
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
-            Typical round-trip · Economy · 2 passengers
+            Typical round-trip · Economy · Per person
           </p>
 
-          {/* Price range */}
+          {/* Price range — per person (data is for 2 pax) */}
           {pricing.typicalRange ? (
-            <p className="text-4xl font-bold text-foreground">
-              {sym}{pricing.typicalRange[0]?.toLocaleString()} — {sym}{pricing.typicalRange[1]?.toLocaleString()}
-            </p>
+            <>
+              <p className="text-4xl font-bold text-foreground">
+                {sym}{Math.round(pricing.typicalRange[0] / 2).toLocaleString()} — {sym}{Math.round(pricing.typicalRange[1] / 2).toLocaleString()} per person
+              </p>
+              <p className="text-[13px] text-muted-foreground mt-1.5">
+                Total for 2 passengers: {sym}{pricing.typicalRange[0]?.toLocaleString()} — {sym}{pricing.typicalRange[1]?.toLocaleString()}
+              </p>
+            </>
           ) : pricing.lowestPrice ? (
-            <p className="text-4xl font-bold text-foreground">
-              From {sym}{pricing.lowestPrice.toLocaleString()}
-            </p>
+            <>
+              <p className="text-4xl font-bold text-foreground">
+                From {sym}{Math.round(pricing.lowestPrice / 2).toLocaleString()} per person
+              </p>
+              <p className="text-[13px] text-muted-foreground mt-1.5">
+                Total for 2 passengers: {sym}{pricing.lowestPrice.toLocaleString()}
+              </p>
+            </>
           ) : (
             <p className="text-4xl font-bold text-muted-foreground">Price unavailable</p>
           )}
@@ -401,7 +411,7 @@ function WaysToPayLess({ data, sym }: { data: FlightInsightsData; sym: string })
             </p>
 
             <p className="text-[15px] text-foreground mt-1.5">
-              Save approximately {sym}{data.originSaving.toLocaleString()} per person
+              Save approximately {sym}{Math.round(data.originSaving / 2).toLocaleString()} per person
             </p>
 
             {data.cheapestOrigin.airlines && data.cheapestOrigin.airlines.length > 0 && (
@@ -435,7 +445,7 @@ function WaysToPayLess({ data, sym }: { data: FlightInsightsData; sym: string })
               </p>
 
               <p className="text-[15px] text-foreground mt-1.5">
-                Save approximately {sym}{opp.priceSaving.toLocaleString()} per person
+                Save approximately {sym}{Math.round(opp.priceSaving / 2).toLocaleString()} per person
               </p>
 
               <p className="text-sm text-muted-foreground mt-2">
@@ -495,7 +505,7 @@ function BestTimeToFly({ data, sym, monthName }: { data: FlightInsightsData; sym
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">{week.date}</p>
               <p className="text-[22px] font-bold text-foreground mt-2">
-                {week.lowestPrice != null ? `${sym}${week.lowestPrice.toLocaleString()}` : (
+                {week.lowestPrice != null ? `${sym}${Math.round(week.lowestPrice / 2).toLocaleString()}` : (
                   <span className="text-muted-foreground text-base font-normal">No data</span>
                 )}
               </p>
