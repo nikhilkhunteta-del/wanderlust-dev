@@ -600,11 +600,21 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
 function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsightsData; monthName: string; travelMonth: string }) {
   const originCity = data.route.origin.city;
   const destCity = data.route.destination.city;
+  const originIATA = data.route.origin.airport;
+  const destIATA = data.route.destination.airport;
   const year = new Date().getFullYear();
 
-  const googleFlightsUrl = `https://www.google.com/travel/flights?q=flights+from+${encodeURIComponent(originCity)}+to+${encodeURIComponent(destCity)}+in+${encodeURIComponent(monthName)}+${year}`;
-  const skyscannerUrl = `https://www.skyscanner.net/transport/flights/${encodeURIComponent(originCity)}/${encodeURIComponent(destCity)}/?oym=${year}${String(parseMonthNumber(travelMonth)).padStart(2, "0")}`;
-  const kayakUrl = `https://www.kayak.com/flights/${encodeURIComponent(originCity)}-${encodeURIComponent(destCity)}/${year}-${String(parseMonthNumber(travelMonth)).padStart(2, "0")}`;
+  // Google Flights: simple query format
+  const gfQuery = `flights from ${originCity} to ${destCity} ${monthName} ${year}`.replace(/\s+/g, "+");
+  const googleFlightsUrl = `https://www.google.com/travel/flights?q=${gfQuery}`;
+
+  // Skyscanner: /transport/flights/IATA/IATA/YYMMDD/YYMMDD/
+  const outDate = data.searchDates.outbound.replace(/-/g, "").slice(2); // YYMMDD
+  const retDate = data.searchDates.return.replace(/-/g, "").slice(2);
+  const skyscannerUrl = `https://www.skyscanner.net/transport/flights/${originIATA}/${destIATA}/${outDate}/${retDate}/`;
+
+  // Kayak: /flights/IATA-IATA/YYYY-MM-DD/YYYY-MM-DD/2adults
+  const kayakUrl = `https://www.kayak.com/flights/${originIATA}-${destIATA}/${data.searchDates.outbound}/${data.searchDates.return}/2adults`;
 
   return (
     <div className="mt-12 border-t pt-8" style={{ borderColor: "#E5E7EB" }}>
