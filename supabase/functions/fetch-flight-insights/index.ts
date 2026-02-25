@@ -81,19 +81,91 @@ function getMonthName(monthNum: number): string {
   return names[monthNum - 1] || "January";
 }
 
-function extractBestFlight(serpData: any) {
-  const bestFlights = serpData.best_flights || [];
-  const bf = bestFlights[0];
-  if (!bf) return null;
-  const flights = bf.flights || [];
-  const layovers = bf.layovers || [];
+function extractAllFlightData(serpData: any) {
+  const allItineraries = [...(serpData.best_flights || []), ...(serpData.other_flights || [])];
+  if (allItineraries.length === 0) return null;
+
+  // Collect durations, hub frequencies, stops, airlines, carbon
+  const durations: number[] = [];
+  const hubCounts: Record<string, number> = {};
+  const stopCounts: Record<number, number> = {};
+  const allAirlines: string[] = [];
+  let bestCarbon: number | null = null;
+
+  for (const itin of allItineraries) {
+    const dur = itin.total_duration;
+    if (typeof dur === "number" && dur > 0) durations.push(dur);
+
+    const flights = itin.flights || [];
+    const stops = flights.length > 0 ? flights.length - 1 : 0;
+    stopCounts[stops] = (stopCounts[stops] || 0) + 1;
+
+    for (const f of flights) {
+      if (f.airline) allAirlines.push(f.airline);
+    }
+
+    const layovers = itin.layovers || [];
+    for (const l of layovers) {
+      const hub = l.name || l.id;
+      if (hub) hubCounts[hub] = (hubCounts[hub] || 0) + 1;
+    }
+
+    if (!bestCarbon && itin.carbon_emissions?.this_flight) {
+      bestCarbon = itin.carbon_emissions.this_flight;
+    }
+  }
+
+  // Filter outlier durations (> 1400 min / 23h)
+  const filteredDurations = durations.filter((d) => d <= 1400);
+  const sortedDurations = filteredDurations.sort((a, b) => a - b);
+
+  let minDuration: number | null = null;
+  let p75Duration: number | null = null;
+
+  if (sortedDurations.length >= 2) {
+    minDuration = sortedDurations[0];
+    const p75Index = Math.floor(sortedDurations.length * 0.75);
+    p75Duration = sortedDurations[Math.min(p75Index, sortedDurations.length - 1)];
+  } else if (sortedDurations.length === 1) {
+    minDuration = sortedDurations[0];
+  }
+
+  // Most common hub(s)
+  const hubEntries = Object.entries(hubCounts).sort((a, b) => b[1] - a[1]);
+  const topHubs: string[] = [];
+  if (hubEntries.length > 0) {
+    topHubs.push(hubEntries[0][0]);
+    if (hubEntries.length > 1 && hubEntries[1][1] === hubEntries[0][1]) {
+      topHubs.push(hubEntries[1][0]);
+    }
+  }
+
+  // Most common stop count
+  const mostCommonStops = Object.entries(stopCounts).sort((a, b) => b[1] - a[1])[0];
+  const typicalStops = mostCommonStops ? parseInt(mostCommonStops[0]) : 1;
+
+  // Best single flight for backward compat
+  const bf = allItineraries[0];
+  const bfFlights = bf.flights || [];
+  const bfLayovers = bf.layovers || [];
+
   return {
-    totalDuration: bf.total_duration ?? null,
-    stops: flights.length > 0 ? flights.length - 1 : 0,
-    layoverAirports: layovers.map((l: any) => l.name || l.id || "Unknown"),
-    airlines: flights.map((f: any) => f.airline || "Unknown"),
-    carbonEmissions: bf.carbon_emissions?.this_flight ?? null,
+    totalDuration: minDuration,
+    durationRange: p75Duration && minDuration && p75Duration !== minDuration
+      ? { min: minDuration, p75: p75Duration }
+      : null,
+    stops: typicalStops,
+    mostCommonStops: typicalStops,
+    layoverAirports: bfLayovers.map((l: any) => l.name || l.id || "Unknown"),
+    mostCommonHubs: topHubs,
+    airlines: [...new Set(allAirlines)].slice(0, 6),
+    carbonEmissions: bestCarbon,
   };
+}
+
+// Legacy wrapper for compatibility
+function extractBestFlight(serpData: any) {
+  return extractAllFlightData(serpData);
 }
 
 async function callSerpAPI(
@@ -186,7 +258,7 @@ async function queryRouteIntelligence(
   travelYear: string,
 ): Promise<string> {
   try {
-    const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window for the best prices on flights from ${originCity} to ${destinationCity} in ${travelMonth}? For example, is it better to book 2 weeks, 4 weeks, 8 weeks, or further in advance? Be specific to this route and month. Return factual information only — no generic travel advice.`;
+    const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window for the best prices on flights from ${originCity} to ${destinationCity} in ${travelMonth}? For example, is it better to book 2 weeks, 4 weeks, 8 weeks, or further in advance? Be specific to this route and month. (7) What are the most common stopover hubs for flights from ${originCity} to ${destinationCity} and which airlines use each hub? Which hub typically offers the shortest total journey time? Return factual information only — no generic travel advice.`;
 
     const resp = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",
