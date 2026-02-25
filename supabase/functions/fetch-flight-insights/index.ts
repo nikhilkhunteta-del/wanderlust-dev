@@ -159,33 +159,154 @@ async function queryAlternativeDestinationAirports(
     });
 
     if (!resp.ok) {
-      console.error("Perplexity error:", resp.status);
+      console.error("Perplexity alt-airports error:", resp.status);
       return [];
     }
 
     const data = await resp.json();
     const content = data.choices?.[0]?.message?.content || "";
-
-    // Extract JSON array from response
     const jsonMatch = content.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      console.log("Perplexity: no JSON array found in response");
-      return [];
-    }
+    if (!jsonMatch) return [];
 
     const parsed = JSON.parse(jsonMatch[0]) as AlternativeAirport[];
-
-    // Filter: under 180 minutes transfer, exclude destination airport
     return parsed.filter(
-      (a) =>
-        a.iata &&
-        a.iata !== destinationAirport &&
-        typeof a.transferTimeMinutes === "number" &&
-        a.transferTimeMinutes < 180
+      (a) => a.iata && a.iata !== destinationAirport && typeof a.transferTimeMinutes === "number" && a.transferTimeMinutes < 180
     );
   } catch (err) {
     console.error("Perplexity alternative airports failed:", err);
     return [];
+  }
+}
+
+async function queryRouteIntelligence(
+  perplexityKey: string,
+  originCity: string,
+  destinationCity: string,
+  travelMonth: string,
+  travelYear: string,
+): Promise<string> {
+  try {
+    const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window that yields the best prices for this route? Return factual information only — no generic travel advice.`;
+
+    const resp = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${perplexityKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { role: "system", content: "Provide specific, factual information about flight routes. Be concise and data-driven." },
+          { role: "user", content: query },
+        ],
+        temperature: 0.2,
+      }),
+    });
+
+    if (!resp.ok) {
+      console.error("Perplexity route intelligence error:", resp.status);
+      return "";
+    }
+
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || "";
+  } catch (err) {
+    console.error("Perplexity route intelligence failed:", err);
+    return "";
+  }
+}
+
+interface Synthesis {
+  priceVerdict: string;
+  bookingTiming: string;
+  bestWeekReason: string;
+  insight_route: string;
+  insight_flexibility: string;
+  insight_hiddencosts: string | null;
+}
+
+async function generateSynthesis(
+  lovableKey: string,
+  originCity: string,
+  destinationCity: string,
+  travelMonth: string,
+  travelYear: string,
+  pricing: any,
+  cheapestOrigin: any,
+  primaryOrigin: any,
+  weeklyPricing: any[],
+  routeIntelligence: string,
+  currency: string,
+): Promise<Synthesis> {
+  const fallback: Synthesis = {
+    priceVerdict: `Flights from ${originCity} to ${destinationCity} in ${travelMonth} typically start around ${currency} ${pricing.lowestPrice ?? "N/A"}.`,
+    bookingTiming: `Book at least 6-8 weeks ahead for the best prices on this route.`,
+    bestWeekReason: `Check weekly pricing variations within ${travelMonth} for potential savings.`,
+    insight_route: `${originCity} to ${destinationCity} is typically served with one-stop connections. Journey times vary by airline and routing.`,
+    insight_flexibility: `Compare prices across different ${originCity} airports for potential savings.`,
+    insight_hiddencosts: null,
+  };
+
+  try {
+    const weeklyStr = weeklyPricing.map((w) => `${w.week}: ${w.lowestPrice ?? "N/A"}`).join(", ");
+    const savingNote = cheapestOrigin && primaryOrigin && cheapestOrigin.airport !== primaryOrigin.airport
+      ? `cheapest origin airport ${cheapestOrigin.airport} saving ${currency} ${primaryOrigin.lowestPrice - cheapestOrigin.lowestPrice} vs primary hub ${primaryOrigin.airport}`
+      : "primary hub is cheapest";
+
+    const prompt = `You have the following data for flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}:
+Pricing data: lowest price ${currency} ${pricing.lowestPrice}, typical range ${pricing.typicalRange?.[0]}–${pricing.typicalRange?.[1]}, price level ${pricing.priceLevel}, ${savingNote}.
+Weekly pricing: ${weeklyStr}.
+Route intelligence: ${routeIntelligence || "No additional route data available."}
+
+Generate exactly these six outputs — all must be specific to this exact route and month, never generic:
+(1) priceVerdict: one sentence — is this good value or expensive for this route, and what should a traveller budget including the range?
+(2) bookingTiming: one sentence — how far in advance to book for this specific route and month based on the data?
+(3) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data?
+(4) insight_route: two sentences about the typical journey — hubs, airlines, total time specific to this route?
+(5) insight_flexibility: one sentence about airport or date flexibility specific to ${originCity}?
+(6) insight_hiddencosts: one sentence flagging any baggage or layover visa consideration specific to this route — if none, return null?
+
+Return as a clean JSON object with these exact six keys. No markdown.`;
+
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: "You are a flight analyst API. Return only valid JSON with exactly the six requested keys. Be specific to the route — never generic." },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.3,
+      }),
+    });
+
+    if (!resp.ok) {
+      console.error("Lovable AI synthesis error:", resp.status);
+      return fallback;
+    }
+
+    const data = await resp.json();
+    const content = data.choices?.[0]?.message?.content || "";
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return fallback;
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    return {
+      priceVerdict: parsed.priceVerdict || fallback.priceVerdict,
+      bookingTiming: parsed.bookingTiming || fallback.bookingTiming,
+      bestWeekReason: parsed.bestWeekReason || fallback.bestWeekReason,
+      insight_route: parsed.insight_route || fallback.insight_route,
+      insight_flexibility: parsed.insight_flexibility || fallback.insight_flexibility,
+      insight_hiddencosts: parsed.insight_hiddencosts ?? null,
+    };
+  } catch (err) {
+    console.error("AI synthesis failed:", err);
+    return fallback;
   }
 }
 
@@ -226,8 +347,8 @@ serve(async (req) => {
 
     const SERPAPI_KEY = Deno.env.get("SERPAPI_KEY");
     if (!SERPAPI_KEY) throw new Error("SERPAPI_KEY is not configured");
-
     const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     const monthNum = parseMonth(travelMonth);
     const year = parseInt(travelYear) || new Date().getFullYear();
@@ -239,10 +360,10 @@ serve(async (req) => {
     const returnDateStr = formatDate(returnDate);
     const travelClass = CABIN_CLASS_MAP[cabinClass] || 1;
 
-    console.log(`Multi-airport fetch: ${originAirports.join(",")} → ${destinationAirport}, ${outboundDateStr}–${returnDateStr}`);
+    console.log(`Fetch: ${originAirports.join(",")} → ${destinationAirport}, ${outboundDateStr}–${returnDateStr}`);
 
-    // === Run origin airport calls AND Perplexity alt-destination query in parallel ===
-    const [originSettled, alternativeAirports] = await Promise.all([
+    // === Phase 1: Origin SerpAPI + both Perplexity calls in parallel ===
+    const [originSettled, alternativeAirports, routeIntelligence] = await Promise.all([
       Promise.allSettled(
         originAirports.map((apt) =>
           callSerpAPI(SERPAPI_KEY, apt, destinationAirport, outboundDateStr, returnDateStr, passengers, travelClass, currency)
@@ -252,9 +373,12 @@ serve(async (req) => {
       PERPLEXITY_API_KEY
         ? queryAlternativeDestinationAirports(PERPLEXITY_API_KEY, destinationCity, destinationCountry || destinationCity, destinationAirport)
         : Promise.resolve([]),
+      PERPLEXITY_API_KEY
+        ? queryRouteIntelligence(PERPLEXITY_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString())
+        : Promise.resolve(""),
     ]);
 
-    // Process origin results (unchanged from Prompt 2)
+    // Process origin results
     const originResults: any[] = [];
     for (const result of originSettled) {
       if (result.status !== "fulfilled") continue;
@@ -269,7 +393,6 @@ serve(async (req) => {
         bestFlight: extractBestFlight(data),
       });
     }
-
     originResults.sort((a, b) => a.lowestPrice - b.lowestPrice);
 
     const primaryAirport = originAirports[0];
@@ -279,7 +402,6 @@ serve(async (req) => {
     const primaryOrigin = primaryResult
       ? { airport: primaryResult.airport, lowestPrice: primaryResult.lowestPrice }
       : { airport: primaryAirport, lowestPrice: null };
-
     const cheapestOrigin = cheapestResult
       ? { airport: cheapestResult.airport, lowestPrice: cheapestResult.lowestPrice, airlines: cheapestResult.bestFlight?.airlines ?? [] }
       : null;
@@ -298,23 +420,33 @@ serve(async (req) => {
       : { lowestPrice: null, priceLevel: null, typicalRange: null, priceHistory: null };
     const mainBestFlight = mainSerpData?.bestFlight ?? null;
 
-    // === Weekly pricing (unchanged from Prompt 2) ===
+    // === Phase 2: Weekly pricing + alt destination pricing in parallel ===
     const cheapestApt = cheapestOrigin?.airport || primaryAirport;
     const weekDays = [3, 10, 17, 24];
     const weekLabels = [`Early ${monthName}`, `Mid-early ${monthName}`, `Mid-late ${monthName}`, `Late ${monthName}`];
 
-    console.log(`Weekly pricing calls from ${cheapestApt} for weeks: ${weekDays.join(",")}`);
+    console.log(`Phase 2: weekly from ${cheapestApt}, ${alternativeAirports.length} alt dests`);
 
-    const weeklySettled = await Promise.allSettled(
-      weekDays.map((day) => {
-        const wOutbound = new Date(year, monthNum - 1, day);
-        const wReturn = new Date(wOutbound);
-        wReturn.setDate(wReturn.getDate() + tripDuration);
-        return callSerpAPI(SERPAPI_KEY, cheapestApt, destinationAirport, formatDate(wOutbound), formatDate(wReturn), passengers, travelClass, currency)
-          .then((data) => ({ day, data }));
-      })
-    );
+    const [weeklySettled, ...altDestSettled] = await Promise.all([
+      Promise.allSettled(
+        weekDays.map((day) => {
+          const wOutbound = new Date(year, monthNum - 1, day);
+          const wReturn = new Date(wOutbound);
+          wReturn.setDate(wReturn.getDate() + tripDuration);
+          return callSerpAPI(SERPAPI_KEY, cheapestApt, destinationAirport, formatDate(wOutbound), formatDate(wReturn), passengers, travelClass, currency)
+            .then((data) => ({ day, data }));
+        })
+      ),
+      ...(alternativeAirports.length > 0 && mainPricing.lowestPrice
+        ? alternativeAirports.map((alt) =>
+            callSerpAPI(SERPAPI_KEY, cheapestApt, alt.iata, outboundDateStr, returnDateStr, passengers, travelClass, currency)
+              .then((data) => ({ alt, data }))
+              .catch(() => null)
+          )
+        : []),
+    ]);
 
+    // Process weekly pricing
     const weeklyPricing = weekDays.map((day, i) => {
       const settled = weeklySettled[i];
       let lowestPrice: number | null = null;
@@ -326,37 +458,25 @@ serve(async (req) => {
     });
 
     const validWeeks = weeklyPricing.filter((w) => w.lowestPrice !== null);
-    const bestWeek = validWeeks.length > 0
-      ? validWeeks.reduce((a, b) => (a.lowestPrice! < b.lowestPrice! ? a : b))
-      : null;
-    const worstWeek = validWeeks.length > 0
-      ? validWeeks.reduce((a, b) => (a.lowestPrice! > b.lowestPrice! ? a : b))
-      : null;
+    const bestWeek = validWeeks.length > 0 ? validWeeks.reduce((a, b) => (a.lowestPrice! < b.lowestPrice! ? a : b)) : null;
+    const worstWeek = validWeeks.length > 0 ? validWeeks.reduce((a, b) => (a.lowestPrice! > b.lowestPrice! ? a : b)) : null;
 
-    // === Addition 3: Alternative destination airport pricing ===
-    console.log(`Perplexity found ${alternativeAirports.length} alternative destination airports: ${alternativeAirports.map((a) => a.iata).join(",")}`);
-
+    // Process alt destination results
     let destSavingOpportunities: any[] = [];
     const alternativeAirportsChecked = alternativeAirports.length;
 
-    if (alternativeAirports.length > 0 && mainPricing.lowestPrice) {
-      const altSettled = await Promise.allSettled(
-        alternativeAirports.map((alt) =>
-          callSerpAPI(SERPAPI_KEY, cheapestApt, alt.iata, outboundDateStr, returnDateStr, passengers, travelClass, currency)
-            .then((data) => ({ alt, data }))
-        )
-      );
-
+    if (altDestSettled.length > 0 && mainPricing.lowestPrice) {
       const isLongHaul = (mainBestFlight?.totalDuration ?? 0) > 300;
       const destThreshold = isLongHaul
         ? (LONG_HAUL_THRESHOLDS[currency.toUpperCase()] ?? 150)
         : (SAVING_THRESHOLDS[currency.toUpperCase()] ?? 75);
 
       const candidates: any[] = [];
-      for (const settled of altSettled) {
-        if (settled.status !== "fulfilled") continue;
-        const { alt, data } = settled.value;
-        const altPrice = data.price_insights?.lowest_price;
+      for (let i = 0; i < altDestSettled.length; i++) {
+        const res = altDestSettled[i];
+        if (!res || typeof res !== "object" || !("alt" in (res as any))) continue;
+        const { alt, data } = res as any;
+        const altPrice = data?.price_insights?.lowest_price;
         if (!altPrice) continue;
 
         const priceSaving = mainPricing.lowestPrice! - altPrice;
@@ -374,11 +494,26 @@ serve(async (req) => {
           airlines: altBestFlight?.airlines ?? [],
         });
       }
-
-      // Keep top 2 by priceSaving descending
       candidates.sort((a, b) => b.priceSaving - a.priceSaving);
       destSavingOpportunities = candidates.slice(0, 2);
     }
+
+    // === Phase 3: AI synthesis (needs all data collected above) ===
+    console.log("Phase 3: AI synthesis");
+
+    const synthesis = LOVABLE_API_KEY
+      ? await generateSynthesis(
+          LOVABLE_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString(),
+          mainPricing, cheapestOrigin, primaryOrigin, weeklyPricing, routeIntelligence, currency,
+        )
+      : {
+          priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${currency} ${mainPricing.lowestPrice ?? "N/A"}.`,
+          bookingTiming: "Book 6-8 weeks ahead for best prices.",
+          bestWeekReason: bestWeek ? `${bestWeek.week} offers the lowest fares.` : "Check weekly variations.",
+          insight_route: `${originCity} to ${destinationCity} is typically served with connections.`,
+          insight_flexibility: `Compare ${originCity} airports for savings.`,
+          insight_hiddencosts: null,
+        };
 
     const result = {
       route: {
@@ -391,7 +526,6 @@ serve(async (req) => {
       currency,
       searchDates: { outbound: outboundDateStr, return: returnDateStr },
       rawFlightsCount: originResults.length,
-      // Prompt 2
       originResults,
       cheapestOrigin,
       primaryOrigin,
@@ -400,12 +534,13 @@ serve(async (req) => {
       weeklyPricing,
       bestWeek,
       worstWeek,
-      // Prompt 3
       destSavingOpportunities,
       alternativeAirportsChecked,
+      routeIntelligence,
+      synthesis,
     };
 
-    console.log(`Done: ${originResults.length} origins, ${alternativeAirportsChecked} alt destinations checked, ${destSavingOpportunities.length} dest savings found`);
+    console.log(`Done: ${originResults.length} origins, ${alternativeAirportsChecked} alt dests, synthesis complete`);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
