@@ -223,6 +223,7 @@ interface Synthesis {
   bestWeekReason: string;
   insight_route: string;
   insight_flexibility: string;
+  insight_timing: string;
   insight_hiddencosts: string | null;
   carbonComparison: string | null;
 }
@@ -249,6 +250,7 @@ async function generateSynthesis(
     bestWeekReason: `Check weekly pricing variations within ${travelMonth} for potential savings.`,
     insight_route: `${originCity} to ${destinationCity} is typically served with one-stop connections. Journey times vary by airline and routing.`,
     insight_flexibility: `Compare prices across different ${originCity} airports for potential savings.`,
+    insight_timing: `Flying midweek (Tuesday–Thursday) on this route can save 10–15% compared to weekend departures.`,
     insight_hiddencosts: null,
     carbonComparison: null,
   };
@@ -268,16 +270,17 @@ Pricing data: lowest price ${currency} ${pricing.lowestPrice}, typical range ${p
 Weekly pricing: ${weeklyStr}.
 Route intelligence: ${routeIntelligence || "No additional route data available."}${priceHistoryNote}
 
-Generate exactly these seven outputs — all must be specific to this exact route and month, never generic:
+Generate exactly these eight outputs — all must be specific to this exact route and month, never generic:
 (1) priceVerdict: one sentence — is this good value or expensive for this route, and what should a traveller budget including the range?
 (2) bookingTiming: one sentence — how many weeks in advance should travellers book for this specific route in ${travelMonth} to get the best fares? Be specific with a number of weeks. Use the route intelligence and price history data.
 (3) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data?
 (4) insight_route: two sentences about the typical journey — hubs, airlines, total time specific to this route?
 (5) insight_flexibility: one sentence about airport or date flexibility specific to ${originCity}?
-(6) insight_hiddencosts: one sentence flagging any baggage or layover visa consideration specific to this route — if none, return null?
-(7) carbonComparison: given the carbon emissions for this flight, write a brief relatable comparison to another commonly known route, under 10 words — if no carbon data available, return null?
+(6) insight_timing: For flights from ${originCity} to ${destinationCity} in ${travelMonth}, is there a meaningful price difference between flying midweek (Tuesday–Thursday) versus weekend (Friday–Sunday)? If yes, quantify it approximately. If midweek vs weekend is not significant for this route, instead describe the trade-off between the most common stopover hubs — e.g. what is the practical difference for a traveller choosing between connection cities? Keep it under 40 words and specific to this route.
+(7) insight_hiddencosts: one sentence flagging any baggage or layover visa consideration specific to this route — if none, return null?
+(8) carbonComparison: given the carbon emissions for this flight, write a brief relatable comparison to another commonly known route, under 10 words — if no carbon data available, return null?
 
-Return as a clean JSON object with these exact seven keys. No markdown.`;
+Return as a clean JSON object with these exact eight keys. No markdown.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -288,7 +291,7 @@ Return as a clean JSON object with these exact seven keys. No markdown.`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are a flight analyst API. Return only valid JSON with exactly the seven requested keys. Be specific to the route — never generic." },
+          { role: "system", content: "You are a flight analyst API. Return only valid JSON with exactly the eight requested keys. Be specific to the route — never generic." },
           { role: "user", content: prompt },
         ],
         temperature: 0.3,
@@ -353,6 +356,7 @@ Return as a clean JSON object with these exact seven keys. No markdown.`;
       bestWeekReason: parsed.bestWeekReason || fallback.bestWeekReason,
       insight_route: parsed.insight_route || fallback.insight_route,
       insight_flexibility: parsed.insight_flexibility || fallback.insight_flexibility,
+      insight_timing: parsed.insight_timing || fallback.insight_timing,
       insight_hiddencosts: parsed.insight_hiddencosts ?? null,
       carbonComparison: parsed.carbonComparison ?? null,
     };
@@ -566,6 +570,7 @@ serve(async (req) => {
           bestWeekReason: bestWeek ? `${bestWeek.week} offers the lowest fares.` : "Check weekly variations.",
           insight_route: `${originCity} to ${destinationCity} is typically served with connections.`,
           insight_flexibility: `Compare ${originCity} airports for savings.`,
+          insight_timing: `Flying midweek on this route can often save 10-15% compared to weekend departures.`,
           insight_hiddencosts: null,
           carbonComparison: null,
         };
