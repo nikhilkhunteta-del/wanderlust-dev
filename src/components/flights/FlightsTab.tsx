@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMonthName } from "@/lib/formatMonth";
-import { Loader2, Plane, ChevronDown } from "lucide-react";
+import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info } from "lucide-react";
 
 interface FlightsTabProps {
   departureCity: string;
@@ -205,6 +205,12 @@ export const FlightsTab = ({
 
       {/* Section 3: Ways to Pay Less */}
       <WaysToPayLess data={data} sym={sym} />
+
+      {/* Section 4: Best Time to Fly */}
+      <BestTimeToFly data={data} sym={sym} monthName={monthName} />
+
+      {/* Section 5: Smart Flying Insights */}
+      <SmartFlyingInsights data={data} />
     </div>
   );
 };
@@ -438,6 +444,124 @@ function WaysToPayLess({ data, sym }: { data: FlightInsightsData; sym: string })
               </p>
             </div>
           ))}
+      </div>
+    </div>
+  );
+}
+
+// === Section 4: Best Time to Fly ===
+function BestTimeToFly({ data, sym, monthName }: { data: FlightInsightsData; sym: string; monthName: string }) {
+  const weeks = data.weeklyPricing;
+  if (!weeks || weeks.length === 0) return null;
+
+  const weekLabels = ["Early", "Mid-early", "Mid-late", "Late"];
+
+  return (
+    <div className="mt-10">
+      <h3 className="text-lg font-bold text-foreground">
+        Best time to fly in {monthName}
+      </h3>
+      <p className="text-sm text-muted-foreground mt-1 mb-5">
+        How fares compare across the month
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {weeks.slice(0, 4).map((week, i) => {
+          const isBest = data.bestWeek && week.date === data.bestWeek.date;
+          const isWorst = data.worstWeek && week.date === data.worstWeek.date;
+
+          let borderStyle = "border";
+          let tag: { label: string; bg: string; color: string } | null = null;
+
+          if (isBest) {
+            borderStyle = "border border-l-[3px] border-l-[#16A34A]";
+            tag = { label: "Best value", bg: "#BBF7D0", color: "#14532D" };
+          } else if (isWorst) {
+            borderStyle = "border border-l-[3px] border-l-[#D97706]";
+            tag = { label: "Higher demand", bg: "#FDE68A", color: "#92400E" };
+          }
+
+          return (
+            <div key={week.date || i} className={`rounded-lg p-4 ${borderStyle}`}>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                {weekLabels[i] || week.week} {monthName}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">{week.date}</p>
+              <p className="text-[22px] font-bold text-foreground mt-2">
+                {week.lowestPrice != null ? `${sym}${week.lowestPrice.toLocaleString()}` : (
+                  <span className="text-muted-foreground text-base font-normal">No data</span>
+                )}
+              </p>
+              {tag && (
+                <span
+                  className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full mt-2"
+                  style={{ background: tag.bg, color: tag.color }}
+                >
+                  {tag.label}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {data.synthesis?.bestWeekReason && (
+        <p className="mt-4 text-sm text-muted-foreground italic">
+          {data.synthesis.bestWeekReason}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// === Section 5: Smart Flying Insights ===
+function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
+  const s = data.synthesis;
+  if (!s) return null;
+
+  const cards: { icon: React.ElementType; title: string; body: string | null }[] = [
+    { icon: Route, title: "The journey", body: s.insight_route },
+    { icon: Calendar, title: "When to book", body: s.bookingTiming },
+    { icon: ArrowLeftRight, title: "Be flexible", body: s.insight_flexibility },
+  ];
+
+  // Card 4: hidden costs or carbon fallback
+  if (s.insight_hiddencosts) {
+    cards.push({ icon: Info, title: "Watch out for", body: s.insight_hiddencosts });
+  } else if (data.bestFlight?.carbonEmissions) {
+    cards.push({
+      icon: Info,
+      title: "Carbon context",
+      body: `This route produces approximately ${Math.round(data.bestFlight.carbonEmissions / 1000)} kg CO₂ per passenger.`,
+    });
+  }
+
+  const validCards = cards.filter(c => c.body);
+  if (validCards.length === 0) return null;
+
+  return (
+    <div className="mt-10">
+      <h3 className="text-lg font-bold text-foreground mb-5">
+        Smart flying insights
+      </h3>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {validCards.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <div key={i} className="rounded-lg border p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <h4 className="text-[15px] font-bold text-foreground mb-1">{card.title}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{card.body}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
