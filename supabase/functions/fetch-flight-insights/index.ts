@@ -43,6 +43,11 @@ const SAVING_THRESHOLDS: Record<string, number> = {
   SGD: 130, HKD: 780, JPY: 15000, THB: 3500, AED: 370, TRY: 3200,
 };
 
+const LONG_HAUL_THRESHOLDS: Record<string, number> = {
+  GBP: 150, EUR: 175, USD: 200, INR: 16000, AUD: 300, CAD: 260,
+  SGD: 260, HKD: 1560, JPY: 30000, THB: 7000, AED: 740, TRY: 6400,
+};
+
 function formatDate(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -120,6 +125,70 @@ async function callSerpAPI(
   return resp.json();
 }
 
+interface AlternativeAirport {
+  iata: string;
+  city: string;
+  transferTimeMinutes: number;
+  transferCost: string;
+  transferMode: string;
+}
+
+async function queryAlternativeDestinationAirports(
+  perplexityKey: string,
+  destinationCity: string,
+  destinationCountry: string,
+  destinationAirport: string,
+): Promise<AlternativeAirport[]> {
+  try {
+    const query = `What are all commercial airports within 350km of ${destinationCity}, ${destinationCountry}? For each airport return: IATA code, city name, approximate ground transfer time to ${destinationCity} in minutes by the fastest available road or rail option, approximate transfer cost in local currency, and the primary transfer mode (taxi / train / bus). Exclude ${destinationAirport}. Return as a JSON array only with keys: iata, city, transferTimeMinutes, transferCost, transferMode. No other text.`;
+
+    const resp = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${perplexityKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { role: "system", content: "Return only valid JSON arrays. No markdown, no explanation." },
+          { role: "user", content: query },
+        ],
+        temperature: 0.1,
+      }),
+    });
+
+    if (!resp.ok) {
+      console.error("Perplexity error:", resp.status);
+      return [];
+    }
+
+    const data = await resp.json();
+    const content = data.choices?.[0]?.message?.content || "";
+
+    // Extract JSON array from response
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      console.log("Perplexity: no JSON array found in response");
+      return [];
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]) as AlternativeAirport[];
+
+    // Filter: under 180 minutes transfer, exclude destination airport
+    return parsed.filter(
+      (a) =>
+        a.iata &&
+        a.iata !== destinationAirport &&
+        typeof a.transferTimeMinutes === "number" &&
+        a.transferTimeMinutes < 180
+    );
+  } catch (err) {
+    console.error("Perplexity alternative airports failed:", err);
+    return [];
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -129,6 +198,7 @@ serve(async (req) => {
     const {
       originCity,
       destinationCity,
+      destinationCountry = "",
       destinationAirport,
       travelMonth,
       travelYear,
@@ -157,6 +227,8 @@ serve(async (req) => {
     const SERPAPI_KEY = Deno.env.get("SERPAPI_KEY");
     if (!SERPAPI_KEY) throw new Error("SERPAPI_KEY is not configured");
 
+    const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
+
     const monthNum = parseMonth(travelMonth);
     const year = parseInt(travelYear) || new Date().getFullYear();
     const monthName = getMonthName(monthNum);
@@ -169,14 +241,20 @@ serve(async (req) => {
 
     console.log(`Multi-airport fetch: ${originAirports.join(",")} → ${destinationAirport}, ${outboundDateStr}–${returnDateStr}`);
 
-    // === Addition 1: Parallel origin airport calls ===
-    const originSettled = await Promise.allSettled(
-      originAirports.map((apt) =>
-        callSerpAPI(SERPAPI_KEY, apt, destinationAirport, outboundDateStr, returnDateStr, passengers, travelClass, currency)
-          .then((data) => ({ airport: apt, data }))
-      )
-    );
+    // === Run origin airport calls AND Perplexity alt-destination query in parallel ===
+    const [originSettled, alternativeAirports] = await Promise.all([
+      Promise.allSettled(
+        originAirports.map((apt) =>
+          callSerpAPI(SERPAPI_KEY, apt, destinationAirport, outboundDateStr, returnDateStr, passengers, travelClass, currency)
+            .then((data) => ({ airport: apt, data }))
+        )
+      ),
+      PERPLEXITY_API_KEY
+        ? queryAlternativeDestinationAirports(PERPLEXITY_API_KEY, destinationCity, destinationCountry || destinationCity, destinationAirport)
+        : Promise.resolve([]),
+    ]);
 
+    // Process origin results (unchanged from Prompt 2)
     const originResults: any[] = [];
     for (const result of originSettled) {
       if (result.status !== "fulfilled") continue;
@@ -192,7 +270,6 @@ serve(async (req) => {
       });
     }
 
-    // Sort by price ascending
     originResults.sort((a, b) => a.lowestPrice - b.lowestPrice);
 
     const primaryAirport = originAirports[0];
@@ -215,14 +292,13 @@ serve(async (req) => {
       originSavingOpportunity = originSaving >= savingThreshold;
     }
 
-    // Use the best pricing data for the main response (from cheapest origin)
     const mainSerpData = cheapestResult || primaryResult;
     const mainPricing = mainSerpData
       ? { lowestPrice: mainSerpData.lowestPrice, priceLevel: mainSerpData.priceLevel, typicalRange: mainSerpData.typicalRange, priceHistory: null }
       : { lowestPrice: null, priceLevel: null, typicalRange: null, priceHistory: null };
     const mainBestFlight = mainSerpData?.bestFlight ?? null;
 
-    // === Addition 2: Weekly pricing (from cheapest origin airport) ===
+    // === Weekly pricing (unchanged from Prompt 2) ===
     const cheapestApt = cheapestOrigin?.airport || primaryAirport;
     const weekDays = [3, 10, 17, 24];
     const weekLabels = [`Early ${monthName}`, `Mid-early ${monthName}`, `Mid-late ${monthName}`, `Late ${monthName}`];
@@ -257,6 +333,53 @@ serve(async (req) => {
       ? validWeeks.reduce((a, b) => (a.lowestPrice! > b.lowestPrice! ? a : b))
       : null;
 
+    // === Addition 3: Alternative destination airport pricing ===
+    console.log(`Perplexity found ${alternativeAirports.length} alternative destination airports: ${alternativeAirports.map((a) => a.iata).join(",")}`);
+
+    let destSavingOpportunities: any[] = [];
+    const alternativeAirportsChecked = alternativeAirports.length;
+
+    if (alternativeAirports.length > 0 && mainPricing.lowestPrice) {
+      const altSettled = await Promise.allSettled(
+        alternativeAirports.map((alt) =>
+          callSerpAPI(SERPAPI_KEY, cheapestApt, alt.iata, outboundDateStr, returnDateStr, passengers, travelClass, currency)
+            .then((data) => ({ alt, data }))
+        )
+      );
+
+      const isLongHaul = (mainBestFlight?.totalDuration ?? 0) > 300;
+      const destThreshold = isLongHaul
+        ? (LONG_HAUL_THRESHOLDS[currency.toUpperCase()] ?? 150)
+        : (SAVING_THRESHOLDS[currency.toUpperCase()] ?? 75);
+
+      const candidates: any[] = [];
+      for (const settled of altSettled) {
+        if (settled.status !== "fulfilled") continue;
+        const { alt, data } = settled.value;
+        const altPrice = data.price_insights?.lowest_price;
+        if (!altPrice) continue;
+
+        const priceSaving = mainPricing.lowestPrice! - altPrice;
+        if (priceSaving < destThreshold) continue;
+
+        const altBestFlight = extractBestFlight(data);
+        candidates.push({
+          airport: alt.iata,
+          city: alt.city,
+          priceSaving,
+          lowestPrice: altPrice,
+          groundTransferMinutes: alt.transferTimeMinutes,
+          transferCost: alt.transferCost,
+          transferMode: alt.transferMode,
+          airlines: altBestFlight?.airlines ?? [],
+        });
+      }
+
+      // Keep top 2 by priceSaving descending
+      candidates.sort((a, b) => b.priceSaving - a.priceSaving);
+      destSavingOpportunities = candidates.slice(0, 2);
+    }
+
     const result = {
       route: {
         origin: { city: originCity, airport: cheapestApt },
@@ -268,19 +391,21 @@ serve(async (req) => {
       currency,
       searchDates: { outbound: outboundDateStr, return: returnDateStr },
       rawFlightsCount: originResults.length,
-      // Addition 1
+      // Prompt 2
       originResults,
       cheapestOrigin,
       primaryOrigin,
       originSavingOpportunity,
       originSaving,
-      // Addition 2
       weeklyPricing,
       bestWeek,
       worstWeek,
+      // Prompt 3
+      destSavingOpportunities,
+      alternativeAirportsChecked,
     };
 
-    console.log(`Done: ${originResults.length} airports priced, cheapest ${cheapestOrigin?.airport} @ ${cheapestOrigin?.lowestPrice}, weeks: ${validWeeks.length}/4`);
+    console.log(`Done: ${originResults.length} origins, ${alternativeAirportsChecked} alt destinations checked, ${destSavingOpportunities.length} dest savings found`);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
