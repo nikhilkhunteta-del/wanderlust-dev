@@ -202,6 +202,9 @@ export const FlightsTab = ({
 
       {/* Section 2: Price Feasibility Card */}
       <PriceFeasibilityCard data={data} sym={sym} />
+
+      {/* Section 3: Ways to Pay Less */}
+      <WaysToPayLess data={data} sym={sym} />
     </div>
   );
 };
@@ -346,6 +349,96 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
       <p className="mt-6 text-[11px] text-muted-foreground/70">
         Indicative pricing from live market data. Actual fares vary by booking date and availability.
       </p>
+    </div>
+  );
+}
+
+// === Section 3: Ways to Pay Less ===
+function WaysToPayLess({ data, sym }: { data: FlightInsightsData; sym: string }) {
+  const hasOriginSaving = data.originSavingOpportunity;
+  const hasDestSavings = data.destSavingOpportunities && data.destSavingOpportunities.length > 0;
+
+  if (!hasOriginSaving && !hasDestSavings) return null;
+
+  return (
+    <div className="mt-10">
+      <h3 className="text-lg font-bold text-foreground mb-5">
+        Ways to pay less on this route
+      </h3>
+
+      <div className="space-y-4">
+        {/* Origin saving card */}
+        {hasOriginSaving && data.cheapestOrigin && data.primaryOrigin && (
+          <div
+            className="rounded-lg p-5"
+            style={{
+              borderLeft: "3px solid #D97706",
+              background: "#FFFBEB",
+            }}
+          >
+            <span
+              className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full mb-3"
+              style={{ background: "#FDE68A", color: "#92400E" }}
+            >
+              Origin saving
+            </span>
+
+            <p className="text-base font-bold text-foreground">
+              Fly from {data.cheapestOrigin.airport} instead of {data.primaryOrigin.airport}
+            </p>
+
+            <p className="text-[15px] text-foreground mt-1.5">
+              Save approximately {sym}{data.originSaving.toLocaleString()} per person
+            </p>
+
+            {data.cheapestOrigin.airlines && data.cheapestOrigin.airlines.length > 0 && (
+              <p className="text-[13px] text-muted-foreground mt-2">
+                Airlines on this route: {[...new Set(data.cheapestOrigin.airlines)].join(" · ")}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Destination saving cards */}
+        {hasDestSavings &&
+          data.destSavingOpportunities.map((opp: any, i: number) => (
+            <div
+              key={opp.airport || i}
+              className="rounded-lg p-5"
+              style={{
+                borderLeft: "3px solid #16A34A",
+                background: "#F0FDF4",
+              }}
+            >
+              <span
+                className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full mb-3"
+                style={{ background: "#BBF7D0", color: "#14532D" }}
+              >
+                Nearby airport
+              </span>
+
+              <p className="text-base font-bold text-foreground">
+                Fly into {opp.city} instead of {data.route.destination.city}
+              </p>
+
+              <p className="text-[15px] text-foreground mt-1.5">
+                Save approximately {sym}{opp.priceSaving.toLocaleString()} per person
+              </p>
+
+              <p className="text-sm text-muted-foreground mt-2">
+                Ground transfer to {data.route.destination.city}: ~
+                {opp.groundTransferMinutes >= 60
+                  ? `${Math.floor(opp.groundTransferMinutes / 60)}h ${opp.groundTransferMinutes % 60}m`
+                  : `${opp.groundTransferMinutes}m`}
+                {" "}by {opp.transferMode} — ~{opp.transferCost}
+              </p>
+
+              <p className="text-[13px] text-muted-foreground italic mt-2">
+                Factor in transfer time and cost before deciding
+              </p>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }
