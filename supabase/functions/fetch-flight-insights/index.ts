@@ -6,28 +6,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Step 1: City-to-primary-airport mapping
-const CITY_AIRPORTS: Record<string, string> = {
-  london: "LHR",
-  "new york": "JFK",
-  paris: "CDG",
-  milan: "MXP",
-  rome: "FCO",
-  tokyo: "NRT",
-  chicago: "ORD",
-  "los angeles": "LAX",
-  "san francisco": "SFO",
-  bangkok: "BKK",
-  istanbul: "IST",
-  dubai: "DXB",
-  amsterdam: "AMS",
-  madrid: "MAD",
-  berlin: "BER",
-  sydney: "SYD",
-  singapore: "SIN",
-  "hong kong": "HKG",
-  toronto: "YYZ",
-  frankfurt: "FRA",
+// Multi-airport mapping per city
+const CITY_AIRPORTS: Record<string, string[]> = {
+  london: ["LHR", "LGW", "STN", "LTN", "SEN"],
+  "new york": ["JFK", "EWR", "LGA"],
+  paris: ["CDG", "ORY"],
+  milan: ["MXP", "LIN", "BGY"],
+  rome: ["FCO", "CIA"],
+  tokyo: ["NRT", "HND"],
+  chicago: ["ORD", "MDW"],
+  "los angeles": ["LAX", "BUR", "LGB", "ONT", "SNA"],
+  "san francisco": ["SFO", "OAK", "SJC"],
+  bangkok: ["BKK", "DMK"],
+  istanbul: ["IST", "SAW"],
+  dubai: ["DXB", "DWC"],
+  moscow: ["SVO", "DME", "VKO"],
+  amsterdam: ["AMS"],
+  madrid: ["MAD"],
+  berlin: ["BER"],
+  sydney: ["SYD"],
+  singapore: ["SIN"],
+  "hong kong": ["HKG"],
+  toronto: ["YYZ"],
+  frankfurt: ["FRA"],
 };
 
 const CABIN_CLASS_MAP: Record<string, number> = {
@@ -37,21 +38,24 @@ const CABIN_CLASS_MAP: Record<string, number> = {
   first: 4,
 };
 
-function getFirstMondayOfMonth(year: number, month: number): Date {
-  // month is 1-indexed
-  const date = new Date(year, month - 1, 1);
-  const day = date.getDay();
-  // day 0=Sun, 1=Mon...
-  const daysUntilMonday = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
-  date.setDate(date.getDate() + daysUntilMonday);
-  return date;
-}
+const SAVING_THRESHOLDS: Record<string, number> = {
+  GBP: 75, EUR: 90, USD: 100, INR: 8000, AUD: 150, CAD: 130,
+  SGD: 130, HKD: 780, JPY: 15000, THB: 3500, AED: 370, TRY: 3200,
+};
 
 function formatDate(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+function getFirstMondayOfMonth(year: number, month: number): Date {
+  const date = new Date(year, month - 1, 1);
+  const day = date.getDay();
+  const daysUntilMonday = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
+  date.setDate(date.getDate() + daysUntilMonday);
+  return date;
 }
 
 function parseMonth(monthStr: string): number {
@@ -64,6 +68,56 @@ function parseMonth(monthStr: string): number {
     sep: 9, oct: 10, nov: 11, dec: 12,
   };
   return months[monthStr.toLowerCase()] || 1;
+}
+
+function getMonthName(monthNum: number): string {
+  const names = ["January","February","March","April","May","June",
+    "July","August","September","October","November","December"];
+  return names[monthNum - 1] || "January";
+}
+
+function extractBestFlight(serpData: any) {
+  const bestFlights = serpData.best_flights || [];
+  const bf = bestFlights[0];
+  if (!bf) return null;
+  const flights = bf.flights || [];
+  const layovers = bf.layovers || [];
+  return {
+    totalDuration: bf.total_duration ?? null,
+    stops: flights.length > 0 ? flights.length - 1 : 0,
+    layoverAirports: layovers.map((l: any) => l.name || l.id || "Unknown"),
+    airlines: flights.map((f: any) => f.airline || "Unknown"),
+    carbonEmissions: bf.carbon_emissions?.this_flight ?? null,
+  };
+}
+
+async function callSerpAPI(
+  apiKey: string,
+  departureId: string,
+  arrivalId: string,
+  outboundDate: string,
+  returnDate: string,
+  passengers: number,
+  travelClass: number,
+  currency: string,
+): Promise<any> {
+  const params = new URLSearchParams({
+    engine: "google_flights",
+    departure_id: departureId,
+    arrival_id: arrivalId,
+    outbound_date: outboundDate,
+    return_date: returnDate,
+    adults: passengers.toString(),
+    travel_class: travelClass.toString(),
+    currency,
+    api_key: apiKey,
+  });
+  const resp = await fetch(`https://serpapi.com/search?${params.toString()}`);
+  if (!resp.ok) {
+    const txt = await resp.text();
+    throw new Error(`SerpAPI ${resp.status}: ${txt}`);
+  }
+  return resp.json();
 }
 
 serve(async (req) => {
@@ -91,119 +145,152 @@ serve(async (req) => {
       );
     }
 
-    // Step 1: Resolve origin airport
     const originKey = originCity.toLowerCase().trim();
-    const primaryAirportCode = CITY_AIRPORTS[originKey];
-
-    if (!primaryAirportCode) {
+    const originAirports = CITY_AIRPORTS[originKey];
+    if (!originAirports) {
       return new Response(
         JSON.stringify({ error: "Origin city airport not found", city: originCity }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Calculate dates
+    const SERPAPI_KEY = Deno.env.get("SERPAPI_KEY");
+    if (!SERPAPI_KEY) throw new Error("SERPAPI_KEY is not configured");
+
     const monthNum = parseMonth(travelMonth);
     const year = parseInt(travelYear) || new Date().getFullYear();
+    const monthName = getMonthName(monthNum);
     const outboundDate = getFirstMondayOfMonth(year, monthNum);
     const returnDate = new Date(outboundDate);
-    returnDate.setDate(returnDate.getDate() + (tripDuration || 7));
-
+    returnDate.setDate(returnDate.getDate() + tripDuration);
     const outboundDateStr = formatDate(outboundDate);
     const returnDateStr = formatDate(returnDate);
     const travelClass = CABIN_CLASS_MAP[cabinClass] || 1;
 
-    console.log(`Fetching flight data: ${primaryAirportCode} → ${destinationAirport}, ${outboundDateStr} to ${returnDateStr}, ${passengers} pax, class ${travelClass}`);
+    console.log(`Multi-airport fetch: ${originAirports.join(",")} → ${destinationAirport}, ${outboundDateStr}–${returnDateStr}`);
 
-    // Step 2: SerpAPI call
-    const SERPAPI_KEY = Deno.env.get("SERPAPI_KEY");
-    if (!SERPAPI_KEY) {
-      throw new Error("SERPAPI_KEY is not configured");
+    // === Addition 1: Parallel origin airport calls ===
+    const originSettled = await Promise.allSettled(
+      originAirports.map((apt) =>
+        callSerpAPI(SERPAPI_KEY, apt, destinationAirport, outboundDateStr, returnDateStr, passengers, travelClass, currency)
+          .then((data) => ({ airport: apt, data }))
+      )
+    );
+
+    const originResults: any[] = [];
+    for (const result of originSettled) {
+      if (result.status !== "fulfilled") continue;
+      const { airport, data } = result.value;
+      const pi = data.price_insights;
+      if (!pi?.lowest_price) continue;
+      originResults.push({
+        airport,
+        lowestPrice: pi.lowest_price,
+        priceLevel: pi.price_level ?? null,
+        typicalRange: pi.typical_price_range ?? null,
+        bestFlight: extractBestFlight(data),
+      });
     }
 
-    const params = new URLSearchParams({
-      engine: "google_flights",
-      departure_id: primaryAirportCode,
-      arrival_id: destinationAirport,
-      outbound_date: outboundDateStr,
-      return_date: returnDateStr,
-      adults: passengers.toString(),
-      travel_class: travelClass.toString(),
-      currency: currency,
-      api_key: SERPAPI_KEY,
+    // Sort by price ascending
+    originResults.sort((a, b) => a.lowestPrice - b.lowestPrice);
+
+    const primaryAirport = originAirports[0];
+    const primaryResult = originResults.find((r) => r.airport === primaryAirport);
+    const cheapestResult = originResults[0] || null;
+
+    const primaryOrigin = primaryResult
+      ? { airport: primaryResult.airport, lowestPrice: primaryResult.lowestPrice }
+      : { airport: primaryAirport, lowestPrice: null };
+
+    const cheapestOrigin = cheapestResult
+      ? { airport: cheapestResult.airport, lowestPrice: cheapestResult.lowestPrice, airlines: cheapestResult.bestFlight?.airlines ?? [] }
+      : null;
+
+    const savingThreshold = SAVING_THRESHOLDS[currency.toUpperCase()] ?? 75;
+    let originSaving = 0;
+    let originSavingOpportunity = false;
+    if (cheapestOrigin && primaryOrigin.lowestPrice && cheapestOrigin.airport !== primaryOrigin.airport) {
+      originSaving = primaryOrigin.lowestPrice - cheapestOrigin.lowestPrice;
+      originSavingOpportunity = originSaving >= savingThreshold;
+    }
+
+    // Use the best pricing data for the main response (from cheapest origin)
+    const mainSerpData = cheapestResult || primaryResult;
+    const mainPricing = mainSerpData
+      ? { lowestPrice: mainSerpData.lowestPrice, priceLevel: mainSerpData.priceLevel, typicalRange: mainSerpData.typicalRange, priceHistory: null }
+      : { lowestPrice: null, priceLevel: null, typicalRange: null, priceHistory: null };
+    const mainBestFlight = mainSerpData?.bestFlight ?? null;
+
+    // === Addition 2: Weekly pricing (from cheapest origin airport) ===
+    const cheapestApt = cheapestOrigin?.airport || primaryAirport;
+    const weekDays = [3, 10, 17, 24];
+    const weekLabels = [`Early ${monthName}`, `Mid-early ${monthName}`, `Mid-late ${monthName}`, `Late ${monthName}`];
+
+    console.log(`Weekly pricing calls from ${cheapestApt} for weeks: ${weekDays.join(",")}`);
+
+    const weeklySettled = await Promise.allSettled(
+      weekDays.map((day) => {
+        const wOutbound = new Date(year, monthNum - 1, day);
+        const wReturn = new Date(wOutbound);
+        wReturn.setDate(wReturn.getDate() + tripDuration);
+        return callSerpAPI(SERPAPI_KEY, cheapestApt, destinationAirport, formatDate(wOutbound), formatDate(wReturn), passengers, travelClass, currency)
+          .then((data) => ({ day, data }));
+      })
+    );
+
+    const weeklyPricing = weekDays.map((day, i) => {
+      const settled = weeklySettled[i];
+      let lowestPrice: number | null = null;
+      if (settled.status === "fulfilled") {
+        lowestPrice = settled.value.data.price_insights?.lowest_price ?? null;
+      }
+      const monthShort = monthName.slice(0, 3);
+      return { week: weekLabels[i], date: `${monthShort} ${day}`, lowestPrice };
     });
 
-    const serpUrl = `https://serpapi.com/search?${params.toString()}`;
-    const serpResponse = await fetch(serpUrl);
-
-    if (!serpResponse.ok) {
-      const errorText = await serpResponse.text();
-      console.error("SerpAPI error:", serpResponse.status, errorText);
-      throw new Error(`SerpAPI returned ${serpResponse.status}`);
-    }
-
-    const serpData = await serpResponse.json();
-
-    // Extract structured data
-    const priceInsights = serpData.price_insights || {};
-    const bestFlights = serpData.best_flights || [];
-    const bookingOptions = serpData.booking_options || [];
-
-    const bestFlight = bestFlights[0] || null;
-    let bestFlightData = null;
-
-    if (bestFlight) {
-      const flights = bestFlight.flights || [];
-      const layovers = bestFlight.layovers || [];
-
-      bestFlightData = {
-        totalDuration: bestFlight.total_duration ?? null,
-        stops: flights.length > 0 ? flights.length - 1 : 0,
-        layoverAirports: layovers.map((l: any) => l.name || l.id || "Unknown"),
-        airlines: flights.map((f: any) => f.airline || "Unknown"),
-        carbonEmissions: bestFlight.carbon_emissions?.this_flight ?? null,
-      };
-    }
+    const validWeeks = weeklyPricing.filter((w) => w.lowestPrice !== null);
+    const bestWeek = validWeeks.length > 0
+      ? validWeeks.reduce((a, b) => (a.lowestPrice! < b.lowestPrice! ? a : b))
+      : null;
+    const worstWeek = validWeeks.length > 0
+      ? validWeeks.reduce((a, b) => (a.lowestPrice! > b.lowestPrice! ? a : b))
+      : null;
 
     const result = {
       route: {
-        origin: { city: originCity, airport: primaryAirportCode },
+        origin: { city: originCity, airport: cheapestApt },
         destination: { city: destinationCity, airport: destinationAirport },
       },
-      pricing: {
-        lowestPrice: priceInsights.lowest_price ?? null,
-        priceLevel: priceInsights.price_level ?? null,
-        typicalRange: priceInsights.typical_price_range ?? null,
-        priceHistory: priceInsights.price_history ?? null,
-      },
-      bestFlight: bestFlightData,
-      baggagePrices: bookingOptions[0]?.baggage_prices ?? null,
-      currency: currency,
+      pricing: mainPricing,
+      bestFlight: mainBestFlight,
+      baggagePrices: null,
+      currency,
       searchDates: { outbound: outboundDateStr, return: returnDateStr },
-      rawFlightsCount: bestFlights.length,
+      rawFlightsCount: originResults.length,
+      // Addition 1
+      originResults,
+      cheapestOrigin,
+      primaryOrigin,
+      originSavingOpportunity,
+      originSaving,
+      // Addition 2
+      weeklyPricing,
+      bestWeek,
+      worstWeek,
     };
 
-    console.log(`Flight data fetched: ${primaryAirportCode} → ${destinationAirport}, lowest: ${result.pricing.lowestPrice}`);
+    console.log(`Done: ${originResults.length} airports priced, cheapest ${cheapestOrigin?.airport} @ ${cheapestOrigin?.lowestPrice}, weeks: ${validWeeks.length}/4`);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    // Step 3: Error handling — always return structured object
     console.error("Error in fetch-flight-insights:", error);
-
-    let originCity = "unknown";
-    let destinationCity = "unknown";
-    try {
-      // Try to extract from the original request for error context
-      // This is best-effort since we're in the catch block
-    } catch (_) {}
-
     return new Response(
       JSON.stringify({
         error: "No flight data available",
         fallbackRequired: true,
-        route: { origin: originCity, destination: destinationCity },
         detail: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
