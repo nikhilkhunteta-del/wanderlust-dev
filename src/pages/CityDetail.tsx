@@ -172,51 +172,51 @@ const CityDetail = () => {
             <TabsList className="h-12 bg-transparent gap-0 p-0 w-max">
               <TabsTrigger
                 value="highlights"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Highlights
+                Why This City
               </TabsTrigger>
               <TabsTrigger
                 value="itinerary"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Itinerary
+                Your Days
               </TabsTrigger>
               <TabsTrigger
                 value="seasonal"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                What's On
+                While You're There
               </TabsTrigger>
               <TabsTrigger
                 value="weather"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Weather
+                How It Feels
               </TabsTrigger>
               <TabsTrigger
                 value="flights"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Flights
+                Getting There
               </TabsTrigger>
               <TabsTrigger
                 value="stays"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Stays
+                Your Base
               </TabsTrigger>
               <TabsTrigger
                 value="ground"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                On the Ground
+                Before You Go
               </TabsTrigger>
               <TabsTrigger
                 value="health"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Health
+                Stay Well
               </TabsTrigger>
             </TabsList>
           </div>
