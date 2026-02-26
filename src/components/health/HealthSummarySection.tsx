@@ -20,7 +20,7 @@ export const HealthSummarySection = ({ summary, hasActiveAlerts }: HealthSummary
 
   return (
     <section>
-      <div className="border-l-[3px] border-emerald-500 pl-4">
+      <div className="border-l-[3px] border-[#16A34A] pl-4">
         <p className="text-sm leading-relaxed text-muted-foreground">
           {summary}
         </p>

@@ -51,7 +51,14 @@ export const WaterFoodSection = ({ waterSafety, foodSafety }: WaterFoodSectionPr
         <div className="space-y-3">
           <h3 className="text-lg font-semibold">Food Safety</h3>
           {foodSafety ? (
-            <p className="text-sm text-muted-foreground leading-relaxed">{foodSafety}</p>
+            <ul className="space-y-2">
+              {foodSafety.split(/(?<=\.)\s+/).filter(Boolean).map((point, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
+                  <span className="mt-2 w-1 h-1 rounded-full bg-muted-foreground/40 flex-shrink-0" />
+                  {point.trim()}
+                </li>
+              ))}
+            </ul>
           ) : (
             <p className="text-sm text-muted-foreground">No specific food safety concerns for this destination.</p>
           )}
