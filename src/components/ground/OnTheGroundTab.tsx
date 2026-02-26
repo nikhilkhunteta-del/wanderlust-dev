@@ -79,7 +79,7 @@ export const OnTheGroundTab = ({ city, country, travelMonth }: OnTheGroundTabPro
       {/* Section 5 — Entry & Visa */}
       <section className="space-y-3">
         <h3 className="text-lg font-semibold text-foreground">Getting In</h3>
-        <EntryVisa visa={data.visaInfo} />
+        <EntryVisa visa={data.visaInfo} country={country} />
       </section>
 
       {/* Section 6 — Emergency Contacts */}
