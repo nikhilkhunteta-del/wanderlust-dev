@@ -84,6 +84,11 @@ export const MonthComparison = ({ monthRanking, month }: MonthComparisonProps) =
         <CalendarX className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
         <p className="text-sm text-muted-foreground leading-relaxed">{monthRanking.avoidMonths}</p>
       </div>
+
+      {/* Data confidence footnote */}
+      <p className="text-xs text-muted-foreground/70">
+        Based on {monthRanking.dataYears} years of historical data from Open-Meteo. Actual conditions may vary.
+      </p>
     </div>
   );
 };
