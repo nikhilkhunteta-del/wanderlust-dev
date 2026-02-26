@@ -99,7 +99,7 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
       <div className="flex items-center gap-2 p-4 rounded-xl bg-muted/20 border border-border/30">
         <CloudSun className="w-4 h-4 text-muted-foreground shrink-0" />
         <p className="text-sm text-muted-foreground">
-          Some <span className="font-medium">What's On</span> experiences and <span className="font-medium">Itinerary</span> activities have been adjusted for {displayMonth}'s weather conditions.
+          Some <span className="font-medium">While You're There</span> experiences and <span className="font-medium">Your Days</span> activities have been adjusted for {displayMonth}'s weather conditions.
         </p>
       </div>
     </div>
