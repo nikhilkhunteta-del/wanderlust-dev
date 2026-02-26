@@ -14,7 +14,7 @@ interface VaccineSectionProps {
 
 const levelStyles: Record<string, string> = {
   Routine: "bg-muted text-muted-foreground",
-  Recommended: "bg-secondary/10 text-secondary",
+  Recommended: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
   Required: "bg-destructive/10 text-destructive",
 };
 
