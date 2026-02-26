@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 
 interface EntryVisaProps {
   visa: VisaInfo;
+  country: string;
 }
 
 const eVisaLabel = (visa: VisaInfo) => {
@@ -18,7 +19,7 @@ const eVisaLabel = (visa: VisaInfo) => {
   return "Not required";
 };
 
-export const EntryVisa = ({ visa }: EntryVisaProps) => {
+export const EntryVisa = ({ visa, country }: EntryVisaProps) => {
   return (
     <div className="space-y-4">
       <div className="space-y-3 text-sm text-muted-foreground">
@@ -54,7 +55,7 @@ export const EntryVisa = ({ visa }: EntryVisaProps) => {
 
         {visa.isSchengen && (
           <p className="text-xs text-muted-foreground">
-            This country is part of the Schengen Area — no eVisa required for visa-free nationalities, but ETIAS authorisation will be required from late 2026
+            {country} is part of the Schengen Area — no eVisa required for visa-free nationalities. ETIAS authorisation will be required from late 2026.
           </p>
         )}
 
