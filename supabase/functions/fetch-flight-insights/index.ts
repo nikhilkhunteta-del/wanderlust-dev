@@ -291,6 +291,7 @@ async function queryRouteIntelligence(
 
 interface Synthesis {
   priceVerdict: string;
+  priceTrend: string | null;
   bookingTiming: string;
   bestWeekReason: string;
   insight_route: string;
@@ -298,6 +299,7 @@ interface Synthesis {
   insight_timing: string;
   insight_hiddencosts: string | null;
   carbonComparison: string | null;
+  originTransferNote: string | null;
 }
 
 async function generateSynthesis(
@@ -318,6 +320,7 @@ async function generateSynthesis(
 
   const fallback: Synthesis = {
     priceVerdict: `Flights from ${originCity} to ${destinationCity} in ${travelMonth} typically start around ${currency} ${pricing.lowestPrice ?? "N/A"}.`,
+    priceTrend: null,
     bookingTiming: HARDCODED_BOOKING_FALLBACK,
     bestWeekReason: `Check weekly pricing variations within ${travelMonth} for potential savings.`,
     insight_route: `${originCity} to ${destinationCity} is typically served with one-stop connections. Journey times vary by airline and routing.`,
@@ -325,6 +328,7 @@ async function generateSynthesis(
     insight_timing: `Flying midweek (Tuesday–Thursday) on this route can save 10–15% compared to weekend departures.`,
     insight_hiddencosts: null,
     carbonComparison: null,
+    originTransferNote: null,
   };
 
   try {
@@ -337,22 +341,28 @@ async function generateSynthesis(
       ? `\nPrice history data: ${JSON.stringify(pricing.priceHistory)}. Based on this price history, what does the booking curve suggest about when to book for this route?`
       : "";
 
+    const originAirportList = originCity ? (CITY_AIRPORTS[originCity.toLowerCase().trim()] || []).join(", ") : "";
+
     const prompt = `You have the following data for flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}:
 Pricing data: lowest price ${currency} ${pricing.lowestPrice}, typical range ${pricing.typicalRange?.[0]}–${pricing.typicalRange?.[1]}, price level ${pricing.priceLevel}, ${savingNote}.
 Weekly pricing: ${weeklyStr}.
 Route intelligence: ${routeIntelligence || "No additional route data available."}${priceHistoryNote}
+Origin airports checked: ${originAirportList}
+Cheapest origin airport: ${cheapestOrigin?.airport || "primary"}
 
-Generate exactly these eight outputs — all must be specific to this exact route and month, never generic:
+Generate exactly these ten outputs — all must be specific to this exact route and month, never generic:
 (1) priceVerdict: one sentence — is this good value or expensive for this route, and what should a traveller budget including the range?
-(2) bookingTiming: one sentence — how many weeks in advance should travellers book for this specific route in ${travelMonth} to get the best fares? Be specific with a number of weeks. Use the route intelligence and price history data.
-(3) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data?
-(4) insight_route: two sentences about the typical journey — hubs, airlines, total time specific to this route?
-(5) insight_flexibility: one sentence about airport or date flexibility specific to ${originCity}?
-(6) insight_timing: For flights from ${originCity} to ${destinationCity} in ${travelMonth}, is there a meaningful price difference between flying midweek (Tuesday–Thursday) versus weekend (Friday–Sunday)? If yes, quantify it approximately. If midweek vs weekend is not significant for this route, instead describe the trade-off between the most common stopover hubs — e.g. what is the practical difference for a traveller choosing between connection cities? Keep it under 40 words and specific to this route.
-(7) insight_hiddencosts: one sentence flagging any baggage or layover visa consideration specific to this route — if none, return null?
-(8) carbonComparison: given the carbon emissions for this flight, write a brief relatable comparison to another commonly known route, under 10 words — if no carbon data available, return null?
+(2) priceTrend: one sentence about whether prices on this route have risen or fallen vs last year and by roughly how much percent — based on the route intelligence data. If no trend data available, return null.
+(3) bookingTiming: one sentence — how many weeks in advance should travellers book for this specific route in ${travelMonth} to get the best fares? Be specific with a number of weeks. Use the route intelligence and price history data.
+(4) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data?
+(5) insight_route: two sentences about the typical journey — hubs, airlines, total time specific to this route?
+(6) insight_flexibility: one sentence about airport or date flexibility specific to ${originCity}?
+(7) insight_timing: For flights from ${originCity} to ${destinationCity} in ${travelMonth}, is there a meaningful price difference between flying midweek (Tuesday–Thursday) versus weekend (Friday–Sunday)? If yes, quantify it approximately. If midweek vs weekend is not significant for this route, instead describe the trade-off between the most common stopover hubs — e.g. what is the practical difference for a traveller choosing between connection cities? Keep it under 40 words and specific to this route.
+(8) insight_hiddencosts: one sentence flagging any baggage or layover visa consideration specific to this route — if none, return null?
+(9) carbonComparison: given the carbon emissions for this flight, write a brief relatable comparison to another commonly known route, under 10 words — if no carbon data available, return null?
+(10) originTransferNote: if the cheapest origin airport (${cheapestOrigin?.airport || "primary"}) is different from the main city airport, write one brief practical sentence about how to get there from central ${originCity} — e.g. "25 minutes by Gatwick Express from London Victoria". If the cheapest airport IS the primary airport, return null.
 
-Return as a clean JSON object with these exact eight keys. No markdown.`;
+Return as a clean JSON object with these exact ten keys. No markdown.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -424,6 +434,7 @@ Return as a clean JSON object with these exact eight keys. No markdown.`;
 
     return {
       priceVerdict: parsed.priceVerdict || fallback.priceVerdict,
+      priceTrend: parsed.priceTrend ?? null,
       bookingTiming,
       bestWeekReason: parsed.bestWeekReason || fallback.bestWeekReason,
       insight_route: parsed.insight_route || fallback.insight_route,
@@ -431,6 +442,7 @@ Return as a clean JSON object with these exact eight keys. No markdown.`;
       insight_timing: parsed.insight_timing || fallback.insight_timing,
       insight_hiddencosts: parsed.insight_hiddencosts ?? null,
       carbonComparison: parsed.carbonComparison ?? null,
+      originTransferNote: parsed.originTransferNote ?? null,
     };
   } catch (err) {
     console.error("AI synthesis failed:", err);
@@ -638,6 +650,7 @@ serve(async (req) => {
         )
       : {
           priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${currency} ${mainPricing.lowestPrice ?? "N/A"}.`,
+          priceTrend: null,
           bookingTiming: "Book 6-8 weeks ahead for best prices.",
           bestWeekReason: bestWeek ? `${bestWeek.week} offers the lowest fares.` : "Check weekly variations.",
           insight_route: `${originCity} to ${destinationCity} is typically served with connections.`,
@@ -645,6 +658,7 @@ serve(async (req) => {
           insight_timing: `Flying midweek on this route can often save 10-15% compared to weekend departures.`,
           insight_hiddencosts: null,
           carbonComparison: null,
+          originTransferNote: null,
         };
 
     const result = {
