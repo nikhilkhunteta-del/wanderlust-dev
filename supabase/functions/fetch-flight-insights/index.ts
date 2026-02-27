@@ -38,6 +38,18 @@ const CABIN_CLASS_MAP: Record<string, number> = {
   first: 4,
 };
 
+const getCurrencySymbol = (currency: string): string => {
+  const symbols: Record<string, string> = {
+    GBP: '£', USD: '$', EUR: '€', AUD: 'A$',
+    CAD: 'C$', JPY: '¥', CHF: 'CHF', SEK: 'kr',
+    NOK: 'kr', DKK: 'kr', SGD: 'S$', HKD: 'HK$',
+    NZD: 'NZ$', ZAR: 'R', INR: '₹', AED: 'AED',
+    THB: '฿', MXN: '$', BRL: 'R$', KRW: '₩',
+    TRY: '₺',
+  };
+  return symbols[currency] ?? currency;
+};
+
 const SAVING_THRESHOLDS: Record<string, number> = {
   GBP: 75, EUR: 90, USD: 100, INR: 8000, AUD: 150, CAD: 130,
   SGD: 130, HKD: 780, JPY: 15000, THB: 3500, AED: 370, TRY: 3200,
@@ -256,9 +268,11 @@ async function queryRouteIntelligence(
   destinationCity: string,
   travelMonth: string,
   travelYear: string,
+  currency: string = "GBP",
 ): Promise<string> {
   try {
-    const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window for the best prices on flights from ${originCity} to ${destinationCity} in ${travelMonth}? For example, is it better to book 2 weeks, 4 weeks, 8 weeks, or further in advance? Be specific to this route and month. (7) What are the most common stopover hubs for flights from ${originCity} to ${destinationCity} and which airlines use each hub? Which hub typically offers the shortest total journey time? Return factual information only — no generic travel advice.`;
+    const currencySymbol = getCurrencySymbol("GBP"); // Will be parameterized when currency is passed
+    const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window for the best prices on flights from ${originCity} to ${destinationCity} in ${travelMonth}? For example, is it better to book 2 weeks, 4 weeks, 8 weeks, or further in advance? Be specific to this route and month. (7) What are the most common stopover hubs for flights from ${originCity} to ${destinationCity} and which airlines use each hub? Which hub typically offers the shortest total journey time? When mentioning any prices, use the currency symbol ${currencySymbol} not the currency code. All price figures should be per person. Return factual information only — no generic travel advice.`;
 
     const resp = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",
@@ -316,10 +330,11 @@ async function generateSynthesis(
   currency: string,
   perplexityKey: string | null,
 ): Promise<Synthesis> {
+  const currencySymbol = getCurrencySymbol(currency);
   const HARDCODED_BOOKING_FALLBACK = `For this route, booking 6–8 weeks in advance typically yields better fares than last-minute purchases — set a price alert to track changes.`;
 
   const fallback: Synthesis = {
-    priceVerdict: `Flights from ${originCity} to ${destinationCity} in ${travelMonth} typically start around ${currency} ${pricing.lowestPrice ?? "N/A"}.`,
+    priceVerdict: `Flights from ${originCity} to ${destinationCity} in ${travelMonth} typically start around ${currencySymbol}${pricing.lowestPrice ?? "N/A"} per person.`,
     priceTrend: null,
     bookingTiming: HARDCODED_BOOKING_FALLBACK,
     bestWeekReason: `Check weekly pricing variations within ${travelMonth} for potential savings.`,
@@ -334,7 +349,7 @@ async function generateSynthesis(
   try {
     const weeklyStr = weeklyPricing.map((w) => `${w.week}: ${w.lowestPrice ?? "N/A"}`).join(", ");
     const savingNote = cheapestOrigin && primaryOrigin && cheapestOrigin.airport !== primaryOrigin.airport
-      ? `cheapest origin airport ${cheapestOrigin.airport} saving ${currency} ${primaryOrigin.lowestPrice - cheapestOrigin.lowestPrice} vs primary hub ${primaryOrigin.airport}`
+      ? `cheapest origin airport ${cheapestOrigin.airport} saving ${currencySymbol}${primaryOrigin.lowestPrice - cheapestOrigin.lowestPrice} per person vs primary hub ${primaryOrigin.airport}`
       : "primary hub is cheapest";
 
     const priceHistoryNote = pricing.priceHistory
@@ -343,21 +358,29 @@ async function generateSynthesis(
 
     const originAirportList = originCity ? (CITY_AIRPORTS[originCity.toLowerCase().trim()] || []).join(", ") : "";
 
+    const typicalRangePP = pricing.typicalRange
+      ? `${currencySymbol}${Math.round(pricing.typicalRange[0] / passengers)}–${currencySymbol}${Math.round(pricing.typicalRange[1] / passengers)}`
+      : "N/A";
+
     const prompt = `You have the following data for flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}:
-Pricing data: lowest price ${currency} ${pricing.lowestPrice}, typical range ${pricing.typicalRange?.[0]}–${pricing.typicalRange?.[1]}, price level ${pricing.priceLevel}, ${savingNote}.
+Pricing data: lowest price ${currencySymbol}${pricing.lowestPrice ? Math.round(pricing.lowestPrice / passengers) : "N/A"} per person, typical range ${typicalRangePP} per person, price level ${pricing.priceLevel}, ${savingNote}.
 Weekly pricing: ${weeklyStr}.
 Route intelligence: ${routeIntelligence || "No additional route data available."}${priceHistoryNote}
 Origin airports checked: ${originAirportList}
 Cheapest origin airport: ${cheapestOrigin?.airport || "primary"}
 
+CRITICAL RULES FOR ALL OUTPUTS:
+- When referencing any price, always use the currency symbol ${currencySymbol} — never use the currency code ${currency}. Example: use '${currencySymbol}120' not '${currency} 120'.
+- All prices must be per person, never total group cost.
+
 Generate exactly these ten outputs — all must be specific to this exact route and month, never generic:
-(1) priceVerdict: one sentence — is this good value or expensive for this route, and what should a traveller budget including the range?
-(2) priceTrend: one sentence about whether prices on this route have risen or fallen vs last year and by roughly how much percent — based on the route intelligence data. If no trend data available, return null.
+(1) priceVerdict: Write one sentence about the price for this route. Rules: always state prices per person using ${currencySymbol}, reference the typical range ${typicalRangePP} per person, and end with one sentence about the advance booking window for this route and month. Example format: 'A typical round-trip from ${originCity} to ${destinationCity} in ${travelMonth} costs around ${typicalRangePP} per person, which is [price level] for this route — booking [X] weeks ahead typically secures the best fares.'
+(2) priceTrend: one sentence about whether prices on this route have risen or fallen vs last year and by roughly how much percent — based on the route intelligence data. Use ${currencySymbol} for any prices. If no trend data available, return null.
 (3) bookingTiming: one sentence — how many weeks in advance should travellers book for this specific route in ${travelMonth} to get the best fares? Be specific with a number of weeks. Use the route intelligence and price history data.
-(4) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data?
+(4) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data? Use ${currencySymbol} for any prices.
 (5) insight_route: two sentences about the typical journey — hubs, airlines, total time specific to this route?
 (6) insight_flexibility: one sentence about airport or date flexibility specific to ${originCity}?
-(7) insight_timing: For flights from ${originCity} to ${destinationCity} in ${travelMonth}, is there a meaningful price difference between flying midweek (Tuesday–Thursday) versus weekend (Friday–Sunday)? If yes, quantify it approximately. If midweek vs weekend is not significant for this route, instead describe the trade-off between the most common stopover hubs — e.g. what is the practical difference for a traveller choosing between connection cities? Keep it under 40 words and specific to this route.
+(7) insight_timing: For flights from ${originCity} to ${destinationCity} in ${travelMonth}, what is the typical price difference between flying midweek (Tuesday–Wednesday) versus weekend (Friday–Sunday)? Give an approximate figure using ${currencySymbol} if available. If no meaningful midweek/weekend difference exists for this short-haul route, instead give one specific tip about flexible date searching on this route — e.g. shifting dates by 2–3 days. Keep under 35 words, route-specific only.
 (8) insight_hiddencosts: one sentence flagging any baggage or layover visa consideration specific to this route — if none, return null?
 (9) carbonComparison: given the carbon emissions for this flight, write a brief relatable comparison to another commonly known route, under 10 words — if no carbon data available, return null?
 (10) originTransferNote: if the cheapest origin airport (${cheapestOrigin?.airport || "primary"}) is different from the main city airport, write one brief practical sentence about how to get there from central ${originCity} — e.g. "25 minutes by Gatwick Express from London Victoria". If the cheapest airport IS the primary airport, return null.
@@ -514,7 +537,7 @@ serve(async (req) => {
         ? queryAlternativeDestinationAirports(PERPLEXITY_API_KEY, destinationCity, destinationCountry || destinationCity, destinationAirport)
         : Promise.resolve([]),
       PERPLEXITY_API_KEY
-        ? queryRouteIntelligence(PERPLEXITY_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString())
+        ? queryRouteIntelligence(PERPLEXITY_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString(), currency)
         : Promise.resolve(""),
     ]);
 
@@ -649,7 +672,7 @@ serve(async (req) => {
           PERPLEXITY_API_KEY || null,
         )
       : {
-          priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${currency} ${mainPricing.lowestPrice ?? "N/A"}.`,
+          priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${getCurrencySymbol(currency)}${mainPricing.lowestPrice ? Math.round(mainPricing.lowestPrice / passengers) : "N/A"} per person.`,
           priceTrend: null,
           bookingTiming: "Book 6-8 weeks ahead for best prices.",
           bestWeekReason: bestWeek ? `${bestWeek.week} offers the lowest fares.` : "Check weekly variations.",
