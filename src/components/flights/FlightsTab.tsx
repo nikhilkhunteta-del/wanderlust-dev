@@ -58,6 +58,7 @@ interface FlightInsightsData {
   routeIntelligence: string;
   synthesis: {
     priceVerdict: string;
+    priceTrend: string | null;
     bookingTiming: string;
     bestWeekReason: string;
     insight_route: string;
@@ -65,6 +66,7 @@ interface FlightInsightsData {
     insight_timing: string;
     insight_hiddencosts: string | null;
     carbonComparison: string | null;
+    originTransferNote: string | null;
   };
 }
 
@@ -365,6 +367,11 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
 
         {/* Right side: context */}
         <div className="flex-1 md:w-[40%] flex flex-col justify-center gap-3">
+          {synthesis?.priceTrend && (
+            <p className="text-sm text-muted-foreground leading-relaxed italic">
+              {synthesis.priceTrend}
+            </p>
+          )}
           {synthesis?.priceVerdict && (
             <p className="text-sm text-muted-foreground leading-relaxed">
               {synthesis.priceVerdict}
@@ -427,6 +434,12 @@ function WaysToPayLess({ data, sym }: { data: FlightInsightsData; sym: string })
             {data.cheapestOrigin.airlines && data.cheapestOrigin.airlines.length > 0 && (
               <p className="text-[13px] text-muted-foreground mt-2">
                 Airlines on this route: {[...new Set(data.cheapestOrigin.airlines)].join(" · ")}
+              </p>
+            )}
+
+            {data.synthesis?.originTransferNote && (
+              <p className="text-[13px] text-muted-foreground mt-1">
+                {data.synthesis.originTransferNote}
               </p>
             )}
           </div>
