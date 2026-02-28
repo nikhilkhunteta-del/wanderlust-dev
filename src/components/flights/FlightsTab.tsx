@@ -203,23 +203,35 @@ export const FlightsTab = ({
   const sym = getCurrencySymbol(data.currency);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 pt-10 pb-16">
-      {/* Section 1: Route Header */}
-      <RouteHeader data={data} sym={sym} />
+    <div className="pb-16">
+      {/* Section 1: Route Header — warm gradient hero */}
+      <div style={{ background: "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)" }} className="py-12">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
+          <RouteHeader data={data} sym={sym} />
+        </div>
+      </div>
 
-      {/* Section 2: Price Feasibility Card */}
-      <PriceFeasibilityCard data={data} sym={sym} />
+      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-10">
+        {/* Section 2: Price Feasibility Card */}
+        <PriceFeasibilityCard data={data} sym={sym} />
 
-      {/* Section 3: Ways to Pay Less */}
-      <WaysToPayLess data={data} sym={sym} />
+        {/* Divider */}
+        <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
 
-      {/* Section 4: Best Time to Fly */}
-      <BestTimeToFly data={data} sym={sym} monthName={monthName} />
+        <WaysToPayLess data={data} sym={sym} />
 
-      {/* Section 5: Smart Flying Insights */}
-      <SmartFlyingInsights data={data} />
+        {/* Divider */}
+        <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
 
-      {/* Section 6: Book Your Flights CTA */}
+        <BestTimeToFly data={data} sym={sym} monthName={monthName} />
+
+        {/* Divider */}
+        <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
+
+        <SmartFlyingInsights data={data} />
+      </div>
+
+      {/* Section 6: Book Your Flights CTA — dark warm background */}
       <BookFlightsCTA data={data} monthName={monthName} travelMonth={travelMonth} />
     </div>
   );
@@ -234,9 +246,9 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
     <div className="text-center">
       {/* City names with plane */}
       <div className="flex items-center justify-center gap-4">
-        <span className="text-2xl font-bold text-foreground">{data.route.origin.city}</span>
-        <Plane className="w-5 h-5 text-muted-foreground" />
-        <span className="text-2xl font-bold text-foreground">{data.route.destination.city}</span>
+        <span className="font-bold text-foreground" style={{ fontSize: "32px" }}>{data.route.origin.city}</span>
+        <Plane className="text-[#EA580C]" style={{ width: "20px", height: "20px" }} />
+        <span className="font-bold text-foreground" style={{ fontSize: "32px" }}>{data.route.destination.city}</span>
       </div>
 
       {/* Airport codes */}
@@ -303,9 +315,9 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
     data.cheapestOrigin.airport !== data.primaryOrigin.airport;
 
   const priceLevelConfig: Record<string, { label: string; color: string; bg: string }> = {
-    low: { label: "Good value for this route", color: "text-green-700", bg: "bg-green-50" },
-    typical: { label: "Typical pricing", color: "text-muted-foreground", bg: "bg-muted/50" },
-    high: { label: "Higher than usual", color: "text-amber-700", bg: "bg-amber-50" },
+    low: { label: "Good value for this route", color: "#166534", bg: "#DCFCE7" },
+    typical: { label: "Typical pricing", color: "#374151", bg: "#F3F4F6" },
+    high: { label: "Higher than usual", color: "#92400E", bg: "#FEF3C7" },
   };
 
   const levelConfig = priceLevelConfig[pricing.priceLevel || "typical"] || priceLevelConfig.typical;
@@ -326,8 +338,9 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
           {/* Price range — per person (data is for 2 pax) */}
           {pricing.typicalRange ? (
             <>
-              <p className="text-4xl font-bold text-foreground">
-                {sym}{Math.round(pricing.typicalRange[0] / 2).toLocaleString()} — {sym}{Math.round(pricing.typicalRange[1] / 2).toLocaleString()} per person
+              <p className="text-foreground" style={{ fontSize: "42px", fontWeight: 800, lineHeight: 1.1 }}>
+                {sym}{Math.round(pricing.typicalRange[0] / 2).toLocaleString()} — {sym}{Math.round(pricing.typicalRange[1] / 2).toLocaleString()}
+                <span style={{ fontSize: "18px", fontWeight: 400 }} className="ml-2 text-muted-foreground">per person</span>
               </p>
               <p className="text-[13px] text-muted-foreground mt-1.5">
                 Total for 2 passengers: {sym}{pricing.typicalRange[0]?.toLocaleString()} — {sym}{pricing.typicalRange[1]?.toLocaleString()}
@@ -335,8 +348,9 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
             </>
           ) : pricing.lowestPrice ? (
             <>
-              <p className="text-4xl font-bold text-foreground">
-                From {sym}{Math.round(pricing.lowestPrice / 2).toLocaleString()} per person
+              <p className="text-foreground" style={{ fontSize: "42px", fontWeight: 800, lineHeight: 1.1 }}>
+                From {sym}{Math.round(pricing.lowestPrice / 2).toLocaleString()}
+                <span style={{ fontSize: "18px", fontWeight: 400 }} className="ml-2 text-muted-foreground">per person</span>
               </p>
               <p className="text-[13px] text-muted-foreground mt-1.5">
                 Total for 2 passengers: {sym}{pricing.lowestPrice.toLocaleString()}
@@ -355,7 +369,10 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
 
           {/* Price level badge */}
           <div className="mt-3">
-            <span className={`inline-block text-xs px-2.5 py-1 rounded-full ${levelConfig.bg} ${levelConfig.color}`}>
+            <span
+              className="inline-block text-xs font-semibold px-3 py-1 rounded-full"
+              style={{ background: levelConfig.bg, color: levelConfig.color }}
+            >
               {levelConfig.label}
             </span>
           </div>
@@ -402,7 +419,10 @@ function WaysToPayLess({ data, sym }: { data: FlightInsightsData; sym: string })
 
   return (
     <div className="mt-10">
-      <h3 className="text-lg font-bold text-foreground mb-5">
+      <h3
+        className="font-bold text-foreground mb-5"
+        style={{ fontSize: "22px", borderLeft: "3px solid #EA580C", paddingLeft: "8px" }}
+      >
         Ways to pay less on this route
       </h3>
 
@@ -497,8 +517,11 @@ function BestTimeToFly({ data, sym, monthName }: { data: FlightInsightsData; sym
   const weekLabels = ["Early", "Mid-early", "Mid-late", "Late"];
 
   return (
-    <div className="mt-10">
-      <h3 className="text-lg font-bold text-foreground">
+    <div>
+      <h3
+        className="font-bold text-foreground"
+        style={{ fontSize: "22px", borderLeft: "3px solid #EA580C", paddingLeft: "8px" }}
+      >
         Best time to fly in {monthName}
       </h3>
       <p className="text-sm text-muted-foreground mt-1 mb-5">
@@ -512,22 +535,25 @@ function BestTimeToFly({ data, sym, monthName }: { data: FlightInsightsData; sym
 
           let borderStyle = "border";
           let tag: { label: string; bg: string; color: string } | null = null;
+          let cardBg = "white";
 
           if (isBest) {
             borderStyle = "border border-l-[3px] border-l-[#16A34A]";
             tag = { label: "Best value", bg: "#BBF7D0", color: "#14532D" };
+            cardBg = "#F0FDF4";
           } else if (isWorst) {
             borderStyle = "border border-l-[3px] border-l-[#D97706]";
             tag = { label: "Higher demand", bg: "#FDE68A", color: "#92400E" };
+            cardBg = "#FFFBEB";
           }
 
           return (
-            <div key={week.date || i} className={`rounded-lg p-4 ${borderStyle}`}>
+            <div key={week.date || i} className={`rounded-lg p-4 ${borderStyle}`} style={{ background: cardBg }}>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                 {weekLabels[i] || week.week} {monthName}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">{week.date}</p>
-              <p className="text-[22px] font-bold text-foreground mt-2">
+              <p className="font-bold text-foreground mt-2" style={{ fontSize: "26px" }}>
                 {week.lowestPrice != null ? `${sym}${Math.round(week.lowestPrice / 2).toLocaleString()}` : (
                   <span className="text-muted-foreground text-base font-normal">No data</span>
                 )}
@@ -559,6 +585,14 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
   const s = data.synthesis;
   if (!s) return null;
 
+  const borderColors: Record<string, string> = {
+    "The journey": "#3B82F6",
+    "When to book": "#EA580C",
+    "Be flexible": "#8B5CF6",
+    "Carbon context": "#0D9488",
+    "Watch out for": "#0D9488",
+  };
+
   const cards: { icon: React.ElementType; title: string; body: string | null }[] = [
     { icon: Route, title: "The journey", body: s.insight_route },
     { icon: Calendar, title: "When to book", body: s.bookingTiming },
@@ -581,16 +615,24 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
   if (validCards.length === 0) return null;
 
   return (
-    <div className="mt-10">
-      <h3 className="text-lg font-bold text-foreground mb-5">
+    <div>
+      <h3
+        className="font-bold text-foreground mb-5"
+        style={{ fontSize: "22px", borderLeft: "3px solid #EA580C", paddingLeft: "8px" }}
+      >
         Smart flying insights
       </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {validCards.map((card, i) => {
           const Icon = card.icon;
+          const borderColor = borderColors[card.title] || "#E7E5E4";
           return (
-            <div key={i} className="rounded-lg border p-5">
+            <div
+              key={i}
+              className="rounded-lg border p-5"
+              style={{ borderLeftWidth: "3px", borderLeftColor: borderColor }}
+            >
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                   <Icon className="w-4 h-4 text-muted-foreground" />
@@ -630,45 +672,49 @@ function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsights
   const kayakUrl = `https://www.kayak.com/flights/${originIATA}-${destIATA}/${data.searchDates.outbound}/${data.searchDates.return}/2adults`;
 
   return (
-    <div className="mt-12 border-t pt-8" style={{ borderColor: "#E5E7EB" }}>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        {/* Left side */}
-        <div>
-          <h3 className="text-[17px] font-bold text-foreground">
-            Ready to check live fares?
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Search directly on your preferred platform — prices update in real time
-          </p>
-        </div>
+    <div className="mt-12" style={{ background: "#1C1917" }}>
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-12">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          {/* Left side */}
+          <div>
+            <h3 className="text-[17px] font-bold" style={{ color: "#FFFFFF" }}>
+              Ready to check live fares?
+            </h3>
+            <p className="text-sm mt-1" style={{ color: "#D6D3D1" }}>
+              Search directly on your preferred platform — prices update in real time
+            </p>
+          </div>
 
-        {/* Right side */}
-        <div className="flex flex-col items-start md:items-end gap-3 flex-shrink-0">
-          <a
-            href={googleFlightsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            Search on Google Flights
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          {/* Right side */}
+          <div className="flex flex-col items-start md:items-end gap-3 flex-shrink-0">
+            <a
+              href={googleFlightsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+              style={{ background: "#EA580C", color: "#FFFFFF" }}
+            >
+              Search on Google Flights
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
 
-          <p className="text-sm text-muted-foreground">
-            Also check:{" "}
-            <a href={skyscannerUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Skyscanner</a>
-            {" · "}
-            <a href={kayakUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Kayak</a>
-          </p>
+            <p className="text-sm" style={{ color: "#A8A29E" }}>
+              Also check:{" "}
+              <a href={skyscannerUrl} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 transition-opacity" style={{ color: "#D6D3D1" }}>Skyscanner</a>
+              {" · "}
+              <a href={kayakUrl} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80 transition-opacity" style={{ color: "#D6D3D1" }}>Kayak</a>
+            </p>
 
-          <a
-            href={googleFlightsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[13px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Track price changes: Set a Google Flights alert for this route →
-          </a>
+            <a
+              href={googleFlightsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] hover:opacity-80 transition-opacity"
+              style={{ color: "#A8A29E" }}
+            >
+              Track price changes: Set a Google Flights alert for this route →
+            </a>
+          </div>
         </div>
       </div>
     </div>
