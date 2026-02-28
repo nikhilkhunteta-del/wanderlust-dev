@@ -209,6 +209,34 @@ async function callSerpAPI(
   return resp.json();
 }
 
+async function callSerpAPIOneWay(
+  apiKey: string,
+  departureId: string,
+  arrivalId: string,
+  outboundDate: string,
+  passengers: number,
+  travelClass: number,
+  currency: string,
+): Promise<any> {
+  const params = new URLSearchParams({
+    engine: "google_flights",
+    type: "2",
+    departure_id: departureId,
+    arrival_id: arrivalId,
+    outbound_date: outboundDate,
+    adults: passengers.toString(),
+    travel_class: travelClass.toString(),
+    currency,
+    api_key: apiKey,
+  });
+  const resp = await fetch(`https://serpapi.com/search?${params.toString()}`);
+  if (!resp.ok) {
+    const txt = await resp.text();
+    throw new Error(`SerpAPI one-way ${resp.status}: ${txt}`);
+  }
+  return resp.json();
+}
+
 interface AlternativeAirport {
   iata: string;
   city: string;
@@ -271,7 +299,7 @@ async function queryRouteIntelligence(
   currency: string = "GBP",
 ): Promise<string> {
   try {
-    const currencySymbol = getCurrencySymbol("GBP"); // Will be parameterized when currency is passed
+    const currencySymbol = getCurrencySymbol(currency);
     const query = `Provide specific factual information about flights from ${originCity} to ${destinationCity} in ${travelMonth} ${travelYear}: (1) Which airlines most commonly operate this route and what are their typical stopover hubs? (2) What is the typical total journey time including the most common connection? (3) Is ${travelMonth} considered peak, shoulder, or low season for this route and how does that affect pricing? (4) Have prices on this route trended up or down over the past 12 months and by roughly how much? (5) Are there any ${travelMonth}-specific factors that affect pricing such as Indian public holidays, local events in ${destinationCity}, or school holiday periods in ${originCity}? (6) What is the typical advance booking window for the best prices on flights from ${originCity} to ${destinationCity} in ${travelMonth}? For example, is it better to book 2 weeks, 4 weeks, 8 weeks, or further in advance? Be specific to this route and month. (7) What are the most common stopover hubs for flights from ${originCity} to ${destinationCity} and which airlines use each hub? Which hub typically offers the shortest total journey time? When mentioning any prices, use the currency symbol ${currencySymbol} not the currency code. All price figures should be per person. Return factual information only — no generic travel advice.`;
 
     const resp = await fetch("https://api.perplexity.ai/chat/completions", {
@@ -299,6 +327,45 @@ async function queryRouteIntelligence(
     return data.choices?.[0]?.message?.content || "";
   } catch (err) {
     console.error("Perplexity route intelligence failed:", err);
+    return "";
+  }
+}
+
+async function queryTicketingContext(
+  perplexityKey: string,
+  originCity: string,
+  destinationCity: string,
+  travelMonth: string,
+  currencySymbol: string,
+): Promise<string> {
+  try {
+    const query = `For flights from ${originCity} to ${destinationCity} in ${travelMonth}, is it typically cheaper to book two separate one-way tickets rather than a round trip on this route? Are there specific airline combinations that often offer better value when booked separately? Note: low-cost carriers like Ryanair and easyJet on short-haul European routes often make one-way combinations cheaper. When mentioning any prices, use the currency symbol ${currencySymbol} not the currency code. All price figures should be per person.`;
+
+    const resp = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${perplexityKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { role: "system", content: "Provide specific, factual information about flight pricing strategies. Be concise and data-driven. No markdown." },
+          { role: "user", content: query },
+        ],
+        temperature: 0.2,
+      }),
+    });
+
+    if (!resp.ok) {
+      console.error("Perplexity ticketing context error:", resp.status);
+      return "";
+    }
+
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || "";
+  } catch (err) {
+    console.error("Perplexity ticketing context failed:", err);
     return "";
   }
 }
@@ -584,14 +651,29 @@ serve(async (req) => {
       : { lowestPrice: null, priceLevel: null, typicalRange: null, priceHistory: null };
     const mainBestFlight = mainSerpData?.bestFlight ?? null;
 
-    // === Phase 2: Weekly pricing + alt destination pricing in parallel ===
+    // === Phase 2: Weekly pricing + alt destination pricing + one-way ticketing comparison in parallel ===
     const cheapestApt = cheapestOrigin?.airport || primaryAirport;
     const weekDays = [3, 10, 17, 24];
     const weekLabels = [`Early ${monthName}`, `Mid-early ${monthName}`, `Mid-late ${monthName}`, `Late ${monthName}`];
+    const currencySymbol = getCurrencySymbol(currency);
 
-    console.log(`Phase 2: weekly from ${cheapestApt}, ${alternativeAirports.length} alt dests`);
+    console.log(`Phase 2: weekly from ${cheapestApt}, ${alternativeAirports.length} alt dests, + one-way comparison`);
 
-    const [weeklySettled, ...altDestSettled] = await Promise.all([
+    // Build one-way call promises
+    const onewayOutboundPromise = callSerpAPIOneWay(
+      SERPAPI_KEY, cheapestApt, destinationAirport, outboundDateStr, passengers, travelClass, currency
+    ).catch((e) => { console.error("One-way outbound failed:", e); return null; });
+
+    const onewayReturnPromise = callSerpAPIOneWay(
+      SERPAPI_KEY, destinationAirport, cheapestApt, returnDateStr, passengers, travelClass, currency
+    ).catch((e) => { console.error("One-way return failed:", e); return null; });
+
+    // Perplexity ticketing context query
+    const ticketingContextPromise = PERPLEXITY_API_KEY
+      ? queryTicketingContext(PERPLEXITY_API_KEY, originCity, destinationCity, monthName, currencySymbol)
+      : Promise.resolve("");
+
+    const [weeklySettled, onewayOutboundData, onewayReturnData, ticketingContext, ...altDestSettled] = await Promise.all([
       Promise.allSettled(
         weekDays.map((day) => {
           const wOutbound = new Date(year, monthNum - 1, day);
@@ -601,6 +683,9 @@ serve(async (req) => {
             .then((data) => ({ day, data }));
         })
       ),
+      onewayOutboundPromise,
+      onewayReturnPromise,
+      ticketingContextPromise,
       ...(alternativeAirports.length > 0 && mainPricing.lowestPrice
         ? alternativeAirports.map((alt) =>
             callSerpAPI(SERPAPI_KEY, cheapestApt, alt.iata, outboundDateStr, returnDateStr, passengers, travelClass, currency)
@@ -662,6 +747,33 @@ serve(async (req) => {
       destSavingOpportunities = candidates.slice(0, 2);
     }
 
+    // === Ticketing insight: round-trip vs two one-ways ===
+    let ticketingInsight: any = null;
+    const onewayOutbound = onewayOutboundData?.price_insights?.lowest_price ?? null;
+    const onewayReturn = onewayReturnData?.price_insights?.lowest_price ?? null;
+    const roundTrip = cheapestOrigin?.lowestPrice ?? mainPricing.lowestPrice;
+
+    if (onewayOutbound !== null && onewayReturn !== null && roundTrip !== null) {
+      const combinedOneWay = onewayOutbound + onewayReturn;
+      const oneWaySaving = roundTrip - combinedOneWay;
+      const roundTripSaving = combinedOneWay - roundTrip;
+      // Minimum meaningful threshold — scale with currency
+      const minThreshold = (SAVING_THRESHOLDS[currency.toUpperCase()] ?? 75) * (20 / 75); // ~20 GBP equivalent
+
+      ticketingInsight = {
+        roundTripPrice: roundTrip,
+        combinedOneWayPrice: combinedOneWay,
+        outboundPrice: onewayOutbound,
+        returnPrice: onewayReturn,
+        cheaperOption: oneWaySaving > 0 ? "oneWay" : "roundTrip",
+        saving: Math.abs(oneWaySaving),
+        savingPerPerson: Math.round(Math.abs(oneWaySaving) / passengers),
+        savingPercentage: Math.round((Math.abs(oneWaySaving) / Math.max(roundTrip, combinedOneWay)) * 100),
+        meaningful: Math.abs(oneWaySaving) >= minThreshold,
+      };
+      console.log(`Ticketing: RT=${roundTrip}, 1W=${combinedOneWay}, saving=${ticketingInsight.saving}, meaningful=${ticketingInsight.meaningful}`);
+    }
+
     // === Phase 3: AI synthesis (needs all data collected above) ===
     console.log("Phase 3: AI synthesis");
 
@@ -707,6 +819,8 @@ serve(async (req) => {
       alternativeAirportsChecked,
       routeIntelligence,
       synthesis,
+      ticketingInsight,
+      ticketingContext: ticketingContext || null,
     };
 
     console.log(`Done: ${originResults.length} origins, ${alternativeAirportsChecked} alt dests, synthesis complete`);
