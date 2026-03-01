@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMonthName } from "@/lib/formatMonth";
-import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info, ExternalLink } from "lucide-react";
+import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info, ExternalLink, Ticket } from "lucide-react";
 
 interface FlightsTabProps {
   departureCity: string;
@@ -31,6 +31,18 @@ interface BestFlight {
   carbonEmissions: number | null;
 }
 
+interface TicketingInsight {
+  roundTripPrice: number;
+  combinedOneWayPrice: number;
+  outboundPrice: number;
+  returnPrice: number;
+  cheaperOption: "oneWay" | "roundTrip";
+  saving: number;
+  savingPerPerson: number;
+  savingPercentage: number;
+  meaningful: boolean;
+}
+
 interface FlightInsightsData {
   route: {
     origin: { city: string; airport: string };
@@ -56,6 +68,8 @@ interface FlightInsightsData {
   destSavingOpportunities: any[];
   alternativeAirportsChecked: number;
   routeIntelligence: string;
+  ticketingInsight?: TicketingInsight | null;
+  ticketingContext?: string | null;
   synthesis: {
     priceVerdict: string;
     priceTrend: string | null;
@@ -585,15 +599,18 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
   const s = data.synthesis;
   if (!s) return null;
 
+  const sym = getCurrencySymbol(data.currency);
+
   const borderColors: Record<string, string> = {
     "The journey": "#3B82F6",
     "When to book": "#EA580C",
     "Be flexible": "#8B5CF6",
     "Carbon context": "#0D9488",
     "Watch out for": "#0D9488",
+    "Round-trip vs two one-ways": "#16A34A",
   };
 
-  const cards: { icon: React.ElementType; title: string; body: string | null }[] = [
+  const cards: { icon: React.ElementType; title: string; body: React.ReactNode }[] = [
     { icon: Route, title: "The journey", body: s.insight_route },
     { icon: Calendar, title: "When to book", body: s.bookingTiming },
     { icon: ArrowLeftRight, title: "Be flexible", body: s.insight_timing || s.insight_flexibility },
@@ -611,8 +628,53 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
     });
   }
 
+  // Add ticketing insight card if meaningful
+  const ti = data.ticketingInsight;
+  if (ti && ti.meaningful) {
+    const borderColor = ti.cheaperOption === "oneWay" ? "#16A34A" : "#EA580C";
+    borderColors["Round-trip vs two one-ways"] = borderColor;
+
+    const ticketingBody = (
+      <div className="space-y-2">
+        {ti.cheaperOption === "oneWay" ? (
+          <>
+            <p className="text-sm text-foreground leading-relaxed">
+              Two one-way tickets could save you approximately <strong>{sym}{ti.savingPerPerson}</strong> per person ({ti.savingPercentage}%) on this route
+            </p>
+            <p className="text-[14px] text-muted-foreground">
+              Outbound: {sym}{ti.outboundPrice} · Return: {sym}{ti.returnPrice} · Combined: {sym}{ti.combinedOneWayPrice} vs round-trip {sym}{ti.roundTripPrice}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-foreground leading-relaxed">
+              A round-trip ticket is cheaper than two one-ways by approximately <strong>{sym}{ti.savingPerPerson}</strong> per person on this route
+            </p>
+            <p className="text-[14px] text-muted-foreground">
+              Round-trip: {sym}{ti.roundTripPrice} vs combined one-ways: {sym}{ti.combinedOneWayPrice}
+            </p>
+          </>
+        )}
+        {data.ticketingContext && (
+          <p className="text-[13px] italic" style={{ color: "#9CA3AF" }}>
+            {data.ticketingContext}
+          </p>
+        )}
+        {ti.cheaperOption === "oneWay" && (
+          <p className="text-[12px]" style={{ color: "#9CA3AF" }}>
+            Note: separate bookings have no protection if one flight is cancelled
+          </p>
+        )}
+      </div>
+    );
+
+    cards.push({ icon: Ticket, title: "Round-trip vs two one-ways", body: ticketingBody });
+  }
+
   const validCards = cards.filter(c => c.body);
   if (validCards.length === 0) return null;
+
+  const hasFifthCard = validCards.length >= 5;
 
   return (
     <div>
@@ -623,7 +685,11 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
         Smart flying insights
       </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className={
+        hasFifthCard
+          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          : "grid grid-cols-1 sm:grid-cols-2 gap-4"
+      }>
         {validCards.map((card, i) => {
           const Icon = card.icon;
           const borderColor = borderColors[card.title] || "#E7E5E4";
@@ -637,9 +703,13 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                   <Icon className="w-4 h-4 text-muted-foreground" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h4 className="text-[15px] font-bold text-foreground mb-1">{card.title}</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{card.body}</p>
+                  {typeof card.body === "string" ? (
+                    <p className="text-sm text-muted-foreground leading-relaxed">{card.body}</p>
+                  ) : (
+                    card.body
+                  )}
                 </div>
               </div>
             </div>
