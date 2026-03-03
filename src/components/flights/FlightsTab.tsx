@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMonthName } from "@/lib/formatMonth";
 import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info, ExternalLink, Ticket, Search } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface FlightsTabProps {
   departureCity: string;
@@ -598,7 +599,69 @@ function BestTimeToFly({ data, sym, monthName }: { data: FlightInsightsData; sym
   const weeks = data.weeklyPricing;
   if (!weeks || weeks.length === 0) return null;
 
-  const weekLabels = ["Early", "Mid-early", "Mid-late", "Late"];
+  const bestDate = data.bestWeek?.date;
+  const worstDate = data.worstWeek?.date;
+
+  // Format date labels like "Apr 3"
+  const formatDateLabel = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr + "T00:00:00");
+      return d.toLocaleDateString("en-GB", { month: "short", day: "numeric" });
+    } catch { return dateStr; }
+  };
+
+  const chartData = weeks.slice(0, 4).map((week) => {
+    const pricePerPerson = week.lowestPrice != null ? Math.round(week.lowestPrice / 2) : null;
+    const isBest = week.date === bestDate;
+    const isWorst = week.date === worstDate;
+    return {
+      label: formatDateLabel(week.date),
+      price: pricePerPerson,
+      displayPrice: pricePerPerson != null ? pricePerPerson : 0,
+      isBest,
+      isWorst,
+      hasData: pricePerPerson != null,
+      tag: isBest ? "Best value" : isWorst ? "Higher demand" : null,
+    };
+  });
+
+  // Find max for Y axis
+  const prices = chartData.filter(d => d.hasData).map(d => d.price!);
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : 100;
+  // Use a placeholder height for no-data bars
+  const noDataHeight = Math.round(maxPrice * 0.3);
+
+  const getBarColor = (entry: typeof chartData[0]) => {
+    if (!entry.hasData) return "#D1D5DB";
+    if (entry.isBest) return "#16A34A";
+    if (entry.isWorst) return "#D97706";
+    return "rgba(234, 88, 12, 0.4)";
+  };
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (!active || !payload?.[0]) return null;
+    const d = payload[0].payload;
+    if (!d.hasData) return (
+      <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-sm">No data for this week</div>
+    );
+    return (
+      <div className="rounded-lg border bg-background px-3 py-2 shadow-md">
+        <p className="text-sm font-medium text-foreground">{d.label}</p>
+        <p className="text-sm text-foreground">{sym}{d.price!.toLocaleString()} per person</p>
+        {d.tag && (
+          <span
+            className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full mt-1"
+            style={{
+              background: d.isBest ? "#BBF7D0" : "#FDE68A",
+              color: d.isBest ? "#14532D" : "#92400E",
+            }}
+          >{d.tag}</span>
+        )}
+      </div>
+    );
+  };
+
+  const bestWeek = chartData.find(d => d.isBest && d.hasData);
 
   return (
     <div>
@@ -612,51 +675,35 @@ function BestTimeToFly({ data, sym, monthName }: { data: FlightInsightsData; sym
         How fares compare across the month
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {weeks.slice(0, 4).map((week, i) => {
-          const isBest = data.bestWeek && week.date === data.bestWeek.date;
-          const isWorst = data.worstWeek && week.date === data.worstWeek.date;
-
-          let borderStyle = "border";
-          let tag: { label: string; bg: string; color: string } | null = null;
-          let cardBg = "white";
-
-          if (isBest) {
-            borderStyle = "border border-l-[3px] border-l-[#16A34A]";
-            tag = { label: "Best value", bg: "#BBF7D0", color: "#14532D" };
-            cardBg = "#F0FDF4";
-          } else if (isWorst) {
-            borderStyle = "border border-l-[3px] border-l-[#D97706]";
-            tag = { label: "Higher demand", bg: "#FDE68A", color: "#92400E" };
-            cardBg = "#FFFBEB";
-          }
-
-          return (
-            <div key={week.date || i} className={`rounded-lg p-4 ${borderStyle}`} style={{ background: cardBg }}>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                {weekLabels[i] || week.week} {monthName}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">{week.date}</p>
-              <p className="font-bold text-foreground mt-2" style={{ fontSize: "26px" }}>
-                {week.lowestPrice != null ? `${sym}${Math.round(week.lowestPrice / 2).toLocaleString()}` : (
-                  <span className="text-muted-foreground text-base font-normal">No data</span>
-                )}
-              </p>
-              {tag && (
-                <span
-                  className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full mt-2"
-                  style={{ background: tag.bg, color: tag.color }}
-                >
-                  {tag.label}
-                </span>
-              )}
-            </div>
-          );
-        })}
+      <div style={{ width: "100%", height: 200 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData.map(d => ({ ...d, displayPrice: d.hasData ? d.price! : noDataHeight }))} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <XAxis dataKey="label" tick={{ fontSize: 13 }} tickLine={false} axisLine={false} />
+            <YAxis
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v: number) => `${sym}${v}`}
+              domain={[0, Math.ceil(maxPrice * 1.15)]}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
+            <Bar dataKey="displayPrice" radius={[4, 4, 0, 0]} maxBarSize={60}>
+              {chartData.map((entry, i) => (
+                <Cell key={i} fill={getBarColor(entry)} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
+      {bestWeek && (
+        <p className="mt-4 text-sm font-medium" style={{ color: "#16A34A" }}>
+          Best week: {bestWeek.label} at {sym}{bestWeek.price!.toLocaleString()} per person
+        </p>
+      )}
+
       {data.synthesis?.bestWeekReason && (
-        <p className="mt-4 text-sm text-muted-foreground italic">
+        <p className="mt-1 text-sm text-muted-foreground italic">
           {data.synthesis.bestWeekReason}
         </p>
       )}
