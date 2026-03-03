@@ -243,6 +243,11 @@ export const FlightsTab = ({
         <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
 
         <SmartFlyingInsights data={data} />
+
+        {/* Divider */}
+        <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
+
+        <OneWayVsRoundTrip data={data} sym={sym} />
       </div>
 
       {/* Section 6: Book Your Flights CTA — dark warm background */}
@@ -693,53 +698,10 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
     });
   }
 
-  // Add ticketing insight card if meaningful
-  const ti = data.ticketingInsight;
-  if (ti && ti.meaningful) {
-    const borderColor = ti.cheaperOption === "oneWay" ? "#16A34A" : "#EA580C";
-    borderColors["Round-trip vs two one-ways"] = borderColor;
-
-    const ticketingBody = (
-      <div className="space-y-2">
-        {ti.cheaperOption === "oneWay" ? (
-          <>
-            <p className="text-sm text-foreground leading-relaxed">
-              Two one-way tickets could save you approximately <strong>{sym}{ti.savingPerPerson}</strong> per person ({ti.savingPercentage}%) on this route
-            </p>
-            <p className="text-[14px] text-muted-foreground">
-              Outbound: {sym}{ti.outboundPrice} · Return: {sym}{ti.returnPrice} · Combined: {sym}{ti.combinedOneWayPrice} vs round-trip {sym}{ti.roundTripPrice}
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-foreground leading-relaxed">
-              A round-trip ticket is cheaper than two one-ways by approximately <strong>{sym}{ti.savingPerPerson}</strong> per person on this route
-            </p>
-            <p className="text-[14px] text-muted-foreground">
-              Round-trip: {sym}{ti.roundTripPrice} vs combined one-ways: {sym}{ti.combinedOneWayPrice}
-            </p>
-          </>
-        )}
-        {data.ticketingContext && (
-          <p className="text-[13px] italic" style={{ color: "#9CA3AF" }}>
-            {data.ticketingContext}
-          </p>
-        )}
-        {ti.cheaperOption === "oneWay" && (
-          <p className="text-[12px]" style={{ color: "#9CA3AF" }}>
-            Note: separate bookings have no protection if one flight is cancelled
-          </p>
-        )}
-      </div>
-    );
-
-    cards.push({ icon: Ticket, title: "Round-trip vs two one-ways", body: ticketingBody });
-  }
+  // Ticketing insight removed — now in dedicated section
 
   const validCards = cards.filter(c => c.body);
   if (validCards.length === 0) return null;
-
-  const hasFifthCard = validCards.length >= 5;
 
   return (
     <div>
@@ -750,11 +712,7 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
         Smart flying insights
       </h3>
 
-      <div className={
-        hasFifthCard
-          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          : "grid grid-cols-1 sm:grid-cols-2 gap-4"
-      }>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {validCards.map((card, i) => {
           const Icon = card.icon;
           const borderColor = borderColors[card.title] || "#E7E5E4";
@@ -781,6 +739,117 @@ function SmartFlyingInsights({ data }: { data: FlightInsightsData }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+
+// === Section: One-way vs Round-trip Comparison ===
+function OneWayVsRoundTrip({ data, sym }: { data: FlightInsightsData; sym: string }) {
+  const ti = data.ticketingInsight;
+  const origin = data.route.origin;
+  const dest = data.route.destination;
+
+  const noData = !ti || (ti.outboundPrice === 0 && ti.returnPrice === 0);
+
+  return (
+    <div>
+      <h3
+        className="font-bold text-foreground"
+        style={{ fontSize: "22px", borderLeft: "3px solid #EA580C", paddingLeft: "8px" }}
+      >
+        One-way vs round-trip
+      </h3>
+      <p className="text-muted-foreground mt-1 mb-5" style={{ fontSize: "14px" }}>
+        We priced both options so you don't have to
+      </p>
+
+      {noData ? (
+        <p className="text-muted-foreground" style={{ fontSize: "14px" }}>
+          Unable to retrieve one-way pricing for this route
+        </p>
+      ) : (
+        <>
+          {/* Three-column comparison */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Outbound one-way */}
+            <div className="rounded-lg border p-5 text-center">
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Outbound only</p>
+              <p className="text-sm text-muted-foreground mt-1">{origin.airport} → {dest.airport}</p>
+              <p className="font-extrabold text-foreground mt-2" style={{ fontSize: "24px" }}>
+                {ti!.outboundPrice > 0 ? `${sym}${ti!.outboundPrice.toLocaleString()}` : "—"}
+              </p>
+              {ti!.outboundPrice > 0 && <p className="text-muted-foreground" style={{ fontSize: "12px" }}>per person</p>}
+              {data.searchDates?.outbound && (
+                <p className="text-muted-foreground mt-1" style={{ fontSize: "12px" }}>{data.searchDates.outbound}</p>
+              )}
+            </div>
+
+            {/* Return one-way */}
+            <div className="rounded-lg border p-5 text-center">
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Return only</p>
+              <p className="text-sm text-muted-foreground mt-1">{dest.airport} → {origin.airport}</p>
+              <p className="font-extrabold text-foreground mt-2" style={{ fontSize: "24px" }}>
+                {ti!.returnPrice > 0 ? `${sym}${ti!.returnPrice.toLocaleString()}` : "—"}
+              </p>
+              {ti!.returnPrice > 0 && <p className="text-muted-foreground" style={{ fontSize: "12px" }}>per person</p>}
+              {data.searchDates?.return && (
+                <p className="text-muted-foreground mt-1" style={{ fontSize: "12px" }}>{data.searchDates.return}</p>
+              )}
+            </div>
+
+            {/* Round-trip */}
+            <div className="rounded-lg border p-5 text-center">
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Round-trip</p>
+              <p className="text-sm text-muted-foreground mt-1">{origin.airport} ⇄ {dest.airport}</p>
+              <p className="font-extrabold text-foreground mt-2" style={{ fontSize: "24px" }}>
+                {sym}{ti!.roundTripPrice.toLocaleString()}
+              </p>
+              <p className="text-muted-foreground" style={{ fontSize: "12px" }}>per person</p>
+            </div>
+          </div>
+
+          {/* Verdict */}
+          {(() => {
+            const saving = ti!.saving || Math.abs(ti!.roundTripPrice - ti!.combinedOneWayPrice);
+            const savingPct = ti!.savingPercentage || Math.round((saving / Math.max(ti!.roundTripPrice, ti!.combinedOneWayPrice)) * 100);
+            const isMeaningful = ti!.meaningful;
+
+            if (!isMeaningful) {
+              return (
+                <div className="mt-4 rounded-lg px-5 py-4" style={{ background: "#F3F4F6" }}>
+                  <p className="text-sm font-medium" style={{ color: "#374151" }}>
+                    Prices are similar either way — round-trip is simpler to manage
+                  </p>
+                </div>
+              );
+            }
+
+            if (ti!.cheaperOption === "oneWay") {
+              return (
+                <div className="mt-4 rounded-lg px-5 py-4" style={{ background: "#F0FDF4" }}>
+                  <p className="text-sm font-medium" style={{ color: "#166534" }}>
+                    Two one-ways save you {sym}{ti!.savingPerPerson || saving} per person ({savingPct}%) — book outbound and return separately
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="mt-4 rounded-lg px-5 py-4" style={{ background: "#F0FDF4" }}>
+                <p className="text-sm font-medium" style={{ color: "#166534" }}>
+                  Round-trip saves you {sym}{ti!.savingPerPerson || saving} per person ({savingPct}%) — book as one ticket
+                </p>
+              </div>
+            );
+          })()}
+
+          {/* Caveat */}
+          <p className="mt-3 italic" style={{ fontSize: "12px", color: "#9CA3AF" }}>
+            Separate bookings offer no protection if one flight is disrupted — consider travel insurance
+          </p>
+        </>
+      )}
     </div>
   );
 }
