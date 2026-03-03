@@ -253,8 +253,13 @@ export const FlightsTab = ({
 
 // === Section 1: Route Header ===
 function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
-  const [airportsExpanded, setAirportsExpanded] = useState(false);
-  const multipleOrigins = data.originResults.length > 1;
+  // Sort origins by price ascending
+  const sortedOrigins = [...data.originResults].sort((a, b) => a.lowestPrice - b.lowestPrice);
+  const cheapestAirport = sortedOrigins[0]?.airport;
+  const primaryAirport = data.primaryOrigin?.airport;
+
+  const destOpps = data.destSavingOpportunities || [];
+  const altAirportsChecked = data.alternativeAirportsChecked || 0;
 
   return (
     <div className="text-center">
@@ -265,47 +270,99 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
         <span className="font-bold text-foreground" style={{ fontSize: "32px" }}>{data.route.destination.city}</span>
       </div>
 
-      {/* Airport codes */}
-      <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
-        {multipleOrigins ? (
-          <button
-            onClick={() => setAirportsExpanded(!airportsExpanded)}
-            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-          >
-            {data.originResults.length} airports checked
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${airportsExpanded ? "rotate-180" : ""}`} />
-          </button>
-        ) : (
-          <span>{data.route.origin.airport}</span>
-        )}
-        <span>→</span>
-        <span>{data.route.destination.airport}</span>
-      </div>
-
-      {/* Expanded airport list */}
-      {multipleOrigins && airportsExpanded && (
-        <div className="mt-2 text-sm text-muted-foreground">
-          {data.originResults.map((r, i) => (
-            <span key={r.airport}>
-              {i > 0 && <span className="mx-1.5">·</span>}
-              <span className="font-medium text-foreground/80">{r.airport}</span>
-              <span> — {sym}{Math.round(r.lowestPrice / 2).toLocaleString()}/pp</span>
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* Search summary strip */}
       <div className="flex items-center justify-center gap-1.5 mt-3" style={{ fontSize: "13px", color: "#6B7280" }}>
         <Search style={{ width: "13px", height: "13px", flexShrink: 0 }} />
         <span>
-          Checked {data.originResults.length} departure {data.originResults.length === 1 ? "airport" : "airports"} · {Math.max(1, (data.alternativeAirportsChecked || 0) + 1)} arrival {(data.alternativeAirportsChecked || 0) + 1 === 1 ? "option" : "options"} · 4 date windows · one-way vs round-trip
+          Checked {data.originResults.length} departure {data.originResults.length === 1 ? "airport" : "airports"} · {Math.max(1, altAirportsChecked + 1)} arrival {altAirportsChecked + 1 === 1 ? "option" : "options"} · 4 date windows · one-way vs round-trip
         </span>
+      </div>
+
+      {/* Departure airport comparison strip */}
+      <div className="mt-5">
+        <div className="flex gap-3 overflow-x-auto pb-2 justify-center" style={{ scrollbarWidth: "thin" }}>
+          {sortedOrigins.map((r) => {
+            const isCheapest = r.airport === cheapestAirport && sortedOrigins.length > 1;
+            const isPrimary = r.airport === primaryAirport;
+            return (
+              <div
+                key={r.airport}
+                className="flex-shrink-0 rounded-lg px-4 py-3 text-center"
+                style={{
+                  border: isCheapest ? "2px solid #16A34A" : "1px solid hsl(var(--border))",
+                  minWidth: "120px",
+                  background: "white",
+                }}
+              >
+                <div className="font-bold text-foreground" style={{ fontSize: "16px" }}>{r.airport}</div>
+                <div className="text-muted-foreground" style={{ fontSize: "12px" }}>{data.route.origin.city}</div>
+                <div className="font-bold text-foreground mt-1.5" style={{ fontSize: "18px" }}>
+                  {sym}{Math.round(r.lowestPrice / 2).toLocaleString()}
+                </div>
+                {isCheapest && (
+                  <span className="inline-block mt-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: "#DCFCE7", color: "#166534" }}>
+                    Lowest
+                  </span>
+                )}
+                {isPrimary && !isCheapest && (
+                  <span className="inline-block mt-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: "#F3F4F6", color: "#374151" }}>
+                    Main hub
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-muted-foreground italic mt-2" style={{ fontSize: "13px" }}>All prices are one-way equivalent for comparison</p>
+      </div>
+
+      {/* Nearby arrival airports strip */}
+      <div className="mt-4">
+        <p className="text-muted-foreground font-medium mb-2" style={{ fontSize: "13px" }}>Nearby arrival airports checked</p>
+        {altAirportsChecked === 0 ? (
+          <p className="text-muted-foreground" style={{ fontSize: "13px" }}>No alternative arrival airports within 350km</p>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-2 justify-center" style={{ scrollbarWidth: "thin" }}>
+            {destOpps.map((opp: any, i: number) => {
+              const meaningful = opp.priceSaving >= 40; // ≥£20pp equivalent (round-trip saving / 2)
+              return (
+                <div
+                  key={opp.airport || i}
+                  className="flex-shrink-0 rounded-lg px-4 py-3 text-center"
+                  style={{
+                    border: meaningful ? "2px solid #16A34A" : "1px solid hsl(var(--border))",
+                    minWidth: "120px",
+                    background: "white",
+                    opacity: meaningful ? 1 : 0.6,
+                  }}
+                >
+                  <div className="font-bold text-foreground" style={{ fontSize: "16px" }}>{opp.airport}</div>
+                  <div className="text-muted-foreground" style={{ fontSize: "12px" }}>{opp.city}</div>
+                  {meaningful ? (
+                    <span className="inline-block mt-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: "#DCFCE7", color: "#166534" }}>
+                      Save ~{sym}{Math.round(opp.priceSaving / 2).toLocaleString()}/pp
+                    </span>
+                  ) : (
+                    <p className="text-muted-foreground mt-1.5" style={{ fontSize: "11px" }}>
+                      No meaningful saving vs {data.route.destination.airport}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            {/* If alternatives were checked but none returned results */}
+            {destOpps.length === 0 && altAirportsChecked > 0 && (
+              <p className="text-muted-foreground" style={{ fontSize: "13px" }}>
+                {altAirportsChecked} nearby {altAirportsChecked === 1 ? "airport" : "airports"} checked — no meaningful savings found
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Journey summary */}
       {data.bestFlight && (
-        <p className="mt-2 text-[13px] text-muted-foreground">
+        <p className="mt-4 text-[13px] text-muted-foreground">
           Typical journey:{" "}
           {data.bestFlight.durationRange
             ? `${formatDuration(data.bestFlight.durationRange.min)} — ${formatDuration(data.bestFlight.durationRange.p75)}`
