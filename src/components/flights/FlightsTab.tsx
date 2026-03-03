@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMonthName } from "@/lib/formatMonth";
-import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info, ExternalLink, Ticket } from "lucide-react";
+import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info, ExternalLink, Ticket, Search } from "lucide-react";
 
 interface FlightsTabProps {
   departureCity: string;
@@ -295,9 +295,17 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
         </div>
       )}
 
+      {/* Search summary strip */}
+      <div className="flex items-center justify-center gap-1.5 mt-3" style={{ fontSize: "13px", color: "#6B7280" }}>
+        <Search style={{ width: "13px", height: "13px", flexShrink: 0 }} />
+        <span>
+          Checked {data.originResults.length} departure {data.originResults.length === 1 ? "airport" : "airports"} · {Math.max(1, (data.alternativeAirportsChecked || 0) + 1)} arrival {(data.alternativeAirportsChecked || 0) + 1 === 1 ? "option" : "options"} · 4 date windows · one-way vs round-trip
+        </span>
+      </div>
+
       {/* Journey summary */}
       {data.bestFlight && (
-        <p className="mt-3 text-[13px] text-muted-foreground">
+        <p className="mt-2 text-[13px] text-muted-foreground">
           Typical journey:{" "}
           {data.bestFlight.durationRange
             ? `${formatDuration(data.bestFlight.durationRange.min)} — ${formatDuration(data.bestFlight.durationRange.p75)}`
