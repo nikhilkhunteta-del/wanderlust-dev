@@ -377,6 +377,14 @@ async function queryTicketingContext(
     if (!resp.ok) {
       console.error("Perplexity ticketing context error:", resp.status);
       return "";
+    }
+
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || "";
+  } catch (err) {
+    console.error("Perplexity ticketing context failed:", err);
+    return "";
+  }
 }
 
 async function queryGatewayTransferInfo(
@@ -415,13 +423,6 @@ async function queryGatewayTransferInfo(
     return data.choices?.[0]?.message?.content || "";
   } catch (err) {
     console.error("Perplexity gateway transfer info failed:", err);
-    return "";
-  }
-
-    const data = await resp.json();
-    return data.choices?.[0]?.message?.content || "";
-  } catch (err) {
-    console.error("Perplexity ticketing context failed:", err);
     return "";
   }
 }
