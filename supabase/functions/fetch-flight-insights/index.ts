@@ -50,6 +50,23 @@ const getCurrencySymbol = (currency: string): string => {
   return symbols[currency] ?? currency;
 };
 
+// Gateway city mapping — secondary cities that connect through a major international hub
+const GATEWAY_AIRPORTS: Record<string, { gateway: string; gatewayCity: string; distance: number; transferTime: number; transferMode: string; note: string }> = {
+  // India
+  'jaipur': { gateway: 'DEL', gatewayCity: 'Delhi', distance: 280, transferTime: 240, transferMode: 'road/rail', note: 'Most international flights connect via Delhi — direct international options are very limited' },
+  'agra': { gateway: 'DEL', gatewayCity: 'Delhi', distance: 200, transferTime: 180, transferMode: 'road/rail', note: 'No international airport — Delhi is the standard entry point' },
+  'udaipur': { gateway: 'DEL', gatewayCity: 'Delhi', distance: 665, transferTime: 90, transferMode: 'domestic flight', note: 'Connects via Delhi or Mumbai for most international routes' },
+  'varanasi': { gateway: 'BOM', gatewayCity: 'Mumbai', distance: 0, transferTime: 90, transferMode: 'domestic flight', note: 'Limited international connections — Mumbai or Delhi typically required' },
+  // Southeast Asia
+  'siem reap': { gateway: 'BKK', gatewayCity: 'Bangkok', distance: 0, transferTime: 60, transferMode: 'flight', note: 'Bangkok is the primary regional hub for onward connections' },
+  'luang prabang': { gateway: 'BKK', gatewayCity: 'Bangkok', distance: 0, transferTime: 90, transferMode: 'flight', note: 'Bangkok is the main gateway — direct long-haul options are limited' },
+  // Eastern Europe
+  'krakow': { gateway: 'WAW', gatewayCity: 'Warsaw', distance: 295, transferTime: 180, transferMode: 'road/rail', note: 'Direct international options exist but Warsaw offers more connections' },
+  // Middle East / Africa
+  'luxor': { gateway: 'CAI', gatewayCity: 'Cairo', distance: 0, transferTime: 60, transferMode: 'domestic flight', note: 'Cairo is the primary international gateway for Egypt' },
+  'marrakech': { gateway: 'CMN', gatewayCity: 'Casablanca', distance: 240, transferTime: 150, transferMode: 'road/rail', note: 'Marrakech has growing direct connections but Casablanca offers more options' },
+};
+
 const SAVING_THRESHOLDS: Record<string, number> = {
   GBP: 75, EUR: 90, USD: 100, INR: 8000, AUD: 150, CAD: 130,
   SGD: 130, HKD: 780, JPY: 15000, THB: 3500, AED: 370, TRY: 3200,
@@ -360,7 +377,46 @@ async function queryTicketingContext(
     if (!resp.ok) {
       console.error("Perplexity ticketing context error:", resp.status);
       return "";
+}
+
+async function queryGatewayTransferInfo(
+  perplexityKey: string,
+  originCity: string,
+  destinationCity: string,
+  gatewayCity: string,
+  gatewayAirport: string,
+  destinationAirport: string,
+): Promise<string> {
+  try {
+    const query = `For travel from ${originCity} to ${destinationCity}, most international travellers fly into ${gatewayCity} (${gatewayAirport}) rather than directly to ${destinationAirport}. What is the best way to travel from ${gatewayCity} to ${destinationCity}? Include: transport options, typical journey time, approximate cost, and whether advance booking is needed. Also confirm: does ${destinationAirport} have any direct international connections from ${originCity} worth considering?`;
+
+    const resp = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${perplexityKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { role: "system", content: "Provide specific, factual travel information. Be concise and practical. No markdown." },
+          { role: "user", content: query },
+        ],
+        temperature: 0.2,
+      }),
+    });
+
+    if (!resp.ok) {
+      console.error("Perplexity gateway transfer info error:", resp.status);
+      return "";
     }
+
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || "";
+  } catch (err) {
+    console.error("Perplexity gateway transfer info failed:", err);
+    return "";
+  }
 
     const data = await resp.json();
     return data.choices?.[0]?.message?.content || "";
@@ -592,8 +648,15 @@ serve(async (req) => {
 
     console.log(`Fetch: ${originAirports.join(",")} → ${destinationAirport}, ${outboundDateStr}–${returnDateStr}`);
 
-    // === Phase 1: Origin SerpAPI + both Perplexity calls in parallel ===
-    const [originSettled, alternativeAirports, routeIntelligence] = await Promise.all([
+    // Check if destination is a gateway city
+    const destKey = destinationCity.toLowerCase().trim();
+    const gatewayMapping = GATEWAY_AIRPORTS[destKey] || null;
+    if (gatewayMapping) {
+      console.log(`Gateway city detected: ${destinationCity} → ${gatewayMapping.gatewayCity} (${gatewayMapping.gateway})`);
+    }
+
+    // === Phase 1: Origin SerpAPI + Perplexity calls + gateway SerpAPI in parallel ===
+    const phase1Promises: Promise<any>[] = [
       Promise.allSettled(
         originAirports.map((apt) =>
           callSerpAPI(SERPAPI_KEY, apt, destinationAirport, outboundDateStr, returnDateStr, passengers, travelClass, currency)
@@ -606,7 +669,19 @@ serve(async (req) => {
       PERPLEXITY_API_KEY
         ? queryRouteIntelligence(PERPLEXITY_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString(), currency)
         : Promise.resolve(""),
-    ]);
+      // Gateway SerpAPI call — always run if gateway mapping exists, no threshold applied
+      gatewayMapping
+        ? callSerpAPI(SERPAPI_KEY, originAirports[0], gatewayMapping.gateway, outboundDateStr, returnDateStr, passengers, travelClass, currency)
+            .then((data) => ({ gateway: gatewayMapping.gateway, data }))
+            .catch((e) => { console.error("Gateway SerpAPI failed:", e); return null; })
+        : Promise.resolve(null),
+      // Gateway transfer info from Perplexity
+      gatewayMapping && PERPLEXITY_API_KEY
+        ? queryGatewayTransferInfo(PERPLEXITY_API_KEY, originCity, destinationCity, gatewayMapping.gatewayCity, gatewayMapping.gateway, destinationAirport)
+        : Promise.resolve(""),
+    ];
+
+    const [originSettled, alternativeAirports, routeIntelligence, gatewayRaw, gatewayTransferInfo] = await Promise.all(phase1Promises);
 
     // Process origin results
     const originResults: any[] = [];
@@ -650,6 +725,28 @@ serve(async (req) => {
       ? { lowestPrice: mainSerpData.lowestPrice, priceLevel: mainSerpData.priceLevel, typicalRange: mainSerpData.typicalRange, priceHistory: mainSerpData.priceHistory ?? null }
       : { lowestPrice: null, priceLevel: null, typicalRange: null, priceHistory: null };
     const mainBestFlight = mainSerpData?.bestFlight ?? null;
+
+    // === Process gateway airport result ===
+    let gatewayAirport: any = null;
+    if (gatewayMapping && gatewayRaw) {
+      const gwPrice = gatewayRaw.data?.price_insights?.lowest_price ?? null;
+      if (gwPrice !== null) {
+        const gatewaySaving = (mainPricing.lowestPrice ?? 0) - gwPrice;
+        gatewayAirport = {
+          airport: gatewayMapping.gateway,
+          city: gatewayMapping.gatewayCity,
+          lowestPrice: gwPrice,
+          saving: gatewaySaving > 0 ? gatewaySaving : 0,
+          transferTime: gatewayMapping.transferTime,
+          transferMode: gatewayMapping.transferMode,
+          note: gatewayMapping.note,
+          isGateway: true,
+        };
+        console.log(`Gateway ${gatewayMapping.gateway}: price=${gwPrice}, saving=${gatewaySaving}`);
+      } else {
+        console.log(`Gateway ${gatewayMapping.gateway}: no pricing data returned`);
+      }
+    }
 
     // === Phase 2: Weekly pricing + alt destination pricing + one-way ticketing comparison in parallel ===
     const cheapestApt = cheapestOrigin?.airport || primaryAirport;
@@ -817,6 +914,8 @@ serve(async (req) => {
       worstWeek,
       destSavingOpportunities,
       alternativeAirportsChecked,
+      gatewayAirport,
+      gatewayTransferInfo: gatewayTransferInfo || null,
       routeIntelligence,
       synthesis,
       ticketingInsight,
