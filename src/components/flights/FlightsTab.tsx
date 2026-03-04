@@ -139,6 +139,12 @@ function formatStops(stops: number): string {
   return `${stops} stops`;
 }
 
+function formatDisplayDate(dateString: string): string {
+  const date = new Date(dateString + "T00:00:00");
+  if (isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export const FlightsTab = ({
   departureCity,
   destinationCity,
@@ -806,20 +812,12 @@ function BestTimeToFly({ data, sym, monthName }: { data: FlightInsightsData; sym
   const bestDate = data.bestWeek?.date;
   const worstDate = data.worstWeek?.date;
 
-  // Format date labels like "Apr 3"
-  const formatDateLabel = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr + "T00:00:00");
-      return d.toLocaleDateString("en-GB", { month: "short", day: "numeric" });
-    } catch { return dateStr; }
-  };
-
   const chartData = weeks.slice(0, 4).map((week) => {
     const pricePerPerson = week.lowestPrice != null ? Math.round(week.lowestPrice / 2) : null;
     const isBest = week.date === bestDate;
     const isWorst = week.date === worstDate;
     return {
-      label: formatDateLabel(week.date),
+      label: week.date,
       price: pricePerPerson,
       displayPrice: pricePerPerson != null ? pricePerPerson : 0,
       isBest,
@@ -1032,7 +1030,7 @@ function OneWayVsRoundTrip({ data, sym }: { data: FlightInsightsData; sym: strin
               </p>
               {ti!.outboundPrice > 0 && <p className="text-muted-foreground" style={{ fontSize: "12px" }}>per person</p>}
               {data.searchDates?.outbound && (
-                <p className="text-muted-foreground mt-1" style={{ fontSize: "12px" }}>{data.searchDates.outbound}</p>
+                <p className="text-muted-foreground mt-1" style={{ fontSize: "12px" }}>{formatDisplayDate(data.searchDates.outbound)}</p>
               )}
             </div>
 
@@ -1045,7 +1043,7 @@ function OneWayVsRoundTrip({ data, sym }: { data: FlightInsightsData; sym: strin
               </p>
               {ti!.returnPrice > 0 && <p className="text-muted-foreground" style={{ fontSize: "12px" }}>per person</p>}
               {data.searchDates?.return && (
-                <p className="text-muted-foreground mt-1" style={{ fontSize: "12px" }}>{data.searchDates.return}</p>
+                <p className="text-muted-foreground mt-1" style={{ fontSize: "12px" }}>{formatDisplayDate(data.searchDates.return)}</p>
               )}
             </div>
 

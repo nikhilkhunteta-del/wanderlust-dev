@@ -50,6 +50,17 @@ const getCurrencySymbol = (currency: string): string => {
   return symbols[currency] ?? currency;
 };
 
+const stripMarkdown = (text: string | null | undefined): string => {
+  if (!text) return text as any;
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/`(.*?)`/g, '$1')
+    .trim();
+};
+
 // Gateway city mapping — secondary cities that connect through a major international hub
 const GATEWAY_AIRPORTS: Record<string, { gateway: string; gatewayCity: string; distance: number; transferTime: number; transferMode: string; note: string }> = {
   // India
@@ -800,8 +811,9 @@ serve(async (req) => {
       if (settled.status === "fulfilled") {
         lowestPrice = settled.value.data.price_insights?.lowest_price ?? null;
       }
-      const monthShort = monthName.slice(0, 3);
-      return { week: weekLabels[i], date: `${monthShort} ${day}`, lowestPrice };
+      const wDate = new Date(year, monthNum - 1, day);
+      const displayDate = wDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      return { week: weekLabels[i], date: displayDate, lowestPrice };
     });
 
     const validWeeks = weeklyPricing.filter((w) => w.lowestPrice !== null);
@@ -894,6 +906,21 @@ serve(async (req) => {
           originTransferNote: null,
         };
 
+    // Strip markdown from all AI/Perplexity text fields
+    const cleanSynthesis = {
+      ...synthesis,
+      priceVerdict: stripMarkdown(synthesis.priceVerdict),
+      priceTrend: stripMarkdown(synthesis.priceTrend),
+      bookingTiming: stripMarkdown(synthesis.bookingTiming),
+      bestWeekReason: stripMarkdown(synthesis.bestWeekReason),
+      insight_route: stripMarkdown(synthesis.insight_route),
+      insight_flexibility: stripMarkdown(synthesis.insight_flexibility),
+      insight_timing: stripMarkdown(synthesis.insight_timing),
+      insight_hiddencosts: stripMarkdown(synthesis.insight_hiddencosts),
+      carbonComparison: stripMarkdown(synthesis.carbonComparison),
+      originTransferNote: stripMarkdown(synthesis.originTransferNote),
+    };
+
     const result = {
       route: {
         origin: { city: originCity, airport: cheapestApt },
@@ -916,11 +943,11 @@ serve(async (req) => {
       destSavingOpportunities,
       alternativeAirportsChecked,
       gatewayAirport,
-      gatewayTransferInfo: gatewayTransferInfo || null,
-      routeIntelligence,
-      synthesis,
+      gatewayTransferInfo: stripMarkdown(gatewayTransferInfo) || null,
+      routeIntelligence: stripMarkdown(routeIntelligence),
+      synthesis: cleanSynthesis,
       ticketingInsight,
-      ticketingContext: ticketingContext || null,
+      ticketingContext: stripMarkdown(ticketingContext) || null,
     };
 
     console.log(`Done: ${originResults.length} origins, ${alternativeAirportsChecked} alt dests, synthesis complete`);
