@@ -44,6 +44,17 @@ interface TicketingInsight {
   meaningful: boolean;
 }
 
+interface GatewayAirportData {
+  airport: string;
+  city: string;
+  lowestPrice: number;
+  saving: number;
+  transferTime: number;
+  transferMode: string;
+  note: string;
+  isGateway: boolean;
+}
+
 interface FlightInsightsData {
   route: {
     origin: { city: string; airport: string };
@@ -68,6 +79,8 @@ interface FlightInsightsData {
   worstWeek: { week: string; date: string; lowestPrice: number } | null;
   destSavingOpportunities: any[];
   alternativeAirportsChecked: number;
+  gatewayAirport?: GatewayAirportData | null;
+  gatewayTransferInfo?: string | null;
   routeIntelligence: string;
   ticketingInsight?: TicketingInsight | null;
   ticketingContext?: string | null;
@@ -230,6 +243,14 @@ export const FlightsTab = ({
         {/* Section 2: Price Feasibility Card */}
         <PriceFeasibilityCard data={data} sym={sym} />
 
+        {/* Gateway Route Options — shown when gateway city exists */}
+        {data.gatewayAirport && (
+          <>
+            <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
+            <GatewayRouteOptions data={data} sym={sym} />
+          </>
+        )}
+
         {/* Divider */}
         <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
 
@@ -280,7 +301,10 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
       <div className="flex items-center justify-center gap-1.5 mt-3" style={{ fontSize: "13px", color: "#6B7280" }}>
         <Search style={{ width: "13px", height: "13px", flexShrink: 0 }} />
         <span>
-          Checked {data.originResults.length} departure {data.originResults.length === 1 ? "airport" : "airports"} · {Math.max(1, altAirportsChecked + 1)} arrival {altAirportsChecked + 1 === 1 ? "option" : "options"} · 4 date windows · one-way vs round-trip
+          {data.gatewayAirport
+            ? `Checked ${data.originResults.length} departure ${data.originResults.length === 1 ? "airport" : "airports"} · Flying into ${data.route.destination.city} or ${data.gatewayAirport.city} · 4 date windows · one-way vs round-trip`
+            : `Checked ${data.originResults.length} departure ${data.originResults.length === 1 ? "airport" : "airports"} · ${Math.max(1, altAirportsChecked + 1)} arrival ${altAirportsChecked + 1 === 1 ? "option" : "options"} · 4 date windows · one-way vs round-trip`
+          }
         </span>
       </div>
 
@@ -325,12 +349,52 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
       {/* Nearby arrival airports strip */}
       <div className="mt-4">
         <p className="text-muted-foreground font-medium mb-2" style={{ fontSize: "13px" }}>Nearby arrival airports checked</p>
-        {altAirportsChecked === 0 ? (
-          <p className="text-muted-foreground" style={{ fontSize: "13px" }}>No alternative arrival airports within 350km</p>
-        ) : (
+
+        {/* Gateway airport always shown first if present */}
+        {data.gatewayAirport ? (
           <div className="flex gap-3 overflow-x-auto pb-2 justify-center" style={{ scrollbarWidth: "thin" }}>
-            {destOpps.map((opp: any, i: number) => {
-              const meaningful = opp.priceSaving >= 40; // ≥£20pp equivalent (round-trip saving / 2)
+            {/* Gateway card — always first */}
+            <div
+              className="flex-shrink-0 rounded-lg px-4 py-3 text-center"
+              style={{
+                border: "2px solid #3B82F6",
+                minWidth: "120px",
+                background: "#EFF6FF",
+              }}
+            >
+              <div className="font-bold text-foreground" style={{ fontSize: "16px" }}>{data.gatewayAirport.airport}</div>
+              <div className="text-muted-foreground" style={{ fontSize: "12px" }}>{data.gatewayAirport.city}</div>
+              <div className="font-bold text-foreground mt-1.5" style={{ fontSize: "18px" }}>
+                {sym}{Math.round(data.gatewayAirport.lowestPrice / 2).toLocaleString()}
+              </div>
+              <span className="inline-block mt-1 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: "#DBEAFE", color: "#1E40AF" }}>
+                Main hub
+              </span>
+            </div>
+
+            {/* Direct destination card */}
+            <div
+              className="flex-shrink-0 rounded-lg px-4 py-3 text-center"
+              style={{
+                border: "1px solid hsl(var(--border))",
+                minWidth: "120px",
+                background: "white",
+              }}
+            >
+              <div className="font-bold text-foreground" style={{ fontSize: "16px" }}>{data.route.destination.airport}</div>
+              <div className="text-muted-foreground" style={{ fontSize: "12px" }}>{data.route.destination.city}</div>
+              {data.pricing.lowestPrice ? (
+                <div className="font-bold text-foreground mt-1.5" style={{ fontSize: "18px" }}>
+                  {sym}{Math.round(data.pricing.lowestPrice / 2).toLocaleString()}
+                </div>
+              ) : (
+                <div className="text-muted-foreground mt-1.5" style={{ fontSize: "14px" }}>No data</div>
+              )}
+            </div>
+
+            {/* Any other alt destination opps */}
+            {destOpps.filter((opp: any) => opp.airport !== data.gatewayAirport?.airport).map((opp: any, i: number) => {
+              const meaningful = opp.priceSaving >= 40;
               return (
                 <div
                   key={opp.airport || i}
@@ -356,7 +420,38 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
                 </div>
               );
             })}
-            {/* If alternatives were checked but none returned results */}
+          </div>
+        ) : altAirportsChecked === 0 ? (
+          <p className="text-muted-foreground" style={{ fontSize: "13px" }}>No alternative arrival airports within 350km</p>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-2 justify-center" style={{ scrollbarWidth: "thin" }}>
+            {destOpps.map((opp: any, i: number) => {
+              const meaningful = opp.priceSaving >= 40;
+              return (
+                <div
+                  key={opp.airport || i}
+                  className="flex-shrink-0 rounded-lg px-4 py-3 text-center"
+                  style={{
+                    border: meaningful ? "2px solid #16A34A" : "1px solid hsl(var(--border))",
+                    minWidth: "120px",
+                    background: "white",
+                    opacity: meaningful ? 1 : 0.6,
+                  }}
+                >
+                  <div className="font-bold text-foreground" style={{ fontSize: "16px" }}>{opp.airport}</div>
+                  <div className="text-muted-foreground" style={{ fontSize: "12px" }}>{opp.city}</div>
+                  {meaningful ? (
+                    <span className="inline-block mt-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ background: "#DCFCE7", color: "#166534" }}>
+                      Save ~{sym}{Math.round(opp.priceSaving / 2).toLocaleString()}/pp
+                    </span>
+                  ) : (
+                    <p className="text-muted-foreground mt-1.5" style={{ fontSize: "11px" }}>
+                      No meaningful saving vs {data.route.destination.airport}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
             {destOpps.length === 0 && altAirportsChecked > 0 && (
               <p className="text-muted-foreground" style={{ fontSize: "13px" }}>
                 {altAirportsChecked} nearby {altAirportsChecked === 1 ? "airport" : "airports"} checked — no meaningful savings found
@@ -491,6 +586,115 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
       <p className="mt-6 text-[11px] text-muted-foreground/70">
         Indicative pricing from live market data. Actual fares vary by booking date and availability.
       </p>
+    </div>
+  );
+}
+
+// === Gateway Route Options ===
+function GatewayRouteOptions({ data, sym }: { data: FlightInsightsData; sym: string }) {
+  const gw = data.gatewayAirport;
+  if (!gw) return null;
+
+  const mainPricePP = data.pricing.lowestPrice ? Math.round(data.pricing.lowestPrice / 2) : null;
+  const gwPricePP = Math.round(gw.lowestPrice / 2);
+  const savingPP = gw.saving > 0 ? Math.round(gw.saving / 2) : 0;
+  const gwMoreExpensive = gw.saving < 0 ? Math.round(Math.abs(gw.saving) / 2) : 0;
+
+  const formatTransferTime = (mins: number) => {
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+
+  // Extract first sentence from gatewayTransferInfo for the summary line
+  const transferSummary = data.gatewayTransferInfo
+    ? data.gatewayTransferInfo.split(/[.!]\s/)[0] + "."
+    : null;
+
+  return (
+    <div>
+      <h3
+        className="font-bold text-foreground"
+        style={{ fontSize: "22px", borderLeft: "3px solid #3B82F6", paddingLeft: "8px" }}
+      >
+        Your route options into {data.route.destination.city}
+      </h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+        {/* Card A — Fly direct to destination */}
+        <div
+          className="rounded-lg border p-5 flex flex-col"
+          style={{ borderColor: "#E5E7EB", background: "white" }}
+        >
+          <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Fly direct to {data.route.destination.city}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {data.route.destination.airport} — {data.route.destination.city} Airport
+          </p>
+          {mainPricePP ? (
+            <p className="font-extrabold text-foreground mt-3" style={{ fontSize: "24px" }}>
+              {sym}{mainPricePP.toLocaleString()} <span className="font-normal text-muted-foreground" style={{ fontSize: "14px" }}>per person</span>
+            </p>
+          ) : (
+            <p className="text-muted-foreground mt-3" style={{ fontSize: "14px" }}>Pricing unavailable</p>
+          )}
+          <div className="mt-3">
+            <span className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full" style={{ background: "#FEF3C7", color: "#92400E" }}>
+              Limited international flights
+            </span>
+          </div>
+          <div className="flex-1" />
+        </div>
+
+        {/* Card B — Fly via gateway */}
+        <div
+          className="rounded-lg p-5 flex flex-col"
+          style={{ borderLeft: "3px solid #3B82F6", border: "1px solid #BFDBFE", borderLeftWidth: "3px", borderLeftColor: "#3B82F6", background: "#EFF6FF" }}
+        >
+          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "#1E40AF" }}>
+            Fly via {gw.city} <span style={{ fontWeight: 400, textTransform: "none" }}>— recommended for international</span>
+          </p>
+          <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+            {gw.airport} — {gw.city} Airport
+          </p>
+          <p className="font-extrabold text-foreground mt-3" style={{ fontSize: "24px" }}>
+            {sym}{gwPricePP.toLocaleString()} <span className="font-normal text-muted-foreground" style={{ fontSize: "14px" }}>per person</span>
+          </p>
+
+          <p className="text-sm text-muted-foreground mt-2">
+            Transfer to {data.route.destination.city}: ~{formatTransferTime(gw.transferTime)} by {gw.transferMode}
+          </p>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full" style={{ background: "#DBEAFE", color: "#1E40AF" }}>
+              Main international hub
+            </span>
+            {savingPP > 0 && (
+              <span className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full" style={{ background: "#DCFCE7", color: "#166534" }}>
+                Saves {sym}{savingPP}/pp
+              </span>
+            )}
+            {gwMoreExpensive > 0 && (
+              <span className="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full" style={{ background: "#F3F4F6", color: "#374151" }}>
+                {sym}{gwMoreExpensive} more but significantly more flight options
+              </span>
+            )}
+          </div>
+
+          <p className="text-[13px] italic mt-3" style={{ color: "#6B7280" }}>
+            {gw.note}
+          </p>
+          <div className="flex-1" />
+        </div>
+      </div>
+
+      {/* Transfer info summary */}
+      {transferSummary && (
+        <p className="text-sm text-muted-foreground mt-4">
+          <span className="font-medium text-foreground">From {gw.city} to {data.route.destination.city}:</span>{" "}
+          {transferSummary}
+        </p>
+      )}
     </div>
   );
 }
@@ -909,17 +1113,24 @@ function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsights
   const originIATA = data.route.origin.airport;
   const destIATA = data.route.destination.airport;
   const year = new Date().getFullYear();
+  const gw = data.gatewayAirport;
 
   // Google Flights: simple query format
   const gfQuery = `flights from ${originCity} to ${destCity} ${monthName} ${year}`.replace(/\s+/g, "+");
   const googleFlightsUrl = `https://www.google.com/travel/flights?q=${gfQuery}`;
 
-  // Skyscanner: /transport/flights/IATA/IATA/YYMMDD/YYMMDD/
-  const outDate = data.searchDates.outbound.replace(/-/g, "").slice(2); // YYMMDD
+  // Gateway Google Flights URL
+  const gwGfQuery = gw
+    ? `flights from ${originCity} to ${gw.city} ${monthName} ${year}`.replace(/\s+/g, "+")
+    : "";
+  const gatewayGoogleFlightsUrl = gw ? `https://www.google.com/travel/flights?q=${gwGfQuery}` : "";
+
+  // Skyscanner
+  const outDate = data.searchDates.outbound.replace(/-/g, "").slice(2);
   const retDate = data.searchDates.return.replace(/-/g, "").slice(2);
   const skyscannerUrl = `https://www.skyscanner.net/transport/flights/${originIATA}/${destIATA}/${outDate}/${retDate}/`;
 
-  // Kayak: /flights/IATA-IATA/YYYY-MM-DD/YYYY-MM-DD/2adults
+  // Kayak
   const kayakUrl = `https://www.kayak.com/flights/${originIATA}-${destIATA}/${data.searchDates.outbound}/${data.searchDates.return}/2adults`;
 
   return (
@@ -938,16 +1149,41 @@ function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsights
 
           {/* Right side */}
           <div className="flex flex-col items-start md:items-end gap-3 flex-shrink-0">
-            <a
-              href={googleFlightsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
-              style={{ background: "#EA580C", color: "#FFFFFF" }}
-            >
-              Search on Google Flights
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+            {gw ? (
+              <>
+                <a
+                  href={gatewayGoogleFlightsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ background: "#EA580C", color: "#FFFFFF" }}
+                >
+                  Search flights to {destCity} (via {gw.city}) →
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <a
+                  href={googleFlightsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ background: "transparent", color: "#D6D3D1", border: "1px solid #57534E" }}
+                >
+                  Search flights direct to {destIATA} →
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </>
+            ) : (
+              <a
+                href={googleFlightsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+                style={{ background: "#EA580C", color: "#FFFFFF" }}
+              >
+                Search on Google Flights
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
 
             <p className="text-sm" style={{ color: "#A8A29E" }}>
               Also check:{" "}
@@ -957,7 +1193,7 @@ function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsights
             </p>
 
             <a
-              href={googleFlightsUrl}
+              href={gw ? gatewayGoogleFlightsUrl : googleFlightsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[13px] hover:opacity-80 transition-opacity"
