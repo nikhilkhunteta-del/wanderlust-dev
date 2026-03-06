@@ -509,7 +509,7 @@ CRITICAL RULES FOR ALL OUTPUTS:
 - All prices must be per person, never total group cost.
 
 Generate exactly these ten outputs — all must be specific to this exact route and month, never generic:
-(1) priceVerdict: The typical price range for this route is ${typicalRangePP} per person. Write one sentence that references this exact range — do not invent or estimate a different price figure. Then write one sentence about the advance booking window for this route. Use ${currencySymbol} not the currency code. Example format: 'Flights from ${originCity} to ${destinationCity} in ${travelMonth} typically cost ${typicalRangePP} per person — booking 6–8 weeks ahead usually secures better fares.'
+(1) priceVerdict: You are given the actual round-trip price range from live flight data: low=${pricing.typicalRange ? Math.round(pricing.typicalRange[0] / passengers) : "N/A"}, high=${pricing.typicalRange ? Math.round(pricing.typicalRange[1] / passengers) : "N/A"}, currency symbol=${currencySymbol}. You must use these exact figures. Do not calculate, estimate, double, or modify them in any way. Write exactly this: 'Flights from ${originCity} to ${destinationCity} in ${travelMonth} typically cost ${typicalRangePP} per person round-trip.' Then add one sentence about the advance booking window for this specific route.
 (2) priceTrend: one sentence about whether prices on this route have risen or fallen vs last year and by roughly how much percent — based on the route intelligence data. Use ${currencySymbol} for any prices. If no trend data available, return null.
 (3) bookingTiming: one sentence — how many weeks in advance should travellers book for this specific route in ${travelMonth} to get the best fares? Be specific with a number of weeks. Use the route intelligence and price history data.
 (4) bestWeekReason: one sentence — name the best week to fly within ${travelMonth} and why based on the weekly pricing data? Use ${currencySymbol} for any prices.
@@ -760,15 +760,15 @@ serve(async (req) => {
       }
     }
 
-    // === Phase 2: Weekly pricing + alt destination pricing + one-way ticketing comparison in parallel ===
+    // === Phase 2: Weekly pricing + alt destination pricing + one-way ticketing + dedicated feasibility round-trip in parallel ===
     const cheapestApt = cheapestOrigin?.airport || primaryAirport;
     const weekDays = [3, 10, 17, 24];
     const weekLabels = [`Early ${monthName}`, `Mid-early ${monthName}`, `Mid-late ${monthName}`, `Late ${monthName}`];
     const currencySymbol = getCurrencySymbol(currency);
 
-    console.log(`Phase 2: weekly from ${cheapestApt}, ${alternativeAirports.length} alt dests, + one-way comparison`);
+    console.log(`Phase 2: weekly from ${cheapestApt}, ${alternativeAirports.length} alt dests, + one-way comparison + dedicated RT call`);
 
-    // Build one-way call promises
+    // Build one-way call promises (type: 2 = one-way in SerpAPI)
     const onewayOutboundPromise = callSerpAPIOneWay(
       SERPAPI_KEY, cheapestApt, destinationAirport, outboundDateStr, passengers, travelClass, currency
     ).catch((e) => { console.error("One-way outbound failed:", e); return null; });
@@ -782,7 +782,12 @@ serve(async (req) => {
       ? queryTicketingContext(PERPLEXITY_API_KEY, originCity, destinationCity, monthName, currencySymbol)
       : Promise.resolve("");
 
-    const [weeklySettled, onewayOutboundData, onewayReturnData, ticketingContext, ...altDestSettled] = await Promise.all([
+    // Dedicated round-trip call for feasibility card — separate from per-airport comparison
+    const feasibilityRTPromise = callSerpAPI(
+      SERPAPI_KEY, cheapestApt, destinationAirport, outboundDateStr, returnDateStr, passengers, travelClass, currency
+    ).catch((e) => { console.error("Dedicated feasibility RT call failed:", e); return null; });
+
+    const [weeklySettled, onewayOutboundData, onewayReturnData, ticketingContext, feasibilityRTData, ...altDestSettled] = await Promise.all([
       Promise.allSettled(
         weekDays.map((day) => {
           const wOutbound = new Date(year, monthNum - 1, day);
@@ -795,6 +800,7 @@ serve(async (req) => {
       onewayOutboundPromise,
       onewayReturnPromise,
       ticketingContextPromise,
+      feasibilityRTPromise,
       ...(alternativeAirports.length > 0 && mainPricing.lowestPrice
         ? alternativeAirports.map((alt) =>
             callSerpAPI(SERPAPI_KEY, cheapestApt, alt.iata, outboundDateStr, returnDateStr, passengers, travelClass, currency)
@@ -857,18 +863,35 @@ serve(async (req) => {
       destSavingOpportunities = candidates.slice(0, 2);
     }
 
+    // === Extract dedicated feasibility round-trip pricing ===
+    const feasibilityPI = feasibilityRTData?.price_insights ?? null;
+    const feasibilityPricing = feasibilityPI ? {
+      lowestPrice: feasibilityPI.lowest_price ?? mainPricing.lowestPrice,
+      priceLevel: feasibilityPI.price_level ?? mainPricing.priceLevel,
+      typicalRange: feasibilityPI.typical_price_range ?? mainPricing.typicalRange,
+      priceHistory: feasibilityPI.price_history ?? mainPricing.priceHistory,
+    } : mainPricing;
+
+    console.log(`Feasibility RT pricing: lowest=${feasibilityPricing.lowestPrice}, range=${JSON.stringify(feasibilityPricing.typicalRange)}, level=${feasibilityPricing.priceLevel}`);
+
     // === Ticketing insight: round-trip vs two one-ways ===
     let ticketingInsight: any = null;
     const onewayOutbound = onewayOutboundData?.price_insights?.lowest_price ?? null;
     const onewayReturn = onewayReturnData?.price_insights?.lowest_price ?? null;
-    const roundTrip = cheapestOrigin?.lowestPrice ?? mainPricing.lowestPrice;
+    const roundTrip = feasibilityPricing.lowestPrice ?? cheapestOrigin?.lowestPrice ?? mainPricing.lowestPrice;
 
     if (onewayOutbound !== null && onewayReturn !== null && roundTrip !== null) {
       const combinedOneWay = onewayOutbound + onewayReturn;
       const oneWaySaving = roundTrip - combinedOneWay;
-      const roundTripSaving = combinedOneWay - roundTrip;
       // Minimum meaningful threshold — scale with currency
       const minThreshold = (SAVING_THRESHOLDS[currency.toUpperCase()] ?? 75) * (20 / 75); // ~20 GBP equivalent
+
+      // Sanity check — if one-way prices are suspiciously close to exactly half
+      // the round-trip price (within 2%), they are likely AI-estimated not real
+      const suspiciouslySymmetrical = Math.abs(combinedOneWay - roundTrip) / roundTrip < 0.02;
+      if (suspiciouslySymmetrical) {
+        console.error('WARNING: One-way prices appear to be derived from round-trip, not independently fetched');
+      }
 
       ticketingInsight = {
         roundTripPrice: roundTrip,
@@ -880,21 +903,23 @@ serve(async (req) => {
         savingPerPerson: Math.round(Math.abs(oneWaySaving) / passengers),
         savingPercentage: Math.round((Math.abs(oneWaySaving) / Math.max(roundTrip, combinedOneWay)) * 100),
         meaningful: Math.abs(oneWaySaving) >= minThreshold,
+        dataReliable: !suspiciouslySymmetrical,
       };
-      console.log(`Ticketing: RT=${roundTrip}, 1W=${combinedOneWay}, saving=${ticketingInsight.saving}, meaningful=${ticketingInsight.meaningful}`);
+      console.log(`Ticketing: RT=${roundTrip}, 1W=${combinedOneWay}, saving=${ticketingInsight.saving}, meaningful=${ticketingInsight.meaningful}, reliable=${ticketingInsight.dataReliable}`);
     }
 
     // === Phase 3: AI synthesis (needs all data collected above) ===
     console.log("Phase 3: AI synthesis");
 
+    // Use dedicated feasibility pricing for synthesis — never one-way derived data
     const synthesis = LOVABLE_API_KEY
       ? await generateSynthesis(
           LOVABLE_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString(),
-          mainPricing, cheapestOrigin, primaryOrigin, weeklyPricing, routeIntelligence, currency,
+          feasibilityPricing, cheapestOrigin, primaryOrigin, weeklyPricing, routeIntelligence, currency,
           PERPLEXITY_API_KEY || null,
         )
       : {
-          priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${getCurrencySymbol(currency)}${mainPricing.lowestPrice ? Math.round(mainPricing.lowestPrice / passengers) : "N/A"} per person.`,
+          priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${getCurrencySymbol(currency)}${feasibilityPricing.lowestPrice ? Math.round(feasibilityPricing.lowestPrice / passengers) : "N/A"} per person.`,
           priceTrend: null,
           bookingTiming: "Book 6-8 weeks ahead for best prices.",
           bestWeekReason: bestWeek ? `${bestWeek.week} offers the lowest fares.` : "Check weekly variations.",
@@ -926,7 +951,7 @@ serve(async (req) => {
         origin: { city: originCity, airport: cheapestApt },
         destination: { city: destinationCity, airport: destinationAirport },
       },
-      pricing: mainPricing,
+      pricing: feasibilityPricing,
       bestFlight: mainBestFlight,
       baggagePrices: null,
       currency,

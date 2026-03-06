@@ -42,6 +42,7 @@ interface TicketingInsight {
   savingPerPerson: number;
   savingPercentage: number;
   meaningful: boolean;
+  dataReliable?: boolean;
 }
 
 interface GatewayAirportData {
@@ -994,6 +995,7 @@ function OneWayVsRoundTrip({ data, sym }: { data: FlightInsightsData; sym: strin
   const dest = data.route.destination;
 
   const noData = !ti || (ti.outboundPrice === 0 && ti.returnPrice === 0);
+  const unreliable = ti && ti.dataReliable === false;
 
   return (
     <div>
@@ -1007,9 +1009,9 @@ function OneWayVsRoundTrip({ data, sym }: { data: FlightInsightsData; sym: strin
         We priced both options so you don't have to
       </p>
 
-      {noData ? (
+      {noData || unreliable ? (
         <p className="text-muted-foreground" style={{ fontSize: "14px" }}>
-          Unable to retrieve one-way pricing for this route
+          We were unable to retrieve independent one-way pricing for this route — search Google Flights directly to compare one-way options.
         </p>
       ) : (
         <>
