@@ -528,18 +528,12 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
                 {sym}{Math.round(pricing.typicalRange[0] / 2).toLocaleString()} — {sym}{Math.round(pricing.typicalRange[1] / 2).toLocaleString()}
                 <span style={{ fontSize: "18px", fontWeight: 400 }} className="ml-2 text-muted-foreground">per person</span>
               </p>
-              <p className="text-[13px] text-muted-foreground mt-1.5">
-                Total for 2 passengers: {sym}{pricing.typicalRange[0]?.toLocaleString()} — {sym}{pricing.typicalRange[1]?.toLocaleString()}
-              </p>
             </>
           ) : pricing.lowestPrice ? (
             <>
               <p className="text-foreground" style={{ fontSize: "42px", fontWeight: 800, lineHeight: 1.1 }}>
                 From {sym}{Math.round(pricing.lowestPrice / 2).toLocaleString()}
                 <span style={{ fontSize: "18px", fontWeight: 400 }} className="ml-2 text-muted-foreground">per person</span>
-              </p>
-              <p className="text-[13px] text-muted-foreground mt-1.5">
-                Total for 2 passengers: {sym}{pricing.lowestPrice.toLocaleString()}
               </p>
             </>
           ) : (
