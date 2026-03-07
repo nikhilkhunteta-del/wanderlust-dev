@@ -220,6 +220,7 @@ async function callSerpAPI(
 ): Promise<any> {
   const params = new URLSearchParams({
     engine: "google_flights",
+    type: "1",
     departure_id: departureId,
     arrival_id: arrivalId,
     outbound_date: outboundDate,
@@ -875,6 +876,20 @@ serve(async (req) => {
     console.log(`Feasibility RT pricing: lowest=${feasibilityPricing.lowestPrice}, range=${JSON.stringify(feasibilityPricing.typicalRange)}, level=${feasibilityPricing.priceLevel}`);
 
     // === Ticketing insight: round-trip vs two one-ways ===
+    // Diagnostic logging for one-way vs round-trip data verification
+    console.log(`[ONE-WAY OUTBOUND] ${cheapestApt} → ${destinationAirport} on ${outboundDateStr}`);
+    console.log(`  price_insights:`, JSON.stringify(onewayOutboundData?.price_insights ?? 'NO DATA'));
+    console.log(`  best_flights count:`, onewayOutboundData?.best_flights?.length ?? 0);
+    console.log(`  other_flights count:`, onewayOutboundData?.other_flights?.length ?? 0);
+
+    console.log(`[ONE-WAY RETURN] ${destinationAirport} → ${cheapestApt} on ${returnDateStr}`);
+    console.log(`  price_insights:`, JSON.stringify(onewayReturnData?.price_insights ?? 'NO DATA'));
+    console.log(`  best_flights count:`, onewayReturnData?.best_flights?.length ?? 0);
+    console.log(`  other_flights count:`, onewayReturnData?.other_flights?.length ?? 0);
+
+    console.log(`[FEASIBILITY RT] ${cheapestApt} ↔ ${destinationAirport}`);
+    console.log(`  price_insights:`, JSON.stringify(feasibilityRTData?.price_insights ?? 'NO DATA'));
+
     let ticketingInsight: any = null;
     const onewayOutbound = onewayOutboundData?.price_insights?.lowest_price ?? null;
     const onewayReturn = onewayReturnData?.price_insights?.lowest_price ?? null;
