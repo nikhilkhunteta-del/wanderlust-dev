@@ -116,8 +116,6 @@ export const HighlightsTab = ({
             experiences={highlights.experiences}
             cityName={city}
             country={country}
-            sectionTitle="Make this experience real"
-            sectionSubtitle="Ready to experience this side of the city? Here are carefully selected options to help you plan smoothly."
           />
         </section>
       </div>
