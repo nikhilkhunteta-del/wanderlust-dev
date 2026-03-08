@@ -253,8 +253,8 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
         <div>
           <h2 className="text-2xl md:text-3xl font-display font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
             {isMultiCityMode
-              ? `Your ${profile.tripDuration}-Day Regional Journey`
-              : `Your ${profile.tripDuration}-Day Adventure`}
+              ? `Your ${effectiveTripDuration}-Day Regional Journey`
+              : `Your ${effectiveTripDuration}-Day Adventure`}
           </h2>
           <p className="text-muted-foreground mt-1.5 flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-primary/60" />
