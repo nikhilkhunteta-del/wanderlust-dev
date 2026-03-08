@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -258,6 +259,40 @@ serve(async (req) => {
 
     console.log(`fetch-stay-insights: ${city}, ${resolvedCountry}, ${monthName}, ${currency}, dates=${checkIn}→${checkOut}`);
 
+    // ── Cache check (6-hour TTL) ──
+    const CACHE_TTL_HOURS = 6;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const normCity = city.toLowerCase().trim();
+    const normCountry = resolvedCountry.toLowerCase().trim();
+
+    if (checkIn && checkOut) {
+      const { data: cached } = await supabase
+        .from("stay_insights_cache")
+        .select("data_json, fetched_at")
+        .eq("city", normCity)
+        .eq("country", normCountry)
+        .eq("check_in", checkIn)
+        .eq("check_out", checkOut)
+        .eq("currency", currency)
+        .eq("adults", adults)
+        .eq("children", children)
+        .maybeSingle();
+
+      if (cached) {
+        const cacheAge = (Date.now() - new Date(cached.fetched_at).getTime()) / 3600000;
+        if (cacheAge < CACHE_TTL_HOURS) {
+          console.log(`Cache hit for ${city} (${cacheAge.toFixed(1)}h old)`);
+          return new Response(JSON.stringify(cached.data_json), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.log(`Cache stale for ${city} (${cacheAge.toFixed(1)}h old), refreshing`);
+      }
+    }
+
     // ── Step 1: Get tier thresholds + neighbourhood insights in parallel ──
     const [thresholds, neighbourhoodData] = await Promise.all([
       fetchTierThresholds(city, resolvedCountry, monthName, currency, PERPLEXITY_API_KEY),
@@ -433,6 +468,28 @@ serve(async (req) => {
     };
 
     console.log(`Successfully fetched live stay insights for ${city}: ${priceCategories.filter(p => p.resultCount > 0).length}/4 tiers have data`);
+
+    // ── Write to cache ──
+    if (checkIn && checkOut) {
+      try {
+        await supabase
+          .from("stay_insights_cache")
+          .upsert({
+            city: normCity,
+            country: normCountry,
+            check_in: checkIn,
+            check_out: checkOut,
+            currency,
+            adults,
+            children,
+            data_json: result,
+            fetched_at: new Date().toISOString(),
+          }, { onConflict: "city,country,check_in,check_out,currency,adults,children" });
+        console.log(`Cached stay insights for ${city}`);
+      } catch (cacheErr) {
+        console.error("Failed to write cache:", cacheErr);
+      }
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

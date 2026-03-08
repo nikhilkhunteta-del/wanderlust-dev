@@ -215,6 +215,48 @@ export type Database = {
         }
         Relationships: []
       }
+      stay_insights_cache: {
+        Row: {
+          adults: number
+          check_in: string
+          check_out: string
+          children: number
+          city: string
+          country: string
+          created_at: string
+          currency: string
+          data_json: Json
+          fetched_at: string
+          id: string
+        }
+        Insert: {
+          adults?: number
+          check_in: string
+          check_out: string
+          children?: number
+          city: string
+          country: string
+          created_at?: string
+          currency: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+        }
+        Update: {
+          adults?: number
+          check_in?: string
+          check_out?: string
+          children?: number
+          city?: string
+          country?: string
+          created_at?: string
+          currency?: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
