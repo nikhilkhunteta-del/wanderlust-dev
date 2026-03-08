@@ -237,7 +237,7 @@ const CityDetail = () => {
         </TabsContent>
 
         <TabsContent value="itinerary" className="mt-0">
-          <ItineraryTab city={city} profile={profile} highlights={highlights ?? null} />
+          <ItineraryTab city={city} profile={profile} highlights={highlights ?? null} onSwitchTab={handleTabChange} />
         </TabsContent>
 
         <TabsContent value="seasonal" className="mt-0">
