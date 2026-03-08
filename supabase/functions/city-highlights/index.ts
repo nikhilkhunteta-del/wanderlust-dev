@@ -65,7 +65,7 @@ RULES:
 - Keep descriptions concise and evocative
 - EVERGREEN ONLY: All experiences must be year-round — places, activities, and encounters available regardless of travel month. Do NOT include seasonal festivals, time-limited events, or month-specific occurrences. Every experience should be something the traveller could do on any visit.
 - personalMatchReasons: Write exactly 3 bullet points. Each bullet must make a completely distinct point — no two bullets may cover the same theme or repeat the same interest. Each bullet must name a specific place, experience, or characteristic of the city that connects to the user's interest — not a general statement. Bad example: "You enjoy cultural heritage / Your interest in culture aligns with the city's history" — these are the same point twice. Good example: "Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last — the oldest continuously inhabited capital in the world." Format each bullet with one **bold** key phrase followed by a specific, vivid sentence. Tone: confident, human, never salesy.
-- perfectDayNarrative: A 3-4 sentence immersive narrative of a perfect day in this city for THIS traveler, flowing morning→afternoon→evening. Reflect their interests. No generic tourism language.
+- perfectDayNarrative: Write specifically for the traveller's travel month. The month must be woven into every part — if hot, structure around early morning start, midday shelter in a cool interior, evening revival as temperature drops. If monsoon, weave rain into the atmosphere. If peak season, acknowledge crowds as context. A reader should be able to identify the month from the narrative alone without it being stated. 3-4 sentences, morning→afternoon→evening. Reflect their interests. No generic tourism language.
 - featuredExperienceIndex: index (0-based) of the experience that best matches the user's top interests.
 - experienceThemes: group the experiences by user-relevant themes with labels like "For your love of culture", "For authentic food experiences", etc.
 - childNote: If the travel party includes children, add a "childNote" field to EACH experience in family-relevant theme groups. One honest sentence on child suitability: note if it involves long walking, intense heat exposure, or suits older children only. Example: "Good for all ages — open-air and interactive" or "Better for children 8+ — involves significant walking in heat." If no children in party, omit childNote entirely.
@@ -74,7 +74,8 @@ Respond with ONLY valid JSON in this exact format:
 {
   "matchStatement": "2-3 sentences explaining why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
   "personalMatchReasons": ["Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last", "The **street food universe** of Chandni Chowk alone — paratha, jalebi, chaat — maps perfectly to your culinary curiosity", "Your preference for **warm, golden-light evenings** aligns with the sunset views from Humayun's Tomb gardens in your travel month"],
-  "perfectDayNarrative": "Start your morning exploring... end the day...",
+  "perfectDayNarrative": "A month-specific narrative — structure the day around the actual climate and conditions of the travel month...",
+  "insiderMissed": "3-4 sentences about what most first-time visitors don't expect — what surprises them, what they underestimate, what they miss by following the standard tourist trail. Specific to THIS city and no other. Honest, not promotional.",
   "experiences": [
     {
       "title": "Experience title",
@@ -110,7 +111,8 @@ ${requestData.rationale}
 Generate:
 1. A match statement (2-3 sentences) explaining why ${requestData.city} fits their interests
 2. Exactly 3 personalMatchReasons as bullet points. Each bullet must make a completely distinct point — no two bullets may share the same theme. Each must name a specific place, experience, or local characteristic of ${requestData.city} that connects to one of the traveler's interests. Format: one **bold** key phrase followed by a specific, vivid sentence.
-3. A perfectDayNarrative (3-4 immersive sentences, morning→evening, reflecting their interests)
+3. A perfectDayNarrative written SPECIFICALLY for ${requestData.travelMonth || "the travel month"} in ${requestData.city}. The month must be woven into every part of the day — climate, light, crowds, atmosphere. A reader should identify the month from the narrative alone.
+3b. An "insiderMissed" paragraph: 3-4 sentences about what most first-time visitors to ${requestData.city} don't expect — what surprises them, what they underestimate, what they miss on the standard tourist trail. Be specific to ${requestData.city} — unambiguously about this city and no other. Honest insider knowledge, not promotional.
 4. 5-7 EVERGREEN signature experiences — year-round places, activities, and encounters available regardless of travel month. Do NOT include seasonal festivals or time-limited events. For the featured experience, write a two-sentence description: first sentence explains why it's the best match; second sentence gives a specific insider detail. For others, one compelling sentence.${hasChildren ? " Include a childNote field on each experience with one honest child-suitability sentence." : ""}
 5. featuredExperienceIndex: the index of the single best-matching experience
 6. experienceThemes: group experiences into 2-4 themes labeled for the user (e.g. "For your love of culture")
