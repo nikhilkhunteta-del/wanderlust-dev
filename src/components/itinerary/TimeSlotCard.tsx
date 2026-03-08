@@ -1,4 +1,4 @@
-import { TimeSlot as TimeSlotType } from "@/types/itinerary";
+import { TimeSlot as TimeSlotType, Activity } from "@/types/itinerary";
 import { ActivityItem } from "./ActivityItem";
 import { Sunrise, Sun, Moon } from "lucide-react";
 
@@ -6,6 +6,12 @@ interface TimeSlotProps {
   slot: TimeSlotType;
   city?: string;
   country?: string;
+  dayTheme?: string;
+  travelMonth?: string;
+  userInterests?: string[];
+  lockedActivities?: Set<string>;
+  onToggleLock?: (activityTitle: string) => void;
+  onReplaceActivity?: (period: string, activityIndex: number, newActivity: Activity) => void;
 }
 
 const periodConfig = {
@@ -35,7 +41,17 @@ const periodConfig = {
   },
 };
 
-export const TimeSlotCard = ({ slot, city, country }: TimeSlotProps) => {
+export const TimeSlotCard = ({
+  slot,
+  city,
+  country,
+  dayTheme,
+  travelMonth,
+  userInterests,
+  lockedActivities,
+  onToggleLock,
+  onReplaceActivity,
+}: TimeSlotProps) => {
   const config = periodConfig[slot.period];
   const { Icon } = config;
 
@@ -49,7 +65,23 @@ export const TimeSlotCard = ({ slot, city, country }: TimeSlotProps) => {
       </div>
       <div className="space-y-1">
         {slot.activities.map((activity, index) => (
-          <ActivityItem key={index} activity={activity} city={city} country={country} />
+          <ActivityItem
+            key={`${activity.title}-${index}`}
+            activity={activity}
+            city={city}
+            country={country}
+            dayTheme={dayTheme}
+            period={slot.period}
+            travelMonth={travelMonth}
+            userInterests={userInterests}
+            isLocked={lockedActivities?.has(activity.title)}
+            onToggleLock={onToggleLock ? () => onToggleLock(activity.title) : undefined}
+            onReplaceActivity={
+              onReplaceActivity
+                ? (newAct) => onReplaceActivity(slot.period, index, newAct)
+                : undefined
+            }
+          />
         ))}
         {slot.activities.length === 0 && (
           <p className="text-sm text-muted-foreground italic flex items-center gap-2 py-2">

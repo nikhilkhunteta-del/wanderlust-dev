@@ -1,27 +1,61 @@
-import { useState } from "react";
-import { ItineraryDay } from "@/types/itinerary";
+import { useState, useCallback, useMemo } from "react";
+import { ItineraryDay, Activity } from "@/types/itinerary";
 import { TimeSlotCard } from "./TimeSlotCard";
 import { PacingStats } from "./PacingStats";
 import { QuickRefinements } from "./QuickRefinements";
-import { Calendar, MapPin, ChevronDown } from "lucide-react";
+import { Calendar, MapPin, ChevronDown, Lock } from "lucide-react";
 
 interface DayCardProps {
   day: ItineraryDay;
   city?: string;
   country?: string;
+  travelMonth?: string;
+  userInterests?: string[];
   onRefineDay?: (dayNumber: number, adjustment: string) => void;
   isRefining?: boolean;
   refiningDay?: number | null;
+  lockedActivities?: Set<string>;
+  onToggleLock?: (activityTitle: string) => void;
+  onReplaceActivity?: (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => void;
 }
 
-export const DayCard = ({ day, city, country, onRefineDay, isRefining = false, refiningDay = null }: DayCardProps) => {
+export const DayCard = ({
+  day,
+  city,
+  country,
+  travelMonth,
+  userInterests,
+  onRefineDay,
+  isRefining = false,
+  refiningDay = null,
+  lockedActivities,
+  onToggleLock,
+  onReplaceActivity,
+}: DayCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Split slots: first slot (hero/morning) always visible, rest behind "View full day"
   const slots = Array.isArray(day.slots) ? day.slots : [];
   const heroSlot = slots[0];
   const remainingSlots = slots.slice(1);
   const hasMore = remainingSlots.length > 0;
+
+  const lockedCount = useMemo(() => {
+    if (!lockedActivities) return 0;
+    let count = 0;
+    for (const slot of slots) {
+      for (const act of slot.activities) {
+        if (lockedActivities.has(act.title)) count++;
+      }
+    }
+    return count;
+  }, [slots, lockedActivities]);
+
+  const handleReplace = useCallback(
+    (period: string, activityIndex: number, newActivity: Activity) => {
+      onReplaceActivity?.(day.dayNumber, period, activityIndex, newActivity);
+    },
+    [day.dayNumber, onReplaceActivity]
+  );
 
   return (
     <article className="bg-card rounded-xl border border-border/50 overflow-hidden transition-colors duration-300 shadow-sm">
@@ -44,6 +78,15 @@ export const DayCard = ({ day, city, country, onRefineDay, isRefining = false, r
                   </span>
                 </>
               )}
+              {lockedCount > 0 && (
+                <>
+                  <span className="text-border">·</span>
+                  <span className="text-muted-foreground/50 normal-case tracking-normal flex items-center gap-1">
+                    <Lock className="w-2.5 h-2.5" />
+                    {lockedCount} locked
+                  </span>
+                </>
+              )}
             </div>
             <h3 className="font-display font-semibold text-lg text-foreground leading-tight">
               {day.theme}
@@ -56,7 +99,6 @@ export const DayCard = ({ day, city, country, onRefineDay, isRefining = false, r
           </div>
         </div>
 
-        {/* Pacing Stats — compact row */}
         <div className="mt-2.5">
           <PacingStats
             walkingKm={day.estimatedWalkingKm}
@@ -68,18 +110,37 @@ export const DayCard = ({ day, city, country, onRefineDay, isRefining = false, r
 
       {/* Content */}
       <div className="p-4 md:p-5 space-y-3">
-        {/* Hero slot always visible */}
         {heroSlot && (
-          <TimeSlotCard slot={heroSlot} city={city} country={country} />
+          <TimeSlotCard
+            slot={heroSlot}
+            city={city}
+            country={country}
+            dayTheme={day.theme}
+            travelMonth={travelMonth}
+            userInterests={userInterests}
+            lockedActivities={lockedActivities}
+            onToggleLock={onToggleLock}
+            onReplaceActivity={handleReplace}
+          />
         )}
 
-        {/* Remaining slots — collapsible */}
         {hasMore && (
           <>
             {isExpanded ? (
               <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                 {remainingSlots.map((slot) => (
-                  <TimeSlotCard key={slot.period} slot={slot} city={city} country={country} />
+                  <TimeSlotCard
+                    key={slot.period}
+                    slot={slot}
+                    city={city}
+                    country={country}
+                    dayTheme={day.theme}
+                    travelMonth={travelMonth}
+                    userInterests={userInterests}
+                    lockedActivities={lockedActivities}
+                    onToggleLock={onToggleLock}
+                    onReplaceActivity={handleReplace}
+                  />
                 ))}
               </div>
             ) : null}
@@ -94,17 +155,13 @@ export const DayCard = ({ day, city, country, onRefineDay, isRefining = false, r
           </>
         )}
 
-        {/* Quick Refinements */}
         {onRefineDay && (
-          <div className="pt-2 border-t border-border/20">
-            <p className="text-xs text-muted-foreground/60 mb-2">Adjust this day:</p>
-            <QuickRefinements
-              dayNumber={day.dayNumber}
-              onRefineDay={onRefineDay}
-              isRefining={isRefining}
-              refiningDay={refiningDay}
-            />
-          </div>
+          <QuickRefinements
+            dayNumber={day.dayNumber}
+            onRefineDay={onRefineDay}
+            isRefining={isRefining}
+            refiningDay={refiningDay}
+          />
         )}
       </div>
     </article>
