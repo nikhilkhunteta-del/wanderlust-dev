@@ -73,7 +73,7 @@ Respond with ONLY valid JSON in this exact format:
   "experiences": [
     {
       "title": "Experience title",
-      "description": "One compelling sentence explaining why this experience is special and aligns with user interests",
+      "description": "Two sentences. First: explain specifically why this experience is the single best match for this traveller's stated interests — name what it delivers that aligns with their profile. Second: give one specific insider detail that makes it unmissable — best time of day, what most visitors miss, a specific viewpoint or moment. Read like advice from someone who has been there, not a guidebook.",
       "imageQuery": "descriptive search term for a photo of this experience",
       "bookingUrl": null,
       "category": "culture|food|nature|adventure|photography|nightlife|wellness|shopping|scenic"
@@ -83,7 +83,7 @@ Respond with ONLY valid JSON in this exact format:
   "experienceThemes": [
     { "themeLabel": "For your love of culture", "experienceIndices": [0, 2] }
   ],
-  "vibeTags": ["3-5 short tags like 'walkable', 'sunset viewpoints', 'street food'"],
+  "vibeTags": ["3-5 short tags specific enough to only make sense for THIS city — capture contrasts and textures that someone who has visited would nod at, e.g. 'Mughal grandeur meets bazaar chaos', 'auto-rickshaw roulette', 'spice-cloud alleyways'. NEVER use generic descriptors like 'cultural immersion', 'historical depth', 'relaxed pace'."],
   "heroImageQuery": "descriptive search term for the city's most iconic scenic view"
 }`;
 
@@ -102,10 +102,10 @@ Generate:
 1. A match statement (2-3 sentences) explaining why ${requestData.city} fits their interests
 2. Exactly 3 personalMatchReasons as bullet points. Each bullet must make a completely distinct point — no two bullets may share the same theme. Each must name a specific place, experience, or local characteristic of ${requestData.city} that connects to one of the traveler's interests. Format: one **bold** key phrase followed by a specific, vivid sentence.
 3. A perfectDayNarrative (3-4 immersive sentences, morning→evening, reflecting their interests)
-4. 5-7 signature experiences curated for their specific interests, each with a category tag
+4. 5-7 signature experiences curated for their specific interests, each with a category tag. For the featured experience (the one at featuredExperienceIndex), write a two-sentence description: first sentence explains why it's the best match for this traveller's interests; second sentence gives a specific insider detail (best time of day, what most visitors miss, a viewpoint). For other experiences, one compelling sentence is fine.
 5. featuredExperienceIndex: the index of the single best-matching experience
 6. experienceThemes: group experiences into 2-4 themes labeled for the user (e.g. "For your love of culture")
-7. 3-5 vibe tags that capture the city's character relevant to this traveler
+7. 5 vibe tags specific enough to ONLY make sense for ${requestData.city}. Capture contrast where it genuinely exists. Avoid generic descriptors like 'cultural immersion', 'historical depth', 'relaxed pace' — these apply to dozens of cities. Each chip should make someone who has visited ${requestData.city} nod in recognition.
 8. A hero image search query for the city`;
 
     console.log("Sending prompt to AI gateway...");
