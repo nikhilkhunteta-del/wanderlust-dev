@@ -164,17 +164,18 @@ export const RefinementPanel = ({
       {highlightExperiences.length > 0 && (
         <div>
           <Label className="text-sm font-medium mb-3 block">Must-Do Experiences</Label>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
+          <div className="space-y-2.5 max-h-40 overflow-y-auto">
             {highlightExperiences.map((experience) => (
               <label
                 key={experience}
-                className="flex items-center gap-2 text-sm cursor-pointer"
+                className="flex items-start gap-2.5 text-sm cursor-pointer"
               >
                 <Checkbox
                   checked={settings.mustDoExperiences.includes(experience)}
                   onCheckedChange={() => toggleMustDo(experience)}
+                  className="mt-0.5 flex-shrink-0"
                 />
-                <span className="truncate">{experience}</span>
+                <span className="leading-snug">{experience}</span>
               </label>
             ))}
           </div>

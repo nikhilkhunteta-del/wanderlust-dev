@@ -36,9 +36,10 @@ interface ItineraryTabProps {
   city: CityRecommendation;
   profile: TravelProfile;
   highlights: CityHighlights | null;
+  onSwitchTab?: (tab: string) => void;
 }
 
-export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) => {
+export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: ItineraryTabProps) => {
   const queryClient = useQueryClient();
   const dayRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
@@ -364,6 +365,8 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
             <JourneyCompletion
               cityName={city.city}
               tripDuration={profile.tripDuration}
+              originCity={profile.departureCity}
+              onSwitchTab={onSwitchTab}
               onShare={() => {
                 const shareBtn = document.querySelector('[data-share-trigger]') as HTMLButtonElement;
                 shareBtn?.click();
