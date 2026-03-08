@@ -7,7 +7,7 @@ import { WaterFoodSection } from "./WaterFoodSection";
 import { MedicalFacilitiesSection } from "./MedicalFacilitiesSection";
 import { SeasonalHealthSection } from "./SeasonalHealthSection";
 import { PackingSuggestionsSection } from "./PackingSuggestionsSection";
-import { Loader2, HeartPulse } from "lucide-react";
+import { Loader2, HeartPulse, AlertTriangle } from "lucide-react";
 
 interface HealthNoticesTabProps {
   city: string;
@@ -53,6 +53,16 @@ export const HealthNoticesTab = ({
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 space-y-10">
+      {/* High risk banner */}
+      {healthData.healthRiskLevel === "high" && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-foreground">
+            This destination has specific health considerations — read before you go
+          </p>
+        </div>
+      )}
+
       {/* Section 1: Health Summary */}
       <HealthSummarySection
         summary={healthData.healthSummary}
