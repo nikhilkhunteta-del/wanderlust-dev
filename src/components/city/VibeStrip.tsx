@@ -8,7 +8,8 @@ export const VibeStrip = ({ tags }: VibeStripProps) => {
       {tags.map((tag) => (
         <span
           key={tag}
-          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium"
+          className="px-4 py-2 rounded-[20px] text-[13px] font-medium"
+          style={{ background: '#F3F4F6', color: '#374151' }}
         >
           {tag}
         </span>
