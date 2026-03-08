@@ -69,8 +69,8 @@ function buildSearchQuery(req: ResolveImageRequest): string {
     parts.push(req.city);
   } else if (req.type === 'city_hero') {
     parts.push(req.city);
+    parts.push('iconic landmark skyline');
     parts.push(req.country);
-    parts.push('cityscape landmark');
   } else if (req.type === 'neighborhood') {
     parts.push(req.city);
     parts.push('neighborhood street');
@@ -83,6 +83,29 @@ function buildSearchQuery(req: ResolveImageRequest): string {
   }
   
   return parts.join(' ');
+}
+
+// Build a monument-focused fallback query for city heroes
+function buildHeroFallbackQuery(city: string, country: string): string {
+  return `${city} ${country} famous monument architecture`;
+}
+
+// Keywords that indicate chaotic/undesirable street-level imagery
+const CHAOTIC_IMAGE_KEYWORDS = [
+  'wire', 'wires', 'cable', 'cables', 'traffic', 'congestion',
+  'crowd', 'crowded', 'rickshaw', 'tuk-tuk', 'auto-rickshaw',
+  'street market chaos', 'slum', 'construction site', 'pollution',
+];
+
+// Check if an Unsplash/Pexels photo description or tags suggest chaotic imagery
+function isChaoticImage(photo: any): boolean {
+  const description = (
+    (photo.description || '') +
+    ' ' + (photo.alt_description || '') +
+    ' ' + ((photo.tags || []).map((t: any) => t.title || t).join(' '))
+  ).toLowerCase();
+  
+  return CHAOTIC_IMAGE_KEYWORDS.some(keyword => description.includes(keyword));
 }
 
 // Known landmark name variations for better Wikimedia searches
