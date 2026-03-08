@@ -50,6 +50,9 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
   const [isMultiCityActive, setIsMultiCityActive] = useState(false);
   const [multiCityRoute, setMultiCityRoute] = useState<MultiCityRoute | null>(null);
   const [lockedActivities, setLockedActivities] = useState<Set<string>>(new Set());
+  const [customTripDuration, setCustomTripDuration] = useState<number | null>(null);
+
+  const effectiveTripDuration = customTripDuration ?? profile.tripDuration;
 
   const interests = useMemo(
     () =>
@@ -77,13 +80,13 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
     () => ({
       city: city.city,
       country: city.country,
-      tripDuration: profile.tripDuration,
+      tripDuration: effectiveTripDuration,
       travelMonth: profile.travelMonth,
       userInterests: interests,
       adventureTypes: profile.adventureTypes,
       settings,
     }),
-    [city.city, city.country, profile.tripDuration, profile.travelMonth, interests, profile.adventureTypes, settings]
+    [city.city, city.country, effectiveTripDuration, profile.travelMonth, interests, profile.adventureTypes, settings]
   );
 
   const { data: itinerary, isLoading, error, refetch } = useCityItinerary(itineraryRequest);
@@ -271,6 +274,8 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
                 isUpdating={isLoading}
                 interests={interests}
                 highlightExperiences={highlightExperiences}
+                tripDuration={effectiveTripDuration}
+                onTripDurationChange={(d) => { setCustomTripDuration(d); }}
               />
             </div>
           )}
@@ -445,6 +450,8 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
                 isUpdating={isLoading}
                 interests={interests}
                 highlightExperiences={highlightExperiences}
+                tripDuration={effectiveTripDuration}
+                onTripDurationChange={(d) => { setCustomTripDuration(d); }}
               />
             </div>
           </div>
