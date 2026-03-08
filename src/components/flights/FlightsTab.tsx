@@ -308,6 +308,16 @@ export const FlightsTab = ({
         <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
 
         <OneWayVsRoundTrip data={data} sym={sym} />
+
+        {/* Visa status callout */}
+        <div className="my-10">
+          <VisaStatusCallout
+            city={destinationCity}
+            country={destinationCountry}
+            travelMonth={travelMonth}
+            onSwitchTab={onSwitchTab}
+          />
+        </div>
       </div>
 
       {/* Section 6: Book Your Flights CTA — dark warm background */}
