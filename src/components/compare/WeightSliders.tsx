@@ -81,7 +81,7 @@ function distributeWeights(
   return result;
 }
 
-export const WeightSliders = ({ weights, onChange, onReset, ranked, onWeightChanged }: WeightSlidersProps) => {
+export const WeightSliders = ({ weights, onChange, onReset, ranked, originalCities, onWeightChanged }: WeightSlidersProps) => {
   const [open, setOpen] = useState(false);
   const [prevRankedOrder, setPrevRankedOrder] = useState<string[]>([]);
   const total = DIMS.reduce((sum, d) => sum + weights[d], 0);
