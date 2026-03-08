@@ -115,7 +115,7 @@ const CityDetail = () => {
   const showHealthTab = healthRiskLevel === null || healthRiskLevel !== "low";
   // Tab prefetching
   // Build itinerary request for prefetching
-  const interests = profile ? Object.entries(profile.interestScores)
+  const interests = profile ? Object.entries(profile.interestScores as Record<string, number>)
     .filter(([_, score]) => score > 0)
     .map(([interest]) => interest) : [];
 
