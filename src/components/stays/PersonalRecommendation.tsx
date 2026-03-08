@@ -1,3 +1,5 @@
+import { stripMarkdown } from "@/lib/stripMarkdown";
+
 interface PersonalRecommendationProps {
   recommendation: string;
 }
@@ -8,7 +10,7 @@ export const PersonalRecommendation = ({ recommendation }: PersonalRecommendatio
       className="rounded-lg p-4 border-l-[3px]"
       style={{ backgroundColor: "#FEF3C7", borderLeftColor: "#D97706" }}
     >
-      <p className="text-sm text-foreground leading-relaxed">{recommendation}</p>
+      <p className="text-sm text-foreground leading-relaxed">{stripMarkdown(recommendation)}</p>
     </div>
   );
 };

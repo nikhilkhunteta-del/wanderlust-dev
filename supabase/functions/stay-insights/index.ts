@@ -156,6 +156,8 @@ Provide a JSON response with this exact structure:
 Important guidelines:
 - Prices should reflect typical rates for ${monthName} (consider seasonality)
 - ${currencyInstruction}
+- When mentioning any prices or monetary amounts in descriptions, tips, insights, or the overview, always use currency symbols (£, $, €, ₹) not ISO codes (GBP, USD, INR).
+${travellerCurrency && travellerCurrency !== localCurrency ? `- CRITICAL: When the traveller's currency (${travellerCurrency}) differs from local currency (${localCurrency}), always show the traveller's currency first with the local currency in brackets. Example: "£18–45/night (approx. ₹2,000–5,000)". Never show only local currency figures.` : ""}
 - Be specific to ${city}'s actual neighbourhoods and accommodation scene
 - Neighbourhoods should be real, well-known areas
 - Keep descriptions concise and informative
