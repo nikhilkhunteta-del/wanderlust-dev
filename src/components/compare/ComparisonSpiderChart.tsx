@@ -49,11 +49,12 @@ export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartPr
     onAxisClick?.(dim, slug);
   };
 
-  // Size constants
+  // Size constants — 24px label padding from polygon edge
   const size = 520;
   const cx = size / 2;
   const cy = size / 2;
-  const outerRadius = 180;
+  const outerRadius = 170; // slightly smaller to give more label room
+  const labelPad = 24;
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -72,13 +73,17 @@ export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartPr
             dataKey="dimension"
             tick={({ x, y, payload, index }: any) => {
               const dim = DIMENSIONS[index];
-              // Push labels outward by 16px from polygon edge
+              // Push labels outward by labelPad from polygon edge
               const dx = x - cx;
               const dy = y - cy;
               const dist = Math.sqrt(dx * dx + dy * dy);
-              const pad = 16;
-              const nx = x + (dx / dist) * pad;
-              const ny = y + (dy / dist) * pad;
+              const nx = x + (dx / dist) * labelPad;
+              const ny = y + (dy / dist) * labelPad;
+
+              // Determine text-anchor based on position
+              const isLeft = nx < cx - 20;
+              const isRight = nx > cx + 20;
+              const anchor = isLeft ? "end" : isRight ? "start" : "middle";
 
               // Show score label for hovered city
               const scoreLabel =
@@ -90,7 +95,7 @@ export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartPr
                 <text
                   x={nx}
                   y={ny}
-                  textAnchor="middle"
+                  textAnchor={anchor}
                   dominantBaseline="central"
                   className="text-xs fill-muted-foreground cursor-pointer hover:fill-foreground transition-colors"
                   onClick={() => handleAxisClick(dim)}
