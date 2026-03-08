@@ -224,7 +224,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Creating your {profile.tripDuration}-day itinerary...
+            Creating your {effectiveTripDuration}-day itinerary...
           </p>
         </div>
       </div>
@@ -264,7 +264,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <ShareMenu itinerary={itinerary} cityName={city.city} tripDuration={profile.tripDuration} />
+          <ShareMenu itinerary={itinerary} cityName={city.city} tripDuration={effectiveTripDuration} />
           {!isMultiCityMode && (
             <div className="lg:hidden">
               <RefinementPanel
