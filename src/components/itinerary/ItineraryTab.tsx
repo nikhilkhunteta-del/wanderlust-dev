@@ -7,6 +7,7 @@ import {
   CityItinerary,
   ItinerarySettings,
   ItineraryDay,
+  Activity,
   DayTrip,
   ItineraryRequest,
   DEFAULT_ITINERARY_SETTINGS,
