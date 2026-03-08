@@ -1,12 +1,14 @@
 export interface TravelPreferences {
   interests: string[];
   adventureExperiences: string[];
+  foodDepth: string;
   departureCity: string;
   travelMonth: string;
-  continentPreference: string[];
   weatherPreference: number;
-  tripDuration: number;
   travelCompanions: string;
+  tripDuration: number;
+  budgetLevel: string;
+  noveltyPreference: string;
   travelPace: number;
 }
 
@@ -23,12 +25,82 @@ export interface QuestionConfig {
     labels: string[];
     unit?: string;
     emotionalLabels?: { range: [number, number]; label: string }[];
+    tickMarks?: { value: number; label: string }[];
   };
   placeholder?: string;
   defaultValue: string | string[] | number;
   grouped?: boolean;
 }
 
+// Adventure experience category mapping from Q1 interests
+const ADVENTURE_CATEGORY_MAP: Record<string, string[] | null> = {
+  nature: ['Water Adventures', 'Mountain Adventures', 'Nature & Wildlife', 'Sky Adventures'],
+  beach: ['Water Adventures'],
+  culture: ['Scenic & Cultural'],
+  food: null,
+  nightlife: null,
+  shopping: null,
+  photography: ['Scenic & Cultural', 'Nature & Wildlife'],
+  wellness: null,
+};
+
+export function getRelevantAdventureCategories(q1Selections: string[]): string[] | null {
+  const relevant = new Set<string>();
+  for (const interest of q1Selections) {
+    const cats = ADVENTURE_CATEGORY_MAP[interest];
+    if (cats) cats.forEach((c) => relevant.add(c));
+  }
+  return relevant.size > 0 ? Array.from(relevant) : null;
+}
+
+export function shouldShowFoodQuestion(q1Selections: string[]): boolean {
+  const categories = getRelevantAdventureCategories(q1Selections);
+  return categories === null && q1Selections.includes('food');
+}
+
+// All adventure experience options
+export const ADVENTURE_OPTIONS: { value: string; label: string; icon?: string; group?: string }[] = [
+  { value: 'scuba-diving', label: 'Scuba Diving', icon: '🤿', group: 'Water Adventures' },
+  { value: 'snorkelling', label: 'Snorkelling', icon: '🐠', group: 'Water Adventures' },
+  { value: 'surfing', label: 'Surfing', icon: '🏄', group: 'Water Adventures' },
+  { value: 'kayaking', label: 'Kayaking', icon: '🛶', group: 'Water Adventures' },
+  { value: 'rafting', label: 'River Rafting', icon: '🌊', group: 'Water Adventures' },
+  { value: 'hiking', label: 'Hiking & Trekking', icon: '🥾', group: 'Mountain Adventures' },
+  { value: 'skiing', label: 'Skiing', icon: '⛷️', group: 'Mountain Adventures' },
+  { value: 'climbing', label: 'Rock Climbing', icon: '🧗', group: 'Mountain Adventures' },
+  { value: 'camping', label: 'Camping', icon: '🏕️', group: 'Mountain Adventures' },
+  { value: 'paragliding', label: 'Paragliding', icon: '🪂', group: 'Sky Adventures' },
+  { value: 'skydiving', label: 'Sky Diving', icon: '🪂', group: 'Sky Adventures' },
+  { value: 'bungee', label: 'Bungee Jumping', icon: '🤸', group: 'Sky Adventures' },
+  { value: 'hot-air-balloon', label: 'Hot Air Balloon', icon: '🎈', group: 'Sky Adventures' },
+  { value: 'safari', label: 'Safari & Wildlife', icon: '🦁', group: 'Nature & Wildlife' },
+  { value: 'northern-lights', label: 'Northern Lights', icon: '🌌', group: 'Nature & Wildlife' },
+  { value: 'desert', label: 'Desert Experience', icon: '🏜️', group: 'Nature & Wildlife' },
+  { value: 'reindeer-sledging', label: 'Reindeer Sledging', icon: '🦌', group: 'Nature & Wildlife' },
+  { value: 'scenic-train', label: 'Scenic Train Ride', icon: '🚂', group: 'Scenic & Cultural' },
+  { value: 'unesco', label: 'UNESCO Heritage Sites', icon: '🏛️', group: 'Scenic & Cultural' },
+  { value: 'museums', label: 'Museums', icon: '🖼️', group: 'Scenic & Cultural' },
+  { value: 'cycling', label: 'Cycling Tours', icon: '🚴', group: 'Scenic & Cultural' },
+  { value: 'all-inclusive', label: 'All Inclusive Resort', icon: '🏖️', group: 'Scenic & Cultural' },
+  { value: 'none', label: 'Keep it Relaxed', icon: '😌' },
+];
+
+export const FOOD_DEPTH_QUESTION: QuestionConfig = {
+  id: 'foodDepth',
+  questionText: 'What kind of food experiences?',
+  subtitle: "Let's match you with the perfect culinary destinations.",
+  inputType: 'single-select',
+  options: [
+    { value: 'street-food', label: 'Street food & markets', icon: '🥘' },
+    { value: 'cooking-classes', label: 'Cooking classes & workshops', icon: '👨‍🍳' },
+    { value: 'fine-dining', label: 'Fine dining & wine', icon: '🍷' },
+    { value: 'local-hidden', label: 'Local hidden spots', icon: '🗺️' },
+    { value: 'all-food', label: 'All of the above', icon: '🍽️' },
+  ],
+  defaultValue: '',
+};
+
+// Base questions (excluding dynamic Q2 and removed regions)
 export const QUESTIONS: QuestionConfig[] = [
   {
     id: 'interests',
@@ -47,55 +119,7 @@ export const QUESTIONS: QuestionConfig[] = [
     ],
     defaultValue: [],
   },
-  {
-    id: 'adventureExperiences',
-    questionText: 'Which experiences call to you?',
-    subtitle: "Pick the adventures that make your heart race - or none at all.",
-    inputType: 'multi-select',
-    grouped: true,
-    options: [
-      { value: 'scuba-diving', label: 'Scuba Diving', icon: '🤿', group: 'Water Adventures' },
-      { value: 'snorkelling', label: 'Snorkelling', icon: '🐠', group: 'Water Adventures' },
-      { value: 'surfing', label: 'Surfing', icon: '🏄', group: 'Water Adventures' },
-      { value: 'kayaking', label: 'Kayaking', icon: '🛶', group: 'Water Adventures' },
-      { value: 'rafting', label: 'River Rafting', icon: '🌊', group: 'Water Adventures' },
-      { value: 'hiking', label: 'Hiking & Trekking', icon: '🥾', group: 'Mountain Adventures' },
-      { value: 'skiing', label: 'Skiing', icon: '⛷️', group: 'Mountain Adventures' },
-      { value: 'climbing', label: 'Rock Climbing', icon: '🧗', group: 'Mountain Adventures' },
-      { value: 'camping', label: 'Camping', icon: '🏕️', group: 'Mountain Adventures' },
-      { value: 'paragliding', label: 'Paragliding', icon: '🪂', group: 'Sky Adventures' },
-      { value: 'skydiving', label: 'Sky Diving', icon: '🪂', group: 'Sky Adventures' },
-      { value: 'bungee', label: 'Bungee Jumping', icon: '🤸', group: 'Sky Adventures' },
-      { value: 'hot-air-balloon', label: 'Hot Air Balloon', icon: '🎈', group: 'Sky Adventures' },
-      { value: 'safari', label: 'Safari & Wildlife', icon: '🦁', group: 'Nature & Wildlife' },
-      { value: 'northern-lights', label: 'Northern Lights', icon: '🌌', group: 'Nature & Wildlife' },
-      { value: 'desert', label: 'Desert Experience', icon: '🏜️', group: 'Nature & Wildlife' },
-      { value: 'reindeer-sledging', label: 'Reindeer Sledging', icon: '🦌', group: 'Nature & Wildlife' },
-      { value: 'scenic-train', label: 'Scenic Train Ride', icon: '🚂', group: 'Scenic & Cultural' },
-      { value: 'unesco', label: 'UNESCO Heritage Sites', icon: '🏛️', group: 'Scenic & Cultural' },
-      { value: 'museums', label: 'Museums', icon: '🖼️', group: 'Scenic & Cultural' },
-      { value: 'cycling', label: 'Cycling Tours', icon: '🚴', group: 'Scenic & Cultural' },
-      { value: 'all-inclusive', label: 'All Inclusive Resort', icon: '🏖️', group: 'Scenic & Cultural' },
-      { value: 'none', label: 'Keep it Relaxed', icon: '😌' },
-    ],
-    defaultValue: [],
-  },
-  {
-    id: 'continentPreference',
-    questionText: 'Which regions are you drawn to?',
-    subtitle: "Dream wide - we'll find the perfect match within your chosen horizons.",
-    inputType: 'multi-select',
-    options: [
-      { value: 'europe', label: 'Europe', icon: '🏰' },
-      { value: 'asia', label: 'Asia', icon: '🏯' },
-      { value: 'north-america', label: 'North America', icon: '🗽' },
-      { value: 'south-america', label: 'South America', icon: '🌄' },
-      { value: 'africa', label: 'Africa', icon: '🌍' },
-      { value: 'oceania', label: 'Oceania', icon: '🦘' },
-      { value: 'anywhere', label: 'Surprise Me!', icon: '🌎' },
-    ],
-    defaultValue: [],
-  },
+  // Q2 (adventureExperiences or foodDepth) is inserted dynamically
   {
     id: 'departureCity',
     questionText: 'Where will your journey begin?',
@@ -149,8 +173,17 @@ export const QUESTIONS: QuestionConfig[] = [
       min: 3,
       max: 30,
       step: 1,
-      labels: ['Weekend', '1 Week', '2 Weeks', '3 Weeks', 'Month'],
+      labels: ['Weekend', 'Month'],
       unit: 'days',
+      tickMarks: [
+        { value: 3, label: '3d' },
+        { value: 5, label: '5d' },
+        { value: 7, label: '7d' },
+        { value: 10, label: '10d' },
+        { value: 14, label: '14d' },
+        { value: 21, label: '21d' },
+        { value: 30, label: '30d' },
+      ],
       emotionalLabels: [
         { range: [3, 4], label: 'A quick escape' },
         { range: [5, 7], label: 'A refreshing break' },
@@ -170,7 +203,7 @@ export const QUESTIONS: QuestionConfig[] = [
       min: 0,
       max: 100,
       step: 25,
-      labels: ['Cold & Snowy', 'Cool & Mild', 'Warm & Pleasant', 'Hot & Tropical'],
+      labels: ['Cold & Snowy', 'Hot & Tropical'],
       emotionalLabels: [
         { range: [0, 0], label: 'Crisp mountain air and cozy firesides' },
         { range: [25, 25], label: 'Fresh breezes and gentle sunshine' },
@@ -182,6 +215,32 @@ export const QUESTIONS: QuestionConfig[] = [
     defaultValue: 50,
   },
   {
+    id: 'budgetLevel',
+    questionText: "What's your daily travel budget?",
+    subtitle: 'Per person, excluding flights — helps us match accommodation and experiences.',
+    inputType: 'single-select',
+    options: [
+      { value: 'budget', label: 'Budget explorer', icon: '💰' },
+      { value: 'mid', label: 'Independent traveller', icon: '🎒' },
+      { value: 'comfortable', label: 'Comfortable explorer', icon: '✈️' },
+      { value: 'premium', label: 'Premium experience', icon: '⭐' },
+    ],
+    defaultValue: '',
+  },
+  {
+    id: 'noveltyPreference',
+    questionText: 'How do you like to discover?',
+    subtitle: 'Helps us choose between familiar favourites and hidden gems.',
+    inputType: 'single-select',
+    options: [
+      { value: 'familiar', label: 'Familiar & comfortable', icon: '🏠' },
+      { value: 'mix', label: 'Mix it up', icon: '🗺️' },
+      { value: 'off-beaten-path', label: 'Off the beaten path', icon: '🌍' },
+      { value: 'surprise', label: 'Surprise me completely', icon: '🎲' },
+    ],
+    defaultValue: '',
+  },
+  {
     id: 'travelPace',
     questionText: 'How do you like to explore?',
     subtitle: "There's no wrong answer - only your rhythm.",
@@ -190,7 +249,7 @@ export const QUESTIONS: QuestionConfig[] = [
       min: 0,
       max: 100,
       step: 25,
-      labels: ['Slow & Relaxed', 'Balanced', 'Active & Packed'],
+      labels: ['Slow & Relaxed', 'Active & Packed'],
       emotionalLabels: [
         { range: [0, 0], label: 'Linger over coffee, wander without a plan' },
         { range: [25, 25], label: 'A gentle mix of discovery and downtime' },
@@ -202,3 +261,37 @@ export const QUESTIONS: QuestionConfig[] = [
     defaultValue: 50,
   },
 ];
+
+/**
+ * Build the dynamic question list based on Q1 selections.
+ * Inserts adventure Q2, food Q2, or skips Q2 entirely.
+ */
+export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
+  const baseQuestions = [...QUESTIONS];
+  const categories = getRelevantAdventureCategories(interests);
+  const showFood = shouldShowFoodQuestion(interests);
+
+  if (categories) {
+    // Filter adventure options to only relevant categories + "Keep it Relaxed"
+    const filteredOptions = ADVENTURE_OPTIONS.filter(
+      (opt) => !opt.group || categories.includes(opt.group)
+    );
+    const adventureQ: QuestionConfig = {
+      id: 'adventureExperiences',
+      questionText: 'Which experiences call to you?',
+      subtitle: "Pick the adventures that make your heart race - or none at all.",
+      inputType: 'multi-select',
+      grouped: true,
+      options: filteredOptions,
+      defaultValue: [],
+    };
+    // Insert after Q1 (interests)
+    baseQuestions.splice(1, 0, adventureQ);
+  } else if (showFood) {
+    // Replace Q2 with food depth question
+    baseQuestions.splice(1, 0, FOOD_DEPTH_QUESTION);
+  }
+  // else: skip Q2 entirely
+
+  return baseQuestions;
+}

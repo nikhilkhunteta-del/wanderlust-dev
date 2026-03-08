@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/shared/Header";
@@ -11,24 +11,22 @@ import { MonthGridQuestion } from "@/components/questionnaire/MonthGridQuestion"
 import { SliderQuestion } from "@/components/questionnaire/SliderQuestion";
 import { QuestionCard } from "@/components/questionnaire/QuestionCard";
 import { ProgressIndicator } from "@/components/questionnaire/ProgressIndicator";
-import { QUESTIONS, TravelPreferences, QuestionConfig } from "@/types/questionnaire";
+import { TravelPreferences, buildDynamicQuestions } from "@/types/questionnaire";
 import { buildTravelProfile } from "@/lib/profileBuilder";
 import { CityRecommendation } from "@/types/recommendations";
 import { cn } from "@/lib/utils";
 
-const PLAN_QUESTIONS: QuestionConfig[] = QUESTIONS.filter(
-  (q) => q.id !== "continentPreference"
-);
-
 const initialPreferences: TravelPreferences = {
   interests: [],
   adventureExperiences: [],
+  foodDepth: '',
   departureCity: "",
   travelMonth: "",
-  continentPreference: ["anywhere"],
   weatherPreference: 50,
   tripDuration: 7,
   travelCompanions: "",
+  budgetLevel: '',
+  noveltyPreference: '',
   travelPace: 50,
 };
 
@@ -41,8 +39,14 @@ const PlanCity = () => {
   const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
 
-  const currentQuestion = PLAN_QUESTIONS[currentStep];
-  const isLastStep = currentStep === PLAN_QUESTIONS.length - 1;
+  // Dynamic questions based on Q1 interests (no regions question for PlanCity)
+  const allQuestions = useMemo(
+    () => buildDynamicQuestions(preferences.interests),
+    [preferences.interests]
+  );
+
+  const currentQuestion = allQuestions[currentStep];
+  const isLastStep = currentStep === allQuestions.length - 1;
   const isFirstStep = currentStep === 0;
 
   const handleCitySelected = useCallback(() => {
@@ -71,11 +75,7 @@ const PlanCity = () => {
 
   const handleNext = () => {
     if (isLastStep) {
-      const fullPrefs: TravelPreferences = {
-        ...preferences,
-        continentPreference: ["anywhere"],
-      };
-      const profile = buildTravelProfile(fullPrefs);
+      const profile = buildTravelProfile(preferences);
 
       const cityRec: CityRecommendation = {
         city: city,
@@ -90,7 +90,7 @@ const PlanCity = () => {
       });
     } else {
       setDirection(1);
-      setCurrentStep((prev) => prev + 1);
+      setCurrentStep((prev) => Math.min(prev + 1, allQuestions.length - 1));
     }
   };
 
@@ -99,7 +99,7 @@ const PlanCity = () => {
       setPhase("city-select");
     } else {
       setDirection(-1);
-      setCurrentStep((prev) => prev - 1);
+      setCurrentStep((prev) => Math.max(prev - 1, 0));
     }
   };
 
@@ -223,22 +223,22 @@ const PlanCity = () => {
       />
 
       <div className="px-4 pb-8">
-        <ProgressIndicator currentStep={currentStep} totalSteps={PLAN_QUESTIONS.length} />
+        <ProgressIndicator currentStep={currentStep} totalSteps={allQuestions.length} />
       </div>
 
       <main className="flex-1 flex items-center justify-center px-4 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
-            key={currentStep}
+            key={`${currentStep}-${currentQuestion.id}`}
             custom={direction}
             initial={{ opacity: 0, y: direction > 0 ? 12 : -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: direction > 0 ? -12 : 12 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
           >
             <QuestionCard
               questionNumber={currentStep + 1}
-              totalQuestions={PLAN_QUESTIONS.length}
+              totalQuestions={allQuestions.length}
               questionText={currentQuestion.questionText}
               subtitle={currentQuestion.subtitle}
             >

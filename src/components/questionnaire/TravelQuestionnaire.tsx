@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -11,19 +11,21 @@ import { SingleSelectQuestion } from './SingleSelectQuestion';
 import { MonthGridQuestion } from './MonthGridQuestion';
 import { SliderQuestion } from './SliderQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
-import { QUESTIONS, TravelPreferences } from '@/types/questionnaire';
+import { TravelPreferences, buildDynamicQuestions } from '@/types/questionnaire';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
 const initialPreferences: TravelPreferences = {
   interests: [],
   adventureExperiences: [],
+  foodDepth: '',
   departureCity: '',
   travelMonth: '',
-  continentPreference: [],
   weatherPreference: 50,
   tripDuration: 7,
   travelCompanions: '',
+  budgetLevel: '',
+  noveltyPreference: '',
   travelPace: 50,
 };
 
@@ -33,8 +35,14 @@ export const TravelQuestionnaire = () => {
   const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
 
-  const currentQuestion = QUESTIONS[currentStep];
-  const isLastStep = currentStep === QUESTIONS.length - 1;
+  // Build dynamic question list based on Q1 selections
+  const questions = useMemo(
+    () => buildDynamicQuestions(preferences.interests),
+    [preferences.interests]
+  );
+
+  const currentQuestion = questions[currentStep];
+  const isLastStep = currentStep === questions.length - 1;
   const isFirstStep = currentStep === 0;
 
   const updatePreference = (value: string | string[] | number) => {
@@ -58,14 +66,17 @@ export const TravelQuestionnaire = () => {
       navigate('/results', { state: { profile } });
     } else {
       setDirection(1);
-      setCurrentStep((prev) => prev + 1);
+      setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
     }
   };
 
   const handleBack = () => {
     setDirection(-1);
-    setCurrentStep((prev) => prev - 1);
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
+
+  // When Q1 changes and we're on step 0, reset step to stay at 0
+  // The dynamic questions will rebuild via useMemo
 
   const renderQuestion = () => {
     const value = preferences[currentQuestion.id];
@@ -122,16 +133,16 @@ export const TravelQuestionnaire = () => {
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
 
-      {/* Progress */}
+      {/* Progress — dynamic segment count */}
       <div className="px-4 pb-8">
-        <ProgressIndicator currentStep={currentStep} totalSteps={QUESTIONS.length} />
+        <ProgressIndicator currentStep={currentStep} totalSteps={questions.length} />
       </div>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
-            key={currentStep}
+            key={`${currentStep}-${currentQuestion.id}`}
             custom={direction}
             initial={{ opacity: 0, y: direction > 0 ? 12 : -12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -140,7 +151,7 @@ export const TravelQuestionnaire = () => {
           >
             <QuestionCard
               questionNumber={currentStep + 1}
-              totalQuestions={QUESTIONS.length}
+              totalQuestions={questions.length}
               questionText={currentQuestion.questionText}
               subtitle={currentQuestion.subtitle}
             >
