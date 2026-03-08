@@ -365,6 +365,8 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
             <JourneyCompletion
               cityName={city.city}
               tripDuration={profile.tripDuration}
+              originCity={profile.departureCity}
+              onSwitchTab={onSwitchTab}
               onShare={() => {
                 const shareBtn = document.querySelector('[data-share-trigger]') as HTMLButtonElement;
                 shareBtn?.click();
