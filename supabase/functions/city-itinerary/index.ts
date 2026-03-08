@@ -200,6 +200,7 @@ Respond with ONLY valid JSON in this exact format:
       "estimatedWalkingKm": 5.5,
       "estimatedTransitMinutes": 20,
       "paceLabel": "leisurely|moderate|active",
+      "moodLine": "Three evocative words separated by · describing the day's feel, e.g. Historic · Immersive · Active",
       "slots": [
         {
           "period": "morning",
