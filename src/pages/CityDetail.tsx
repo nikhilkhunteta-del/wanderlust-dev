@@ -179,10 +179,10 @@ const CityDetail = () => {
                 Why This City
               </TabsTrigger>
               <TabsTrigger
-                value="itinerary"
+                value="weather"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Your Days
+                How It Feels
               </TabsTrigger>
               <TabsTrigger
                 value="seasonal"
@@ -191,10 +191,10 @@ const CityDetail = () => {
                 While You're There
               </TabsTrigger>
               <TabsTrigger
-                value="weather"
+                value="itinerary"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                How It Feels
+                Your Days
               </TabsTrigger>
               <TabsTrigger
                 value="flights"

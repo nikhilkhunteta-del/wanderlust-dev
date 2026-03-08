@@ -17,9 +17,9 @@ import { ItineraryRequest } from "@/types/itinerary";
 // Tab order for adjacency calculation
 const TAB_ORDER = [
   "highlights",
-  "itinerary",
-  "seasonal",
   "weather",
+  "seasonal",
+  "itinerary",
   "flights",
   "stays",
   "ground",

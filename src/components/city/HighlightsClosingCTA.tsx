@@ -20,7 +20,7 @@ export const HighlightsClosingCTA = ({ city, travelMonth, onSwitchTab }: Highlig
           </h2>
           <p className="mt-1.5" style={{ fontSize: '14px', color: '#D6D3D1' }}>
             You've seen what {city} offers year-round.
-            {month ? ` Now see what makes ${month} the right time to go.` : " Now plan your days."}
+            {month ? ` Now check if ${month} is the right time to go.` : " Now plan your days."}
           </p>
         </div>
 
@@ -28,11 +28,11 @@ export const HighlightsClosingCTA = ({ city, travelMonth, onSwitchTab }: Highlig
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-shrink-0">
           {month && (
             <button
-              onClick={() => onSwitchTab?.("seasonal")}
+              onClick={() => onSwitchTab?.("weather")}
               className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-medium text-sm transition-colors"
               style={{ background: '#EA580C', color: '#FFFFFF' }}
             >
-              What's special about {month} in {city}
+              Is {month} the right time?
               <ArrowRight className="w-4 h-4" />
             </button>
           )}
