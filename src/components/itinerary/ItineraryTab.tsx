@@ -330,26 +330,6 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
               </div>
             ))}
 
-            {/* Tips Section */}
-            {itinerary.tips && itinerary.tips.length > 0 && (
-              <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-xl p-5 md:p-6 border border-amber-500/20">
-                <h3 className="font-semibold flex items-center gap-2.5 mb-4 text-amber-700 dark:text-amber-400">
-                  <div className="p-1.5 rounded-lg bg-amber-500/10">
-                    <Lightbulb className="w-4 h-4" />
-                  </div>
-                  Local Tips & Insights
-                </h3>
-                <ul className="space-y-2.5">
-                  {itinerary.tips.map((tip, index) => (
-                    <li key={index} className="text-sm text-muted-foreground flex gap-3 items-start">
-                      <span className="text-amber-500 mt-1.5 text-xs">◆</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
             {/* Day Trips */}
             {itinerary.dayTrips && itinerary.dayTrips.length > 0 && (
               <DayTripSection
@@ -360,7 +340,24 @@ export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) =
 
             {/* Extension Suggestions */}
             {itinerary.extensionSuggestions && itinerary.extensionSuggestions.length > 0 && (
-              <ExtensionSection suggestions={itinerary.extensionSuggestions} />
+              <ExtensionSection
+                suggestions={itinerary.extensionSuggestions}
+                tripDuration={profile.tripDuration}
+                totalDays={itinerary.days.length}
+                onAddDay={(suggestion) => {
+                  const newDayNum = itinerary.days.length + 1;
+                  handleRefineDay(
+                    newDayNum,
+                    `Add a new Day ${newDayNum} based on: ${suggestion.title}. Include these highlights: ${suggestion.highlights.join(", ")}. ${suggestion.description}`
+                  );
+                }}
+                onSwapDay={(suggestion, dayNumber) => {
+                  handleRefineDay(
+                    dayNumber,
+                    `Replace this day entirely with: ${suggestion.title}. Include these highlights: ${suggestion.highlights.join(", ")}. ${suggestion.description}`
+                  );
+                }}
+              />
             )}
 
             {/* Journey Completion */}
