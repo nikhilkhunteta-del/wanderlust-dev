@@ -129,15 +129,7 @@ export const WeightSliders = ({ weights, onChange, onReset, ranked, originalCiti
             <span className="text-muted-foreground mr-1">Current ranking:</span>
             <AnimatePresence mode="popLayout">
               {ranked.slice(0, 3).map((r, i) => {
-                const cityIdx = ranked.length > 0
-                  ? [ranked[0], ranked[1], ranked[2]].findIndex(
-                      (_, j) => ranked[j]?.city.city === r.city.city
-                    )
-                  : i;
-                // Find the original color index
-                const originalIdx = ranked.indexOf(r);
-                // Find color by matching against the full cityScores
-                const colorIdx = i; // ranked is already sorted, but we need original index
+                const colorIdx = originalCities.findIndex((c) => c.city === r.city.city);
                 return (
                   <motion.span
                     key={r.city.city}
@@ -146,7 +138,7 @@ export const WeightSliders = ({ weights, onChange, onReset, ranked, originalCiti
                     className="inline-flex items-center gap-1"
                   >
                     <span>{MEDALS[i]}</span>
-                    <span className="font-medium" style={{ color: CITY_COLORS[findCityColorIndex(r, ranked)] }}>
+                    <span className="font-medium" style={{ color: CITY_COLORS[colorIdx >= 0 ? colorIdx : i] }}>
                       {r.city.city}
                     </span>
                     <span className="text-muted-foreground">({r.weightedTotal.toFixed(1)})</span>
