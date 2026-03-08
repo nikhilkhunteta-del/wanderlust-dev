@@ -711,7 +711,7 @@ async function tryWikimedia(query: string, entityName?: string, city?: string): 
 }
 
 // Try Unsplash API
-async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
+async function tryUnsplash(query: string, rejectChaotic = false): Promise<ResolvedImage | null> {
   const UNSPLASH_ACCESS_KEY = Deno.env.get("UNSPLASH_ACCESS_KEY");
   if (!UNSPLASH_ACCESS_KEY) {
     console.log("Unsplash API key not configured");
@@ -999,7 +999,8 @@ serve(async (req) => {
 
     // Build search query
     const searchQuery = buildSearchQuery(request);
-    console.log(`Searching for: ${searchQuery}`);
+    const isHero = request.type === 'city_hero';
+    console.log(`Searching for: ${searchQuery}${isHero ? ' (hero mode, chaotic rejection ON)' : ''}`);
 
     let image: ResolvedImage | null = null;
 
@@ -1009,16 +1010,26 @@ serve(async (req) => {
       image = await tryWikimedia(searchQuery, request.entityName, request.city);
     }
 
-    // Try Unsplash
+    // Try Unsplash (with chaotic rejection for heroes)
     if (!image) {
       console.log('Trying Unsplash...');
-      image = await tryUnsplash(searchQuery);
+      image = await tryUnsplash(searchQuery, isHero);
     }
 
     // Try Pexels
     if (!image) {
       console.log('Trying Pexels...');
       image = await tryPexels(searchQuery);
+    }
+
+    // Hero fallback: if still no image, try monument-focused query
+    if (!image && isHero) {
+      const fallbackQuery = buildHeroFallbackQuery(request.city, request.country);
+      console.log(`Hero fallback query: ${fallbackQuery}`);
+      image = await tryUnsplash(fallbackQuery, false);
+      if (!image) {
+        image = await tryPexels(fallbackQuery);
+      }
     }
 
     // Try local storage fallback
