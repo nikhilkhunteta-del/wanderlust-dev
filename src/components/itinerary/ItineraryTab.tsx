@@ -50,6 +50,9 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
   const [isMultiCityActive, setIsMultiCityActive] = useState(false);
   const [multiCityRoute, setMultiCityRoute] = useState<MultiCityRoute | null>(null);
   const [lockedActivities, setLockedActivities] = useState<Set<string>>(new Set());
+  const [customTripDuration, setCustomTripDuration] = useState<number | null>(null);
+
+  const effectiveTripDuration = customTripDuration ?? profile.tripDuration;
 
   const interests = useMemo(
     () =>
@@ -77,13 +80,13 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
     () => ({
       city: city.city,
       country: city.country,
-      tripDuration: profile.tripDuration,
+      tripDuration: effectiveTripDuration,
       travelMonth: profile.travelMonth,
       userInterests: interests,
       adventureTypes: profile.adventureTypes,
       settings,
     }),
-    [city.city, city.country, profile.tripDuration, profile.travelMonth, interests, profile.adventureTypes, settings]
+    [city.city, city.country, effectiveTripDuration, profile.travelMonth, interests, profile.adventureTypes, settings]
   );
 
   const { data: itinerary, isLoading, error, refetch } = useCityItinerary(itineraryRequest);
@@ -221,7 +224,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Creating your {profile.tripDuration}-day itinerary...
+            Creating your {effectiveTripDuration}-day itinerary...
           </p>
         </div>
       </div>
@@ -250,8 +253,8 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
         <div>
           <h2 className="text-2xl md:text-3xl font-display font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
             {isMultiCityMode
-              ? `Your ${profile.tripDuration}-Day Regional Journey`
-              : `Your ${profile.tripDuration}-Day Adventure`}
+              ? `Your ${effectiveTripDuration}-Day Regional Journey`
+              : `Your ${effectiveTripDuration}-Day Adventure`}
           </h2>
           <p className="text-muted-foreground mt-1.5 flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-primary/60" />
@@ -261,7 +264,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <ShareMenu itinerary={itinerary} cityName={city.city} tripDuration={profile.tripDuration} />
+          <ShareMenu itinerary={itinerary} cityName={city.city} tripDuration={effectiveTripDuration} />
           {!isMultiCityMode && (
             <div className="lg:hidden">
               <RefinementPanel
@@ -271,6 +274,8 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
                 isUpdating={isLoading}
                 interests={interests}
                 highlightExperiences={highlightExperiences}
+                tripDuration={effectiveTripDuration}
+                onTripDurationChange={(d) => { setCustomTripDuration(d); }}
               />
             </div>
           )}
@@ -445,6 +450,8 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
                 isUpdating={isLoading}
                 interests={interests}
                 highlightExperiences={highlightExperiences}
+                tripDuration={effectiveTripDuration}
+                onTripDurationChange={(d) => { setCustomTripDuration(d); }}
               />
             </div>
           </div>

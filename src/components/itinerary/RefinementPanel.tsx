@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
   ItinerarySettings,
   TripStyle,
@@ -6,10 +7,12 @@ import {
 } from "@/types/itinerary";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RefreshCw, Settings2 } from "lucide-react";
+import {
+  RefreshCw, Settings2, Minus, Plus,
+  Landmark, Utensils, Trees, ShoppingBag, Sparkles,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +29,8 @@ interface RefinementPanelProps {
   isUpdating: boolean;
   interests: string[];
   highlightExperiences: string[];
+  tripDuration: number;
+  onTripDurationChange?: (days: number) => void;
 }
 
 const tripStyleOptions: { value: TripStyle; label: string; description: string }[] = [
@@ -40,12 +45,33 @@ const budgetOptions: { value: BudgetLevel; label: string }[] = [
   { value: "premium", label: "Premium" },
 ];
 
-const diningOptions: { value: DiningPreference; label: string }[] = [
+type DiningChoice = "local-street" | "casual" | "fine-dining";
+
+const diningChoices: { value: DiningChoice; label: string }[] = [
   { value: "local-street", label: "Street Food" },
   { value: "casual", label: "Casual" },
   { value: "fine-dining", label: "Fine Dining" },
-  { value: "mixed", label: "Mixed" },
 ];
+
+const focusOptions: { value: string; label: string; icon: typeof Landmark }[] = [
+  { value: "culture", label: "Culture & history", icon: Landmark },
+  { value: "food", label: "Food & markets", icon: Utensils },
+  { value: "nature", label: "Nature & parks", icon: Trees },
+  { value: "shopping", label: "Shopping & craft", icon: ShoppingBag },
+  { value: "", label: "Balanced", icon: Sparkles },
+];
+
+const tripStyleLabel: Record<TripStyle, string> = {
+  relaxed: "Relaxed",
+  balanced: "Balanced",
+  "fast-paced": "Fast-paced",
+};
+
+const budgetLabel: Record<BudgetLevel, string> = {
+  value: "Value",
+  mid: "Mid-range",
+  premium: "Premium",
+};
 
 export const RefinementPanel = ({
   settings,
@@ -54,13 +80,47 @@ export const RefinementPanel = ({
   isUpdating,
   interests,
   highlightExperiences,
+  tripDuration,
+  onTripDurationChange,
 }: RefinementPanelProps) => {
+  // Multi-select dining state derived from settings
+  const [selectedDining, setSelectedDining] = useState<DiningChoice[]>(() => {
+    if (settings.diningPreference === "mixed") return [];
+    return [settings.diningPreference as DiningChoice].filter(Boolean);
+  });
+
   const updateSetting = <K extends keyof ItinerarySettings>(
     key: K,
     value: ItinerarySettings[K]
   ) => {
     onSettingsChange({ ...settings, [key]: value });
   };
+
+  const toggleDining = (choice: DiningChoice) => {
+    let updated: DiningChoice[];
+    if (selectedDining.includes(choice)) {
+      updated = selectedDining.filter((d) => d !== choice);
+    } else {
+      updated = [...selectedDining, choice];
+    }
+    setSelectedDining(updated);
+
+    // Map to DiningPreference for the AI
+    if (updated.length === 0) {
+      updateSetting("diningPreference", "mixed");
+    } else if (updated.length === 1) {
+      updateSetting("diningPreference", updated[0] as DiningPreference);
+    } else {
+      updateSetting("diningPreference", "mixed");
+    }
+  };
+
+  const diningDisplayLabel = useMemo(() => {
+    if (selectedDining.length === 0) return "Mixed";
+    return selectedDining
+      .map((d) => diningChoices.find((c) => c.value === d)?.label || d)
+      .join(" + ");
+  }, [selectedDining]);
 
   const toggleMustDo = (experience: string) => {
     const current = settings.mustDoExperiences;
@@ -70,11 +130,48 @@ export const RefinementPanel = ({
     updateSetting("mustDoExperiences", updated);
   };
 
-  const focusIndex = interests.indexOf(settings.focusInterest);
-  const sliderValue = focusIndex >= 0 ? focusIndex : 0;
+  const handleDurationChange = (delta: number) => {
+    const newDuration = tripDuration + delta;
+    if (newDuration < 2 || newDuration > 14) return;
+    const confirmed = window.confirm(
+      `Changing to ${newDuration} days will update your full itinerary — continue?`
+    );
+    if (confirmed) {
+      onTripDurationChange?.(newDuration);
+    }
+  };
+
+  // Settings summary
+  const summaryLine = `${tripStyleLabel[settings.tripStyle]} pace · ${budgetLabel[settings.budgetLevel]} budget · ${diningDisplayLabel} dining`;
 
   const panelContent = (
     <div className="space-y-6">
+      {/* Trip Duration */}
+      {onTripDurationChange && (
+        <div>
+          <Label className="text-sm font-medium mb-3 block">Trip duration</Label>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => handleDurationChange(-1)}
+              disabled={tripDuration <= 2}
+              className="w-8 h-8 rounded-lg border border-border hover:border-primary/50 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-sm font-semibold text-foreground min-w-[60px] text-center">
+              {tripDuration} days
+            </span>
+            <button
+              onClick={() => handleDurationChange(1)}
+              disabled={tripDuration >= 14}
+              className="w-8 h-8 rounded-lg border border-border hover:border-primary/50 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Trip Style */}
       <div>
         <Label className="text-sm font-medium mb-3 block">Trip Style</Label>
@@ -98,28 +195,6 @@ export const RefinementPanel = ({
         </div>
       </div>
 
-      {/* Focus Interest */}
-      {interests.length > 1 && (
-        <div>
-          <Label className="text-sm font-medium mb-3 block">
-            Emphasize: {settings.focusInterest || interests[0] || "All interests"}
-          </Label>
-          <Slider
-            value={[sliderValue]}
-            min={0}
-            max={interests.length - 1}
-            step={1}
-            onValueChange={([value]) => updateSetting("focusInterest", interests[value])}
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            {interests.slice(0, 3).map((interest) => (
-              <span key={interest} className="capitalize">{interest}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Budget Level */}
       <div>
         <Label className="text-sm font-medium mb-3 block">Budget Level</Label>
@@ -140,16 +215,19 @@ export const RefinementPanel = ({
         </div>
       </div>
 
-      {/* Dining Preference */}
+      {/* Dining Preference — multi-select */}
       <div>
-        <Label className="text-sm font-medium mb-3 block">Dining Style</Label>
-        <div className="grid grid-cols-2 gap-2">
-          {diningOptions.map((option) => (
+        <Label className="text-sm font-medium mb-1 block">Dining preference</Label>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          Select one or more — or leave as Mixed for a varied spread
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {diningChoices.map((option) => (
             <button
               key={option.value}
-              onClick={() => updateSetting("diningPreference", option.value)}
+              onClick={() => toggleDining(option.value)}
               className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
-                settings.diningPreference === option.value
+                selectedDining.includes(option.value)
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border hover:border-primary/50"
               }`}
@@ -158,13 +236,51 @@ export const RefinementPanel = ({
             </button>
           ))}
         </div>
+        {selectedDining.length === 0 && (
+          <div className="mt-2 text-center text-xs text-muted-foreground/60 italic">
+            Mixed — AI-curated variety
+          </div>
+        )}
       </div>
 
-      {/* Must-Do Experiences */}
+      {/* Settings Summary */}
+      <div className="rounded-lg px-3 py-2 text-center bg-muted/30">
+        <p className="text-xs text-muted-foreground italic">{summaryLine}</p>
+      </div>
+
+      {/* Itinerary Focus */}
+      <div>
+        <Label className="text-sm font-medium mb-3 block">Itinerary focus</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {focusOptions.map((option) => {
+            const Icon = option.icon;
+            const isActive = settings.focusInterest === option.value;
+            return (
+              <button
+                key={option.value}
+                onClick={() => updateSetting("focusInterest", option.value)}
+                className={`py-2 px-3 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${
+                  isActive
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border hover:border-primary/50"
+                } ${option.value === "" ? "col-span-2" : ""}`}
+              >
+                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Pin to your itinerary (Must-Do Experiences) */}
       {highlightExperiences.length > 0 && (
         <div>
-          <Label className="text-sm font-medium mb-3 block">Must-Do Experiences</Label>
-          <div className="space-y-2.5 max-h-40 overflow-y-auto">
+          <Label className="text-sm font-medium mb-1 block">Pin to your itinerary</Label>
+          <p className="text-[10px] text-muted-foreground mb-3">
+            Ticked experiences will always be included — regardless of other settings
+          </p>
+          <div className="space-y-2.5 max-h-48 overflow-y-auto">
             {highlightExperiences.map((experience) => (
               <label
                 key={experience}
@@ -175,7 +291,7 @@ export const RefinementPanel = ({
                   onCheckedChange={() => toggleMustDo(experience)}
                   className="mt-0.5 flex-shrink-0"
                 />
-                <span className="leading-snug">{experience}</span>
+                <span className="leading-snug line-clamp-2">{experience}</span>
               </label>
             ))}
           </div>
@@ -184,10 +300,10 @@ export const RefinementPanel = ({
 
       {/* Free Time Toggle */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex-1 mr-3">
           <Label className="text-sm font-medium">Include Free Time</Label>
-          <p className="text-xs text-muted-foreground">
-            Add unplanned exploration time
+          <p className="text-xs text-muted-foreground leading-snug">
+            Shortens some afternoon schedules — leaves room for wandering, rest, or spontaneous discovery
           </p>
         </div>
         <Switch
