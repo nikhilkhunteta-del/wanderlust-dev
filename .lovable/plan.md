@@ -1,33 +1,32 @@
 
 
-# Fix: Per-person pricing and one-way vs round-trip display
+# Cache the Itinerary Tab with React Query
 
-## Problems identified
+## Problem
+The Itinerary tab stores its data in local component state (`useState` + `useEffect`). When you navigate to another tab and back, React unmounts and remounts the component, losing all state and triggering a fresh API call. Every other tab already uses React Query, which keeps data in a shared cache that survives tab switches.
 
-1. **`passengers: 2` is hardcoded** in `FlightsTab.tsx` line 171. SerpAPI returns total prices for all passengers. The UI labels everything "per person" but shows the 2-person total.
+## Solution
+Migrate the Itinerary tab's data fetching to React Query, matching the pattern used by all other tabs.
 
-2. **The comparison logic is actually correct** — it independently fetches round-trip and two one-ways, then compares. But the raw prices displayed need to be divided by passenger count to match the "per person" labels.
+## Changes
 
-## Proposed fix
+### 1. Add `useCityItinerary` hook to `src/hooks/useCityData.ts`
+- Create a new hook wrapping `getCityItinerary` with React Query
+- Use a query key like `["city-itinerary", city, country, tripDuration, travelMonth, settings]`
+- Apply the same 5-minute stale time / 10-minute cache time as other tabs
 
-### Option A (Recommended): Set `passengers: 1` in the frontend
-- Change line 171 in `FlightsTab.tsx` from `passengers: 2` to `passengers: 1`
-- All SerpAPI calls will then return per-person prices natively
-- No division needed anywhere — all displayed prices are already per-person
-- The `savingPerPerson` calculation (line 918 of edge function) would just equal `saving` since passengers=1
+### 2. Refactor `src/components/itinerary/ItineraryTab.tsx`
+- Replace the local `useState` for itinerary/isLoading/error with the new `useCityItinerary` hook
+- Keep the local state for UI-only concerns (showMap, selectedMapDay, settings, multi-city toggle)
+- For day refinement (`handleRefineDay`), use React Query's `queryClient.setQueryData` to patch the cached itinerary in-place after a successful per-day regeneration, so the update is also cached
+- For full re-generation (when the user clicks "Update" in the refinement panel), call `refetch()` from the query result
+- Remove the `useEffect(() => fetchItinerary(), [])` call entirely
 
-### Option B: Keep passengers=2 but divide all displayed prices
-- Divide every price by passenger count before display
-- More complex, more places to miss
+### 3. Add itinerary prefetching to `src/hooks/useTabPrefetch.ts`
+- In the `"itinerary"` case, prefetch the itinerary query so data is warm when the user navigates to it from an adjacent tab
 
-### Changes for Option A
-
-**File: `src/components/flights/FlightsTab.tsx`**
-- Line 171: change `passengers: 2` to `passengers: 1`
-
-**File: `supabase/functions/fetch-flight-insights/index.ts`**  
-- Line 918: `savingPerPerson` division becomes redundant (dividing by 1), but harmless — no change needed
-- Line 937: The fallback `Math.round(feasibilityPricing.lowestPrice / passengers)` is also fine with passengers=1
-
-No other changes required. All prices from SerpAPI will be per-person, matching the UI labels.
+## What stays the same
+- All UI components (DayCard, RefinementPanel, etc.) remain unchanged
+- Day refinement and multi-city features work identically
+- Settings state stays local since it drives the query parameters
 

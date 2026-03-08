@@ -168,7 +168,7 @@ export const FlightsTab = ({
           travelMonth: monthName,
           travelYear: new Date().getFullYear().toString(),
           tripDuration,
-          passengers: 2,
+          passengers: 1,
           cabinClass: "economy",
           currency: "GBP",
         },
