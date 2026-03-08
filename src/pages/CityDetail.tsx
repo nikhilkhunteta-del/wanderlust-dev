@@ -53,9 +53,9 @@ const CityDetail = () => {
   const state = location.state as LocationState | undefined;
 
   // Derive city & profile from router state, or build fallbacks from URL param
-  const { city, profile } = useMemo(() => {
+  const { city, profile, allCities } = useMemo(() => {
     if (state?.city && state?.profile) {
-      return { city: state.city, profile: state.profile };
+      return { city: state.city, profile: state.profile, allCities: state.allCities ?? null };
     }
 
     // Fallback: parse city name from URL (supports "City" or "City, Country" via query param)
