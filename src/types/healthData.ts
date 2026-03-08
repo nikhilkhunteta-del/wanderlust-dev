@@ -13,6 +13,7 @@ export interface HealthNotice {
 }
 
 export interface HealthData {
+  healthRiskLevel: "low" | "moderate" | "high";
   healthSummary: string;
   hasActiveAlerts: boolean;
   activeNotices: HealthNotice[];
