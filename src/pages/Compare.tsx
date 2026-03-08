@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,7 @@ const Compare = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as CompareState | undefined;
+  const [spiderPulse, setSpiderPulse] = useState(false);
 
   useEffect(() => {
     if (!state?.cities || !state?.profile) {
@@ -46,6 +47,11 @@ const Compare = () => {
     isLoading,
     allLoaded,
   } = useComparisonData(cities, profile);
+
+  const handleWeightChanged = useCallback(() => {
+    setSpiderPulse(true);
+    setTimeout(() => setSpiderPulse(false), 300);
+  }, []);
 
   // Fetch AI verdict once all data is loaded
   const { data: verdict, isLoading: isLoadingVerdict } = useQuery({
@@ -162,10 +168,15 @@ const Compare = () => {
               <h2 className="text-lg font-semibold text-foreground text-center">
                 At a glance
               </h2>
-              <ComparisonSpiderChart
-                cityScores={cityScores}
-                onAxisClick={handleAxisClick}
-              />
+              <div
+                className="transition-opacity duration-300"
+                style={{ opacity: spiderPulse ? 0.6 : 1 }}
+              >
+                <ComparisonSpiderChart
+                  cityScores={cityScores}
+                  onAxisClick={handleAxisClick}
+                />
+              </div>
 
               {/* 4. Weight sliders */}
               <div className="text-center">
@@ -173,6 +184,8 @@ const Compare = () => {
                   weights={weights}
                   onChange={setWeights}
                   onReset={resetWeights}
+                  ranked={ranked}
+                  onWeightChanged={handleWeightChanged}
                 />
               </div>
             </section>
