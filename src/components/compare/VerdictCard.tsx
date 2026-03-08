@@ -1,11 +1,12 @@
-import { CityScores, CITY_COLORS, DIMENSION_LABELS, DimensionWeights } from "@/types/comparison";
+import { CityScores } from "@/types/comparison";
 import { formatMonthName } from "@/lib/formatMonth";
-import { Trophy } from "lucide-react";
+import { Trophy, AlertTriangle } from "lucide-react";
 
 interface VerdictCardProps {
   ranked: CityScores[];
   verdict: {
     verdictParagraph: string;
+    tradeOff?: string;
     runnerUpReason: string;
   } | null;
   isLoadingVerdict: boolean;
@@ -36,13 +37,24 @@ export const VerdictCard = ({ ranked, verdict, isLoadingVerdict, travelMonth }: 
           <div className="h-4 bg-muted rounded w-3/4" />
         </div>
       ) : (
-        <p className="text-sm text-foreground/80 leading-relaxed mb-4">
-          {verdict?.verdictParagraph ||
-            `${top.city.city} leads for your ${month} trip with a weighted score of ${top.weightedTotal.toFixed(1)}/10.`}
-        </p>
+        <div className="space-y-3">
+          <p className="text-sm text-foreground/80 leading-relaxed">
+            {verdict?.verdictParagraph ||
+              `${top.city.city} leads for your ${month} trip with a weighted score of ${top.weightedTotal.toFixed(1)}/10.`}
+          </p>
+
+          {verdict?.tradeOff && (
+            <p className="flex items-start gap-1.5" style={{ color: "#92400E", fontSize: "13px" }}>
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>
+                <span className="font-medium">One thing to note:</span> {verdict.tradeOff}
+              </span>
+            </p>
+          )}
+        </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground mt-4">
         Runner-up: <span className="font-medium">{runner.city.city}</span>
         {verdict?.runnerUpReason ? ` · ${verdict.runnerUpReason}` : ` · Score: ${runner.weightedTotal.toFixed(1)}/10`}
       </p>

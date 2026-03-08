@@ -52,5 +52,5 @@ export const DIMENSION_LABELS: Record<keyof DimensionWeights, string> = {
   accommodationValue: "Accommodation Value",
 };
 
-export const CITY_COLORS = ["#EA580C", "#0D9488", "#7C3AED"] as const;
-export const CITY_BG_COLORS = ["rgba(234,88,12,0.08)", "rgba(13,148,136,0.08)", "rgba(124,58,237,0.08)"] as const;
+export const CITY_COLORS = ["#E11D48", "#0D9488", "#7C3AED"] as const;
+export const CITY_BG_COLORS = ["rgba(225,29,72,0.08)", "rgba(13,148,136,0.08)", "rgba(124,58,237,0.08)"] as const;
