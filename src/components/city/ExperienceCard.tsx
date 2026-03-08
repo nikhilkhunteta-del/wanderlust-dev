@@ -50,6 +50,11 @@ export const ExperienceCard = ({ experience, city, country, isSaved, onToggleSav
         <p className="text-muted-foreground text-sm leading-relaxed">
           {experience.description}
         </p>
+        {experience.childNote && (
+          <p className="text-muted-foreground text-xs italic mt-2 leading-relaxed">
+            {experience.childNote}
+          </p>
+        )}
       </div>
     </article>
   );

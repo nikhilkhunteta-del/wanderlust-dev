@@ -14,6 +14,8 @@ interface CityHighlightsRequest {
   adventureTypes: string[];
   travelMonth: string;
   styleTags: string[];
+  travelCompanions?: string;
+  groupType?: string;
 }
 
 interface SignatureExperience {
@@ -22,6 +24,7 @@ interface SignatureExperience {
   imageQuery: string;
   bookingUrl: string | null;
   category: string;
+  childNote?: string;
 }
 
 interface CityHighlights {
@@ -60,10 +63,12 @@ RULES:
 - Curate experiences that genuinely align with stated preferences
 - Avoid clichés and tourist trap recommendations
 - Keep descriptions concise and evocative
+- EVERGREEN ONLY: All experiences must be year-round — places, activities, and encounters available regardless of travel month. Do NOT include seasonal festivals, time-limited events, or month-specific occurrences. Every experience should be something the traveller could do on any visit.
 - personalMatchReasons: Write exactly 3 bullet points. Each bullet must make a completely distinct point — no two bullets may cover the same theme or repeat the same interest. Each bullet must name a specific place, experience, or characteristic of the city that connects to the user's interest — not a general statement. Bad example: "You enjoy cultural heritage / Your interest in culture aligns with the city's history" — these are the same point twice. Good example: "Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last — the oldest continuously inhabited capital in the world." Format each bullet with one **bold** key phrase followed by a specific, vivid sentence. Tone: confident, human, never salesy.
 - perfectDayNarrative: A 3-4 sentence immersive narrative of a perfect day in this city for THIS traveler, flowing morning→afternoon→evening. Reflect their interests. No generic tourism language.
 - featuredExperienceIndex: index (0-based) of the experience that best matches the user's top interests.
 - experienceThemes: group the experiences by user-relevant themes with labels like "For your love of culture", "For authentic food experiences", etc.
+- childNote: If the travel party includes children, add a "childNote" field to EACH experience in family-relevant theme groups. One honest sentence on child suitability: note if it involves long walking, intense heat exposure, or suits older children only. Example: "Good for all ages — open-air and interactive" or "Better for children 8+ — involves significant walking in heat." If no children in party, omit childNote entirely.
 
 Respond with ONLY valid JSON in this exact format:
 {
@@ -76,7 +81,8 @@ Respond with ONLY valid JSON in this exact format:
       "description": "Two sentences. First: explain specifically why this experience is the single best match for this traveller's stated interests — name what it delivers that aligns with their profile. Second: give one specific insider detail that makes it unmissable — best time of day, what most visitors miss, a specific viewpoint or moment. Read like advice from someone who has been there, not a guidebook.",
       "imageQuery": "descriptive search term for a photo of this experience",
       "bookingUrl": null,
-      "category": "culture|food|nature|adventure|photography|nightlife|wellness|shopping|scenic"
+      "category": "culture|food|nature|adventure|photography|nightlife|wellness|shopping|scenic",
+      "childNote": "(only if travel party includes children) One honest child-suitability sentence"
     }
   ],
   "featuredExperienceIndex": 0,
@@ -87,6 +93,8 @@ Respond with ONLY valid JSON in this exact format:
   "heroImageQuery": "descriptive search term for the city's most iconic scenic view"
 }`;
 
+    const hasChildren = requestData.groupType === 'family' || (requestData.travelCompanions || '').toLowerCase().includes('child');
+
     const userPrompt = `Create personalized highlights for a traveler visiting ${requestData.city}, ${requestData.country}.
 
 TRAVELER PROFILE:
@@ -94,6 +102,7 @@ TRAVELER PROFILE:
 - Adventure preferences: ${requestData.adventureTypes.length > 0 ? requestData.adventureTypes.join(", ") : "relaxed activities"}
 - Travel month: ${requestData.travelMonth || "flexible"}
 - Travel style: ${requestData.styleTags.join(", ")}
+- Travel party: ${requestData.travelCompanions || "not specified"}${hasChildren ? " (INCLUDES CHILDREN — add childNote to each experience)" : ""}
 
 WHY WE RECOMMENDED THIS CITY:
 ${requestData.rationale}
@@ -102,7 +111,7 @@ Generate:
 1. A match statement (2-3 sentences) explaining why ${requestData.city} fits their interests
 2. Exactly 3 personalMatchReasons as bullet points. Each bullet must make a completely distinct point — no two bullets may share the same theme. Each must name a specific place, experience, or local characteristic of ${requestData.city} that connects to one of the traveler's interests. Format: one **bold** key phrase followed by a specific, vivid sentence.
 3. A perfectDayNarrative (3-4 immersive sentences, morning→evening, reflecting their interests)
-4. 5-7 signature experiences curated for their specific interests, each with a category tag. For the featured experience (the one at featuredExperienceIndex), write a two-sentence description: first sentence explains why it's the best match for this traveller's interests; second sentence gives a specific insider detail (best time of day, what most visitors miss, a viewpoint). For other experiences, one compelling sentence is fine.
+4. 5-7 EVERGREEN signature experiences — year-round places, activities, and encounters available regardless of travel month. Do NOT include seasonal festivals or time-limited events. For the featured experience, write a two-sentence description: first sentence explains why it's the best match; second sentence gives a specific insider detail. For others, one compelling sentence.${hasChildren ? " Include a childNote field on each experience with one honest child-suitability sentence." : ""}
 5. featuredExperienceIndex: the index of the single best-matching experience
 6. experienceThemes: group experiences into 2-4 themes labeled for the user (e.g. "For your love of culture")
 7. 5 vibe tags specific enough to ONLY make sense for ${requestData.city}. Capture contrast where it genuinely exists. Avoid generic descriptors like 'cultural immersion', 'historical depth', 'relaxed pace' — these apply to dozens of cities. Each chip should make someone who has visited ${requestData.city} nod in recognition.

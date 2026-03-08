@@ -4,6 +4,7 @@ export interface SignatureExperience {
   imageQuery: string;
   bookingUrl: string | null;
   category?: string;
+  childNote?: string;
 }
 
 export interface CityHighlights {
@@ -30,4 +31,6 @@ export interface CityHighlightsRequest {
   adventureTypes: string[];
   travelMonth: string;
   styleTags: string[];
+  travelCompanions?: string;
+  groupType?: string;
 }

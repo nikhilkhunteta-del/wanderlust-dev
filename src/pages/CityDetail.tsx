@@ -89,6 +89,8 @@ const CityDetail = () => {
     adventureTypes: profile.adventureTypes,
     travelMonth: profile.travelMonth,
     styleTags: profile.styleTags,
+    travelCompanions: profile.travelCompanions,
+    groupType: profile.groupType,
   } : null;
 
   // Build flight request for prefetching
