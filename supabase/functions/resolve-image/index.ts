@@ -721,7 +721,7 @@ async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
   try {
     const params = new URLSearchParams({
       query,
-      per_page: '5',
+      per_page: '10',
       orientation: 'landscape',
     });
     
@@ -746,6 +746,12 @@ async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
       // Quality filter: prefer landscape, decent size
       if (width < 1600 || width < height * 1.2) continue;
       
+      // Reject chaotic street-level imagery for hero shots
+      if (rejectChaotic && isChaoticImage(photo)) {
+        console.log(`Rejected chaotic Unsplash image: ${photo.alt_description || photo.id}`);
+        continue;
+      }
+      
       return {
         id: `us-${photo.id}`,
         cacheKey: '',
@@ -765,9 +771,9 @@ async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
       };
     }
     
-    // If no landscape photos found, take the first one
-    if (photos.length > 0) {
-      const photo = photos[0];
+    // If no landscape photos found, take the first non-chaotic one
+    for (const photo of photos) {
+      if (rejectChaotic && isChaoticImage(photo)) continue;
       return {
         id: `us-${photo.id}`,
         cacheKey: '',
