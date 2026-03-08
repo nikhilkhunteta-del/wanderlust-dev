@@ -170,9 +170,15 @@ async function fetchNeighbourhoodInsights(
 (3) Are vacation rentals/Airbnb widely available and practical in ${city}? Compare: who benefits from apartments vs hotels, typical price difference, any practical considerations.
 (4) Any important practical considerations — taxes, resort fees, deposit requirements, or local booking customs specific to ${city}?
 
+IMPORTANT CURRENCY RULES:
+- The traveller's currency is ${currency}.
+- When mentioning any prices or monetary amounts in descriptions, tips, or insights, always use the traveller's currency symbol converted at the approximate exchange rate. Show the local currency in brackets after for context.
+- Example: "£18–45/night (approx. ₹2,000–5,000)". Never show only local currency figures when the traveller's currency is known.
+- Use currency symbols (£, $, €, ₹) not ISO codes (GBP, USD).
+
 Return ONLY valid JSON:
 {
-  "neighbourhoods": [{"name":"...","description":"...","bestFor":["..."],"imageQuery":"[name] ${city} area street"}],
+  "neighbourhoods": [{"name":"...","description":"...","bestFor":["..."],"imageQuery":"[name] ${city} residential street buildings"}],
   "bookingAdvice": {"budget":"Book X weeks ahead","midRange":"...","premium":"...","luxury":"...","seasonType":"peak|shoulder|off"},
   "vacationRentalContext": {"bestForApartments":"...","priceComparison":"...","whatToKnow":"..."},
   "practicalInsights": [{"icon":"calendar|coins|users|building|info","title":"...","description":"..."}],
@@ -430,8 +436,14 @@ serve(async (req) => {
     // ── Build overview sentence ──
     const medianPrices = priceCategories.filter(p => p.medianPrice).map(p => p.medianPrice!);
     const overallMedian = medianPrices.length ? median(medianPrices) : null;
+    const currencySymbols: Record<string, string> = {
+      USD: "$", EUR: "€", GBP: "£", INR: "₹", JPY: "¥", AUD: "A$", CAD: "C$",
+      CHF: "CHF ", SGD: "S$", HKD: "HK$", NZD: "NZ$", ZAR: "R", BRL: "R$",
+      MXN: "MX$", THB: "฿", KRW: "₩", AED: "AED ", SEK: "kr",
+    };
+    const sym = currencySymbols[currency] || `${currency} `;
     const overview = overallMedian
-      ? `Hotels in ${city} in ${monthName} range widely, with a median price around ${currency} ${overallMedian}/night. ${neighbourhoodData.bookingAdvice?.seasonType === "peak" ? "This is peak season — book early for the best options." : neighbourhoodData.bookingAdvice?.seasonType === "off" ? "This is off-season, so you'll find good availability and lower prices." : "Availability is generally good for this period."}`
+      ? `Hotels in ${city} in ${monthName} range widely, with a median price around ${sym}${overallMedian}/night. ${neighbourhoodData.bookingAdvice?.seasonType === "peak" ? "This is peak season — book early for the best options." : neighbourhoodData.bookingAdvice?.seasonType === "off" ? "This is off-season, so you'll find good availability and lower prices." : "Availability is generally good for this period."}`
       : `${city} offers accommodation across all price ranges in ${monthName}.`;
 
     // ── Final result ──
