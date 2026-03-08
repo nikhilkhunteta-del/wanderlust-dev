@@ -428,6 +428,24 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
               );
             })()}
 
+            {/* Multi-City Suggestion — beneath day list */}
+            {!isMultiCityActive && effectiveTripDuration >= 5 && (
+              <MultiCitySuggestion
+                city={city.city}
+                country={city.country}
+                tripDuration={effectiveTripDuration}
+                travelMonth={profile.travelMonth}
+                userInterests={interests}
+                adventureTypes={profile.adventureTypes}
+                tripStyle={settings.tripStyle}
+                budgetLevel={settings.budgetLevel}
+                gatewayCity={profile.departureCity}
+                onSelectMultiCity={handleSelectMultiCity}
+                isMultiCityActive={false}
+                onRevertToSingleCity={handleRevertToSingleCity}
+              />
+            )}
+
             {/* Journey Completion */}
             <JourneyCompletion
               cityName={city.city}
