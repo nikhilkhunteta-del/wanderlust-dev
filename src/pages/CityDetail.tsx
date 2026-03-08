@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface LocationState {
   city: CityRecommendation;
   profile: TravelProfile;
+  allCities?: CityRecommendation[];
 }
 
 function buildDefaultProfile(cityName: string): TravelProfile {
@@ -52,9 +53,9 @@ const CityDetail = () => {
   const state = location.state as LocationState | undefined;
 
   // Derive city & profile from router state, or build fallbacks from URL param
-  const { city, profile } = useMemo(() => {
+  const { city, profile, allCities } = useMemo(() => {
     if (state?.city && state?.profile) {
-      return { city: state.city, profile: state.profile };
+      return { city: state.city, profile: state.profile, allCities: state.allCities ?? null };
     }
 
     // Fallback: parse city name from URL (supports "City" or "City, Country" via query param)
@@ -75,6 +76,7 @@ const CityDetail = () => {
     return {
       city: fallbackCity,
       profile: buildDefaultProfile(urlCity),
+      allCities: null,
     };
   }, [state, cityName, location.search]);
 
@@ -83,7 +85,7 @@ const CityDetail = () => {
     city: city.city,
     country: city.country,
     rationale: city.rationale,
-    userInterests: Object.entries(profile.interestScores)
+    userInterests: Object.entries(profile.interestScores as Record<string, number>)
       .filter(([_, score]) => score > 0)
       .map(([interest]) => interest),
     adventureTypes: profile.adventureTypes,
@@ -113,7 +115,7 @@ const CityDetail = () => {
   const showHealthTab = healthRiskLevel === null || healthRiskLevel !== "low";
   // Tab prefetching
   // Build itinerary request for prefetching
-  const interests = profile ? Object.entries(profile.interestScores)
+  const interests = profile ? Object.entries(profile.interestScores as Record<string, number>)
     .filter(([_, score]) => score > 0)
     .map(([interest]) => interest) : [];
 
@@ -243,6 +245,8 @@ const CityDetail = () => {
             error={error instanceof Error ? error.message : error ? String(error) : null}
             travelMonth={profile.travelMonth}
             onSwitchTab={handleTabChange}
+            allCities={allCities}
+            profile={profile}
           />
         </TabsContent>
 

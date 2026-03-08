@@ -19,6 +19,8 @@ interface HighlightsTabProps {
   error: string | null;
   travelMonth?: string;
   onSwitchTab?: (tab: string) => void;
+  allCities?: any[] | null;
+  profile?: any | null;
 }
 
 export const HighlightsTab = ({
@@ -29,6 +31,8 @@ export const HighlightsTab = ({
   error,
   travelMonth,
   onSwitchTab,
+  allCities,
+  profile,
 }: HighlightsTabProps) => {
   const scrollRef = useScrollFade<HTMLDivElement>();
   const { isSaved, toggle } = useSavedExperiences(city, country);
@@ -126,6 +130,8 @@ export const HighlightsTab = ({
         city={city}
         travelMonth={travelMonth}
         onSwitchTab={onSwitchTab}
+        allCities={allCities}
+        profile={profile}
       />
     </div>
   );
