@@ -116,7 +116,8 @@ Respond with ONLY valid JSON for a single day:
           "category": "culture|nature|food|adventure|relaxation|shopping|nightlife",
           "location": "Specific venue or street name",
           "lat": 41.3851,
-          "lng": 2.1734
+          "lng": 2.1734,
+          "personalNote": "One sentence connecting this activity to the traveler's interests or style — like a friend explaining why they specifically will love it"
         }
       ]
     },
@@ -214,7 +215,8 @@ Respond with ONLY valid JSON in this exact format:
               "location": "Specific venue or street name",
               "lat": 41.3851,
               "lng": 2.1734,
-              "seasonalNote": "Only include if relevant to the travel month, e.g. 'Cherry blossoms peak in April' or null"
+              "seasonalNote": "Only include if relevant to the travel month, e.g. 'Cherry blossoms peak in April' or null",
+              "personalNote": "One sentence connecting this activity to the traveler's interests — like a friend explaining why they will love it. Do not repeat the description."
             }
           ]
         },
