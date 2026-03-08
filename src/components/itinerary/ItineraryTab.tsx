@@ -176,6 +176,45 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
     setIsMultiCityActive(false);
   }, []);
 
+  const handleToggleLock = useCallback((activityTitle: string) => {
+    setLockedActivities((prev) => {
+      const next = new Set(prev);
+      if (next.has(activityTitle)) next.delete(activityTitle);
+      else next.add(activityTitle);
+      return next;
+    });
+  }, []);
+
+  const handleReplaceActivity = useCallback(
+    (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => {
+      queryClient.setQueryData<CityItinerary>(
+        ["city-itinerary", itineraryRequest.city, itineraryRequest.country, itineraryRequest.tripDuration, itineraryRequest.travelMonth, itineraryRequest.settings],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            days: old.days.map((d) => {
+              if (d.dayNumber !== dayNumber) return d;
+              return {
+                ...d,
+                slots: d.slots.map((s) => {
+                  if (s.period !== period) return s;
+                  return {
+                    ...s,
+                    activities: s.activities.map((a, i) =>
+                      i === activityIndex ? { ...newActivity, time: a.time } : a
+                    ),
+                  };
+                }),
+              };
+            }),
+          };
+        }
+      );
+    },
+    [queryClient, itineraryRequest]
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
