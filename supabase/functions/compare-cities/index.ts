@@ -41,7 +41,8 @@ IMPORTANT: The scores above reflect genuine differences between these cities for
 
 Return ONLY valid JSON:
 {
-  "verdictParagraph": "2-3 sentences explaining why city #1 wins for THIS traveller. Reference the travel month, top 2 interests, and travel party. Must acknowledge one specific trade-off honestly — name the dimension where another city beats it.",
+  "verdictParagraph": "2 sentences max explaining why city #1 wins for THIS traveller. Reference the travel month, top 2 interests, and travel party. Do NOT mention any trade-off here.",
+  "tradeOff": "One specific, honest sentence about the top city's weakest dimension compared to another city. Name both the dimension and the competing city.",
   "runnerUpReason": "One sentence why #2 is the runner-up — what specific advantage does it have over #3?",
   "whyNot": [
     {"city": "${ranked[1].city}", "reason": "One specific sentence explaining the dimensional gap vs the winner."},

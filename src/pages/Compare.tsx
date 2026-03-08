@@ -96,7 +96,14 @@ const Compare = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header rightContent="Compare Cities" />
+      <Header rightContent={
+        <button
+          onClick={() => navigate(-1)}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          ← Back to recommendations
+        </button>
+      } />
 
       <main className="max-w-5xl mx-auto px-4 py-10 space-y-10">
         {/* 1. Header */}

@@ -1,11 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  ResponsiveContainer,
   Tooltip,
 } from "recharts";
 import { CityScores, CITY_COLORS, DIMENSION_LABELS, DimensionWeights } from "@/types/comparison";
@@ -24,16 +23,9 @@ const DIMENSIONS: (keyof DimensionWeights)[] = [
   "accommodationValue",
 ];
 
-const AXIS_TO_TAB: Record<keyof DimensionWeights, string> = {
-  personalMatch: "highlights",
-  weatherFit: "weather",
-  gettingThere: "flights",
-  safety: "ground",
-  seasonalEvents: "seasonal",
-  accommodationValue: "stays",
-};
-
 export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartProps) => {
+  const [hoveredCity, setHoveredCity] = useState<number | null>(null);
+
   const chartData = useMemo(() => {
     return DIMENSIONS.map((dim) => {
       const entry: any = { dimension: DIMENSION_LABELS[dim], dimKey: dim };
@@ -45,7 +37,6 @@ export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartPr
   }, [cityScores]);
 
   const handleAxisClick = (dim: keyof DimensionWeights) => {
-    // Find highest-scoring city for this dimension
     let bestIdx = 0;
     let bestScore = 0;
     cityScores.forEach((cs, i) => {
@@ -58,25 +49,61 @@ export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartPr
     onAxisClick?.(dim, slug);
   };
 
+  // Size constants
+  const size = 520;
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerRadius = 180;
+
   return (
-    <div className="w-full">
-      <ResponsiveContainer width="100%" height={380}>
-        <RadarChart data={chartData} cx="50%" cy="50%" outerRadius="75%">
+    <div className="w-full flex flex-col items-center">
+      <div style={{ width: size, maxWidth: "100%", aspectRatio: "1/1" }}>
+        <RadarChart
+          width={size}
+          height={size}
+          data={chartData}
+          cx={cx}
+          cy={cy}
+          outerRadius={outerRadius}
+          onMouseLeave={() => setHoveredCity(null)}
+        >
           <PolarGrid stroke="hsl(var(--border))" />
           <PolarAngleAxis
             dataKey="dimension"
             tick={({ x, y, payload, index }: any) => {
               const dim = DIMENSIONS[index];
+              // Push labels outward by 16px from polygon edge
+              const dx = x - cx;
+              const dy = y - cy;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const pad = 16;
+              const nx = x + (dx / dist) * pad;
+              const ny = y + (dy / dist) * pad;
+
+              // Show score label for hovered city
+              const scoreLabel =
+                hoveredCity !== null
+                  ? ` (${chartData[index][`city${hoveredCity}`]})`
+                  : "";
+
               return (
                 <text
-                  x={x}
-                  y={y}
+                  x={nx}
+                  y={ny}
                   textAnchor="middle"
                   dominantBaseline="central"
                   className="text-xs fill-muted-foreground cursor-pointer hover:fill-foreground transition-colors"
                   onClick={() => handleAxisClick(dim)}
                 >
-                  {payload.value}
+                  <tspan>{payload.value}</tspan>
+                  {hoveredCity !== null && (
+                    <tspan
+                      className="font-semibold"
+                      style={{ fill: CITY_COLORS[hoveredCity] }}
+                    >
+                      {scoreLabel}
+                    </tspan>
+                  )}
                 </text>
               );
             }}
@@ -89,8 +116,10 @@ export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartPr
               dataKey={`city${i}`}
               stroke={CITY_COLORS[i]}
               fill={CITY_COLORS[i]}
-              fillOpacity={0.12}
-              strokeWidth={2}
+              fillOpacity={hoveredCity === null ? 0.12 : hoveredCity === i ? 0.25 : 0.04}
+              strokeWidth={hoveredCity === null ? 2 : hoveredCity === i ? 3 : 1}
+              strokeOpacity={hoveredCity === null ? 1 : hoveredCity === i ? 1 : 0.3}
+              onMouseEnter={() => setHoveredCity(i)}
             />
           ))}
           <Tooltip
@@ -106,18 +135,23 @@ export const ComparisonSpiderChart = ({ cityScores, onAxisClick }: SpiderChartPr
             }}
           />
         </RadarChart>
-      </ResponsiveContainer>
+      </div>
 
       {/* Legend */}
       <div className="flex justify-center gap-6 mt-2">
         {cityScores.map((cs, i) => (
-          <div key={cs.city.city} className="flex items-center gap-2">
+          <button
+            key={cs.city.city}
+            className="flex items-center gap-2 cursor-pointer"
+            onMouseEnter={() => setHoveredCity(i)}
+            onMouseLeave={() => setHoveredCity(null)}
+          >
             <div
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: CITY_COLORS[i] }}
             />
             <span className="text-xs font-medium text-foreground">{cs.city.city}</span>
-          </div>
+          </button>
         ))}
       </div>
     </div>
