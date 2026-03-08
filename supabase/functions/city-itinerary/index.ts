@@ -104,6 +104,7 @@ Respond with ONLY valid JSON for a single day:
   "estimatedWalkingKm": 5.5,
   "estimatedTransitMinutes": 25,
   "paceLabel": "leisurely|moderate|active",
+  "moodLine": "Three evocative words separated by · e.g. Historic · Immersive · Active",
   "slots": [
     {
       "period": "morning",
