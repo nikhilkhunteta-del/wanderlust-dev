@@ -37,7 +37,7 @@ export const DayTripSection = ({ dayTrips, onReplaceDayWithTrip }: DayTripSectio
               {trip.description}
             </p>
             <div className="flex items-center gap-2 mt-3 flex-wrap">
-              {trip.matchedInterests.map((interest) => (
+              {(trip.matchedInterests || []).map((interest) => (
                 <span
                   key={interest}
                   className="inline-flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full capitalize"
