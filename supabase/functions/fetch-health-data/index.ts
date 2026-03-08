@@ -438,8 +438,29 @@ Lead with the overall risk level for a typical tourist. Mention active notices O
       ? emergencyNumber
       : `All emergency services — police, ambulance, fire`;
 
+    // --- Step F: Determine health risk level ---
+    let healthRiskLevel: "low" | "moderate" | "high" = "moderate"; // default
+    {
+      const hasRequiredVaccines = vaccines.some((v: any) => v.recommendation_level === "Required");
+      const hasRecommendedVaccines = vaccines.some((v: any) => v.recommendation_level === "Recommended");
+      const waterIsSafe = waterSafety.status === "safe";
+      const goodMedical = ["Excellent", "Good"].includes(medicalQuality.level);
+      const hasAlerts = hasActiveAlerts;
+
+      if (hasRequiredVaccines || hasAlerts || medicalQuality.level === "Basic") {
+        healthRiskLevel = "high";
+      } else if (hasRecommendedVaccines || !waterIsSafe || seasonalConsiderations.length > 0) {
+        healthRiskLevel = "moderate";
+      } else if (waterIsSafe && goodMedical && !hasAlerts && !hasRecommendedVaccines) {
+        healthRiskLevel = "low";
+      }
+    }
+
+    console.log(`Health risk level for ${city}: ${healthRiskLevel}`);
+
     // Build response
     const result = {
+      healthRiskLevel,
       healthSummary,
       hasActiveAlerts,
       activeNotices,

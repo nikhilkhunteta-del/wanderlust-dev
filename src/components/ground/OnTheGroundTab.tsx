@@ -7,15 +7,17 @@ import { SafetyGuidance } from "./SafetyGuidance";
 import { EntryVisa } from "./EntryVisa";
 import { EmergencyContacts } from "./EmergencyContacts";
 import { GroundFooter } from "./GroundFooter";
+import { CompactHealthSection } from "./CompactHealthSection";
 import { Loader2 } from "lucide-react";
 
 interface OnTheGroundTabProps {
   city: string;
   country: string;
   travelMonth: string;
+  showCompactHealth?: boolean;
 }
 
-export const OnTheGroundTab = ({ city, country, travelMonth }: OnTheGroundTabProps) => {
+export const OnTheGroundTab = ({ city, country, travelMonth, showCompactHealth }: OnTheGroundTabProps) => {
   const { data, isLoading, error } = useOnTheGround(city, country, travelMonth);
 
   if (isLoading) {
@@ -88,6 +90,11 @@ export const OnTheGroundTab = ({ city, country, travelMonth }: OnTheGroundTabPro
         note={data.emergencyNote}
         city={city}
       />
+
+      {/* Compact health (only for low-risk destinations when Stay Well tab is hidden) */}
+      {showCompactHealth && (
+        <CompactHealthSection city={city} country={country} travelMonth={travelMonth} />
+      )}
 
       {/* Section 7 — Footer */}
       <GroundFooter
