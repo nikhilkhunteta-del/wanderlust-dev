@@ -192,7 +192,7 @@ export const SeasonalTab = ({
             onClick={() => onSwitchTab?.("itinerary")}
             className="gap-2 shrink-0"
           >
-            View Itinerary
+            Plan your days
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

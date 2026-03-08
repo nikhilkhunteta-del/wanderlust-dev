@@ -10,16 +10,17 @@ import { SensoryNarrative } from "./SensoryNarrative";
 import { MonthComparison } from "./MonthComparison";
 import { TemperatureToggle, TemperatureUnit } from "./TemperatureToggle";
 
-import { Loader2, CloudOff, CloudSun } from "lucide-react";
+import { Loader2, CloudOff, CloudSun, ArrowRight } from "lucide-react";
 import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherTabProps {
   city: string;
   country: string;
   travelMonth: string;
+  onSwitchTab?: (tab: string) => void;
 }
 
-export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
+export const WeatherTab = ({ city, country, travelMonth, onSwitchTab }: WeatherTabProps) => {
   const [tempUnit, setTempUnit] = useState<TemperatureUnit>("celsius");
   const { data: weather, isLoading, error } = useCityWeather(city, country, travelMonth);
   const displayMonth = formatMonthName(travelMonth);
@@ -102,6 +103,29 @@ export const WeatherTab = ({ city, country, travelMonth }: WeatherTabProps) => {
           Some <span className="font-medium">While You're There</span> experiences and <span className="font-medium">Your Days</span> activities have been adjusted for {displayMonth}'s weather conditions.
         </p>
       </div>
+
+      {/* Closing CTA → While You're There */}
+      {onSwitchTab && (
+        <div className="mt-4 border-t border-border/50 pt-8">
+          <div className="bg-gradient-to-r from-accent/60 to-accent/30 rounded-xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 className="text-lg font-semibold text-foreground mb-1">
+                See what's happening in {displayMonth}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Festivals, seasonal food, and experiences unique to this time of year.
+              </p>
+            </div>
+            <button
+              onClick={() => onSwitchTab("seasonal")}
+              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
+            >
+              See what's happening in {displayMonth}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
