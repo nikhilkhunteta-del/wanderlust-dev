@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
-import { useCityHighlights } from "@/hooks/useCityData";
+import { useCityHighlights, useHealthData } from "@/hooks/useCityData";
 import { useTabPrefetch } from "@/hooks/useTabPrefetch";
 import { Header } from "@/components/shared/Header";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
@@ -103,6 +103,14 @@ const CityDetail = () => {
 
   const { data: highlights, isLoading, error } = useCityHighlights(highlightsRequest);
 
+  // Health data for conditional tab rendering
+  const { data: healthData } = useHealthData(
+    city?.city ?? "",
+    city?.country ?? "",
+    profile?.travelMonth ?? ""
+  );
+  const healthRiskLevel = healthData?.healthRiskLevel ?? null;
+  const showHealthTab = healthRiskLevel === null || healthRiskLevel !== "low";
   // Tab prefetching
   // Build itinerary request for prefetching
   const interests = profile ? Object.entries(profile.interestScores)
@@ -214,12 +222,14 @@ const CityDetail = () => {
               >
                 Before You Go
               </TabsTrigger>
-              <TabsTrigger
-                value="health"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
-              >
-                Stay Well
-              </TabsTrigger>
+              {showHealthTab && (
+                <TabsTrigger
+                  value="health"
+                  className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
+                >
+                  Stay Well
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
         </div>
@@ -291,6 +301,7 @@ const CityDetail = () => {
             city={city.city}
             country={city.country}
             travelMonth={profile.travelMonth}
+            showCompactHealth={!showHealthTab}
           />
         </TabsContent>
 
