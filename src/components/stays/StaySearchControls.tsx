@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
-import { Calendar as CalendarIcon, Search, Users, MapPin } from "lucide-react";
+import { Calendar as CalendarIcon, ExternalLink, ChevronDown, ChevronUp, Search, Users, MapPin } from "lucide-react";
 import { buildGoogleHotelsSearchUrl } from "@/lib/stayInsights";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
 type AreaPreference = "no_preference" | "city_center" | "beach" | "quiet";
@@ -55,6 +56,20 @@ function getDefaultDates(travelMonth: string): { checkin: Date; checkout: Date }
   return { checkin, checkout };
 }
 
+function buildBookingComUrl(city: string, country: string, checkin: Date, checkout: Date, adults: number): string {
+  const dest = encodeURIComponent(`${city}, ${country}`);
+  const ci = format(checkin, "yyyy-MM-dd");
+  const co = format(checkout, "yyyy-MM-dd");
+  return `https://www.booking.com/searchresults.html?ss=${dest}&checkin=${ci}&checkout=${co}&group_adults=${adults}`;
+}
+
+function buildAirbnbUrl(city: string, country: string, checkin: Date, checkout: Date, adults: number): string {
+  const dest = encodeURIComponent(`${city}, ${country}`);
+  const ci = format(checkin, "yyyy-MM-dd");
+  const co = format(checkout, "yyyy-MM-dd");
+  return `https://www.airbnb.com/s/${dest}/homes?checkin=${ci}&checkout=${co}&adults=${adults}`;
+}
+
 export const StaySearchControls = ({
   city,
   country,
@@ -68,6 +83,7 @@ export const StaySearchControls = ({
   const [children, setChildren] = useState(0);
   const [area, setArea] = useState<AreaPreference>("no_preference");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const today = startOfDay(new Date());
 
@@ -85,181 +101,203 @@ export const StaySearchControls = ({
     });
   }, [city, country, checkinDate, checkoutDate, adults, children, area, today]);
 
+  const bookingUrl = checkinDate && checkoutDate
+    ? buildBookingComUrl(city, country, checkinDate, checkoutDate, adults)
+    : null;
+  const airbnbUrl = checkinDate && checkoutDate
+    ? buildAirbnbUrl(city, country, checkinDate, checkoutDate, adults)
+    : null;
+
+  const dateLabel = checkinDate && checkoutDate
+    ? `${format(checkinDate, "MMM d")}–${format(checkoutDate, "d")} · ${adults} ${adults === 1 ? "adult" : "adults"}${children > 0 ? `, ${children} ${children === 1 ? "child" : "children"}` : ""}`
+    : "";
+
   const handleSearch = () => {
-    if (!checkinDate) {
-      setValidationError("Please select a check-in date.");
-      return;
-    }
-    if (isBefore(checkinDate, today)) {
-      setValidationError("Check-in date must be in the future.");
-      return;
-    }
-    if (!checkoutDate) {
-      setValidationError("Please select a check-out date.");
-      return;
-    }
-    if (isBefore(checkoutDate, checkinDate)) {
-      setValidationError("Check-out must be after check-in.");
-      return;
-    }
-    if (adults < 1) {
-      setValidationError("At least 1 adult is required.");
-      return;
-    }
+    if (!checkinDate) { setValidationError("Please select a check-in date."); return; }
+    if (isBefore(checkinDate, today)) { setValidationError("Check-in date must be in the future."); return; }
+    if (!checkoutDate) { setValidationError("Please select a check-out date."); return; }
+    if (isBefore(checkoutDate, checkinDate)) { setValidationError("Check-out must be after check-in."); return; }
+    if (adults < 1) { setValidationError("At least 1 adult is required."); return; }
     setValidationError(null);
   };
 
   return (
-    <Card className="bg-card/50 border-border/50">
-      <CardContent className="p-4 md:p-6">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
-          Refine Your Search
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-          {/* Check-in */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Check-in</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal bg-background",
-                    !checkinDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkinDate ? format(checkinDate, "MMM d, yyyy") : "Pick date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-popover" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkinDate}
-                  onSelect={setCheckinDate}
-                  disabled={(date) => isBefore(date, today)}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Check-out */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Check-out</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal bg-background",
-                    !checkoutDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkoutDate ? format(checkoutDate, "MMM d, yyyy") : "Pick date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-popover" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkoutDate}
-                  onSelect={setCheckoutDate}
-                  disabled={(date) => checkinDate ? isBefore(date, checkinDate) : isBefore(date, today)}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Adults */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Adults</label>
-            <Select value={adults.toString()} onValueChange={(v) => setAdults(parseInt(v))}>
-              <SelectTrigger className="w-full bg-background">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <SelectItem key={n} value={n.toString()}>
-                    {n} {n === 1 ? "adult" : "adults"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Children */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Children</label>
-            <Select value={children.toString()} onValueChange={(v) => setChildren(parseInt(v))}>
-              <SelectTrigger className="w-full bg-background">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                {[0, 1, 2, 3, 4].map((n) => (
-                  <SelectItem key={n} value={n.toString()}>
-                    {n} {n === 1 ? "child" : "children"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Area Preference */}
-          <div className="space-y-1.5 sm:col-span-2">
-            <label className="text-xs text-muted-foreground">Area preference (optional)</label>
-            <Select value={area} onValueChange={(v) => setArea(v as AreaPreference)}>
-              <SelectTrigger className="w-full bg-background">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                {(Object.keys(AREA_LABELS) as AreaPreference[]).map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {AREA_LABELS[key]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {validationError && (
-          <p className="text-sm text-destructive mt-3">{validationError}</p>
-        )}
-
-        <div className="mt-4">
+    <div className="space-y-3">
+      {/* Primary CTA */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2 flex-wrap">
           {searchUrl ? (
             <a
               href={searchUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={handleSearch}
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors w-full sm:w-auto"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
             >
-              <Search className="h-4 w-4" />
-              Search stays
+              Search live availability on Google Hotels
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           ) : (
-            <Button onClick={handleSearch} className="w-full sm:w-auto gap-2">
-              <Search className="h-4 w-4" />
-              Search stays
-            </Button>
+            <span className="text-sm font-medium text-muted-foreground">
+              Search live availability on Google Hotels
+            </span>
+          )}
+          {dateLabel && (
+            <span className="text-xs text-muted-foreground">{dateLabel}</span>
           )}
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Secondary links */}
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span>Also search:</span>
+          {bookingUrl ? (
+            <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-muted-foreground">
+              Booking.com
+            </a>
+          ) : (
+            <span>Booking.com</span>
+          )}
+          <span>·</span>
+          {airbnbUrl ? (
+            <a href={airbnbUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-muted-foreground">
+              Airbnb
+            </a>
+          ) : (
+            <span>Airbnb</span>
+          )}
+        </div>
+      </div>
+
+      {/* Expandable form */}
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <CollapsibleTrigger className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          Adjust dates or guests
+          {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <Card className="bg-card/50 border-border/50 mt-3">
+            <CardContent className="p-4 md:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                {/* Check-in */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Check-in</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn("w-full justify-start text-left font-normal bg-background", !checkinDate && "text-muted-foreground")}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {checkinDate ? format(checkinDate, "MMM d, yyyy") : "Pick date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                      <Calendar mode="single" selected={checkinDate} onSelect={setCheckinDate} disabled={(date) => isBefore(date, today)} initialFocus className="pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Check-out */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Check-out</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn("w-full justify-start text-left font-normal bg-background", !checkoutDate && "text-muted-foreground")}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {checkoutDate ? format(checkoutDate, "MMM d, yyyy") : "Pick date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                      <Calendar mode="single" selected={checkoutDate} onSelect={setCheckoutDate} disabled={(date) => checkinDate ? isBefore(date, checkinDate) : isBefore(date, today)} initialFocus className="pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Adults */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Adults</label>
+                  <Select value={adults.toString()} onValueChange={(v) => setAdults(parseInt(v))}>
+                    <SelectTrigger className="w-full bg-background">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <SelectItem key={n} value={n.toString()}>{n} {n === 1 ? "adult" : "adults"}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Children */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Children</label>
+                  <Select value={children.toString()} onValueChange={(v) => setChildren(parseInt(v))}>
+                    <SelectTrigger className="w-full bg-background">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {[0, 1, 2, 3, 4].map((n) => (
+                        <SelectItem key={n} value={n.toString()}>{n} {n === 1 ? "child" : "children"}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Area Preference */}
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs text-muted-foreground">Area preference (optional)</label>
+                  <Select value={area} onValueChange={(v) => setArea(v as AreaPreference)}>
+                    <SelectTrigger className="w-full bg-background">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {(Object.keys(AREA_LABELS) as AreaPreference[]).map((key) => (
+                        <SelectItem key={key} value={key}>{AREA_LABELS[key]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {validationError && (
+                <p className="text-sm text-destructive mt-3">{validationError}</p>
+              )}
+
+              <div className="mt-4">
+                {searchUrl ? (
+                  <a
+                    href={searchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleSearch}
+                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors w-full sm:w-auto"
+                  >
+                    <Search className="h-4 w-4" />
+                    Search stays
+                  </a>
+                ) : (
+                  <Button onClick={handleSearch} className="w-full sm:w-auto gap-2">
+                    <Search className="h-4 w-4" />
+                    Search stays
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 };

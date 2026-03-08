@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { Neighbourhood } from "@/types/stayInsights";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
 
 interface NeighbourhoodCardProps {
@@ -10,6 +10,8 @@ interface NeighbourhoodCardProps {
 }
 
 export const NeighbourhoodCard = ({ neighbourhood, city, country }: NeighbourhoodCardProps) => {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <Card className="overflow-hidden group">
       <div className="aspect-[4/3] relative overflow-hidden">
@@ -31,14 +33,30 @@ export const NeighbourhoodCard = ({ neighbourhood, city, country }: Neighbourhoo
         </div>
       </div>
       <CardContent className="p-4">
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-          {neighbourhood.description}
-        </p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="relative">
+          <p
+            className={`text-sm text-muted-foreground mb-1 ${expanded ? "" : "line-clamp-2"}`}
+          >
+            {neighbourhood.description}
+          </p>
+          {!expanded && neighbourhood.description.length > 120 && (
+            <button
+              onClick={() => setExpanded(true)}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              More →
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-2">
           {neighbourhood.bestFor.map((tag, index) => (
-            <Badge key={index} variant="outline" className="text-xs capitalize">
+            <span
+              key={index}
+              className="inline-flex items-center px-2 py-0.5 rounded text-xs capitalize"
+              style={{ backgroundColor: "#F3F4F6", color: "#374151" }}
+            >
               {tag}
-            </Badge>
+            </span>
           ))}
         </div>
       </CardContent>

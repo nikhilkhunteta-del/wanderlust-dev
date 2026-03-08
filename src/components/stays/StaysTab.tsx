@@ -5,6 +5,8 @@ import { NeighbourhoodCard } from "./NeighbourhoodCard";
 import { AreaGuidance } from "./AreaGuidance";
 import { PracticalStayInsights } from "./PracticalStayInsights";
 import { StaySearchControls } from "./StaySearchControls";
+import { PersonalRecommendation } from "./PersonalRecommendation";
+import { HotelVsApartmentSection } from "./HotelVsApartmentSection";
 import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, Building2, Info } from "lucide-react";
 
@@ -13,10 +15,20 @@ interface StaysTabProps {
   country: string;
   travelMonth: string;
   departureCity?: string;
+  travelCompanions?: string;
+  groupType?: string;
+  tripDuration?: number;
+  styleTags?: string[];
+  travelPace?: number;
 }
 
-export const StaysTab = ({ city, country, travelMonth, departureCity }: StaysTabProps) => {
-  const { data, isLoading, isFetching, error, dataUpdatedAt } = useStayInsights(city, country, travelMonth, departureCity);
+export const StaysTab = ({
+  city, country, travelMonth, departureCity,
+  travelCompanions, groupType, tripDuration, styleTags, travelPace,
+}: StaysTabProps) => {
+  const { data, isLoading, isFetching, error, dataUpdatedAt } = useStayInsights(
+    city, country, travelMonth, departureCity, travelCompanions, groupType, tripDuration, styleTags, travelPace,
+  );
   const initialLoadTime = useRef<number | null>(null);
 
   if (data && !initialLoadTime.current) {
@@ -74,6 +86,11 @@ export const StaysTab = ({ city, country, travelMonth, departureCity }: StaysTab
       </div>
 
       <div className="space-y-10">
+        {/* Personal Recommendation */}
+        {data.personalRecommendation && (
+          <PersonalRecommendation recommendation={data.personalRecommendation} />
+        )}
+
         {/* Price Categories */}
         <section>
           <h3 className="text-lg font-semibold text-foreground mb-4">
@@ -91,12 +108,23 @@ export const StaysTab = ({ city, country, travelMonth, departureCity }: StaysTab
           <h3 className="text-lg font-semibold text-foreground mb-4">
             Best Neighbourhoods to Stay
           </h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className={`grid gap-5 ${
+            data.neighbourhoods.length === 1
+              ? "grid-cols-1"
+              : data.neighbourhoods.length === 2
+                ? "sm:grid-cols-2"
+                : "sm:grid-cols-2 lg:grid-cols-3"
+          }`}>
             {data.neighbourhoods.map((neighbourhood, index) => (
               <NeighbourhoodCard key={index} neighbourhood={neighbourhood} city={city} country={country} />
             ))}
           </div>
         </section>
+
+        {/* Hotel vs Apartment */}
+        {data.hotelVsApartment && (
+          <HotelVsApartmentSection data={data.hotelVsApartment} />
+        )}
 
         {/* Area Guidance */}
         <AreaGuidance guidance={data.areaGuidance} />

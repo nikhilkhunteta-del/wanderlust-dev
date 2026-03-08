@@ -272,6 +272,11 @@ const CityDetail = () => {
             country={city.country}
             travelMonth={profile.travelMonth}
             departureCity={profile.departureCity}
+            travelCompanions={profile.travelCompanions}
+            groupType={profile.groupType}
+            tripDuration={profile.tripDuration}
+            styleTags={profile.styleTags}
+            travelPace={profile.travelPace}
           />
         </TabsContent>
 
