@@ -257,6 +257,7 @@ const CityDetail = () => {
             city={city.city}
             country={city.country}
             travelMonth={profile.travelMonth}
+            onSwitchTab={handleTabChange}
           />
         </TabsContent>
 
