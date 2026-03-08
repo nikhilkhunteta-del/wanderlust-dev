@@ -127,7 +127,7 @@ async function fetchPerplexityHealth(
   "medical_quality": {"level":"Excellent"|"Good"|"Basic","detail":"one sentence"},
   "pharmacy": "one sentence about pharmacy availability in ${city}",
   "seasonal_considerations": ["array of considerations specific to ${travelMonth}, empty if none"],
-  "packing_suggestions": ["only items specifically needed for ${city} in ${travelMonth}, empty if standard travel prep suffices. INSECT REPELLENT RULE: Only include insect repellent if the destination has documented mosquito-borne disease risk (dengue, malaria, Zika) or the travel month falls in peak mosquito season for that region. For major European cities in spring/autumn, do NOT include insect repellent unless there is a specific reason. Every packing item must have a clear destination-specific reason."]
+  "packing_suggestions": ["Generate a single consolidated packing list for ${city} in ${travelMonth} combining: (1) weather-appropriate clothing and comfort items based on the climate that month (e.g. light layers, rain jacket, sun hat), (2) health and safety items specific to this destination. Organise into a flat array with each item prefixed by its category in square brackets: [Clothing & comfort], [Health & pharmacy], [Documents & money], or [City-specific essentials]. INSECT REPELLENT RULE: Only include insect repellent if the destination has documented mosquito-borne disease risk (dengue, malaria, Zika) or the travel month falls in peak mosquito season for that region. For major European cities in spring/autumn, do NOT include insect repellent unless there is a specific reason. Every item must have a clear destination-and-month-specific reason."]
 }
 Return ONLY valid JSON.`,
           },
