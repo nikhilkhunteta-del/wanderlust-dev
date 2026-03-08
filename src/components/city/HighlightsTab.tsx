@@ -5,6 +5,7 @@ import { PerfectDayStrip } from "./PerfectDayStrip";
 import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
 import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
+import { InsiderMissedSection } from "./InsiderMissedSection";
 import { HighlightsCuratedTours } from "./HighlightsCuratedTours";
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
@@ -110,7 +111,12 @@ export const HighlightsTab = ({
           onToggleSave={toggle}
         />
 
-        {/* 5. Action-oriented tours section */}
+        {/* 5. What most visitors miss */}
+        {highlights.insiderMissed && (
+          <InsiderMissedSection city={city} content={highlights.insiderMissed} />
+        )}
+
+        {/* 6. Action-oriented tours section */}
         <section className="mt-14" data-scroll-fade>
           <HighlightsCuratedTours
             experiences={highlights.experiences}
