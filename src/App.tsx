@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Questionnaire from "./pages/Questionnaire";
 import Results from "./pages/Results";
 import CityDetail from "./pages/CityDetail";
+import Compare from "./pages/Compare";
 import NotFound from "./pages/NotFound";
 import PlanCity from "./pages/PlanCity";
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/plan" element={<PlanCity />} />
           <Route path="/results" element={<Results />} />
           <Route path="/city/:cityName" element={<CityDetail />} />
+          <Route path="/compare" element={<Compare />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
