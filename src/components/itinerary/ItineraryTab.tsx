@@ -36,6 +36,7 @@ interface ItineraryTabProps {
   city: CityRecommendation;
   profile: TravelProfile;
   highlights: CityHighlights | null;
+  onSwitchTab?: (tab: string) => void;
 }
 
 export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) => {
