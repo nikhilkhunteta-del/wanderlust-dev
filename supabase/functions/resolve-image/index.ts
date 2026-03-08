@@ -69,8 +69,8 @@ function buildSearchQuery(req: ResolveImageRequest): string {
     parts.push(req.city);
   } else if (req.type === 'city_hero') {
     parts.push(req.city);
+    parts.push('iconic landmark skyline');
     parts.push(req.country);
-    parts.push('cityscape landmark');
   } else if (req.type === 'neighborhood') {
     parts.push(req.city);
     parts.push('neighborhood street');
@@ -83,6 +83,29 @@ function buildSearchQuery(req: ResolveImageRequest): string {
   }
   
   return parts.join(' ');
+}
+
+// Build a monument-focused fallback query for city heroes
+function buildHeroFallbackQuery(city: string, country: string): string {
+  return `${city} ${country} famous monument architecture`;
+}
+
+// Keywords that indicate chaotic/undesirable street-level imagery
+const CHAOTIC_IMAGE_KEYWORDS = [
+  'wire', 'wires', 'cable', 'cables', 'traffic', 'congestion',
+  'crowd', 'crowded', 'rickshaw', 'tuk-tuk', 'auto-rickshaw',
+  'street market chaos', 'slum', 'construction site', 'pollution',
+];
+
+// Check if an Unsplash/Pexels photo description or tags suggest chaotic imagery
+function isChaoticImage(photo: any): boolean {
+  const description = (
+    (photo.description || '') +
+    ' ' + (photo.alt_description || '') +
+    ' ' + ((photo.tags || []).map((t: any) => t.title || t).join(' '))
+  ).toLowerCase();
+  
+  return CHAOTIC_IMAGE_KEYWORDS.some(keyword => description.includes(keyword));
 }
 
 // Known landmark name variations for better Wikimedia searches
@@ -562,6 +585,9 @@ function scoreWikimediaImage(result: any, imageInfo: any, entityName: string): n
   if (title.includes('interior') || title.includes('detail')) score -= 10;
   if (title.includes('map') || title.includes('diagram') || title.includes('plan')) score -= 30;
   if (title.includes('logo') || title.includes('icon') || title.includes('flag')) score -= 30;
+  // Penalize chaotic street-level imagery
+  if (title.includes('traffic') || title.includes('congestion') || title.includes('wires') || title.includes('cables')) score -= 25;
+  if (title.includes('crowd') || title.includes('crowded') || title.includes('rickshaw')) score -= 15;
   
   // Penalize night shots slightly (often harder to see)
   if (title.includes('night')) score -= 5;
@@ -688,7 +714,7 @@ async function tryWikimedia(query: string, entityName?: string, city?: string): 
 }
 
 // Try Unsplash API
-async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
+async function tryUnsplash(query: string, rejectChaotic = false): Promise<ResolvedImage | null> {
   const UNSPLASH_ACCESS_KEY = Deno.env.get("UNSPLASH_ACCESS_KEY");
   if (!UNSPLASH_ACCESS_KEY) {
     console.log("Unsplash API key not configured");
@@ -698,7 +724,7 @@ async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
   try {
     const params = new URLSearchParams({
       query,
-      per_page: '5',
+      per_page: '10',
       orientation: 'landscape',
     });
     
@@ -723,6 +749,12 @@ async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
       // Quality filter: prefer landscape, decent size
       if (width < 1600 || width < height * 1.2) continue;
       
+      // Reject chaotic street-level imagery for hero shots
+      if (rejectChaotic && isChaoticImage(photo)) {
+        console.log(`Rejected chaotic Unsplash image: ${photo.alt_description || photo.id}`);
+        continue;
+      }
+      
       return {
         id: `us-${photo.id}`,
         cacheKey: '',
@@ -742,9 +774,9 @@ async function tryUnsplash(query: string): Promise<ResolvedImage | null> {
       };
     }
     
-    // If no landscape photos found, take the first one
-    if (photos.length > 0) {
-      const photo = photos[0];
+    // If no landscape photos found, take the first non-chaotic one
+    for (const photo of photos) {
+      if (rejectChaotic && isChaoticImage(photo)) continue;
       return {
         id: `us-${photo.id}`,
         cacheKey: '',
@@ -970,7 +1002,8 @@ serve(async (req) => {
 
     // Build search query
     const searchQuery = buildSearchQuery(request);
-    console.log(`Searching for: ${searchQuery}`);
+    const isHero = request.type === 'city_hero';
+    console.log(`Searching for: ${searchQuery}${isHero ? ' (hero mode, chaotic rejection ON)' : ''}`);
 
     let image: ResolvedImage | null = null;
 
@@ -980,16 +1013,26 @@ serve(async (req) => {
       image = await tryWikimedia(searchQuery, request.entityName, request.city);
     }
 
-    // Try Unsplash
+    // Try Unsplash (with chaotic rejection for heroes)
     if (!image) {
       console.log('Trying Unsplash...');
-      image = await tryUnsplash(searchQuery);
+      image = await tryUnsplash(searchQuery, isHero);
     }
 
     // Try Pexels
     if (!image) {
       console.log('Trying Pexels...');
       image = await tryPexels(searchQuery);
+    }
+
+    // Hero fallback: if still no image, try monument-focused query
+    if (!image && isHero) {
+      const fallbackQuery = buildHeroFallbackQuery(request.city, request.country);
+      console.log(`Hero fallback query: ${fallbackQuery}`);
+      image = await tryUnsplash(fallbackQuery, false);
+      if (!image) {
+        image = await tryPexels(fallbackQuery);
+      }
     }
 
     // Try local storage fallback

@@ -60,7 +60,7 @@ RULES:
 - Curate experiences that genuinely align with stated preferences
 - Avoid clichés and tourist trap recommendations
 - Keep descriptions concise and evocative
-- personalMatchReasons: 3-4 concise bullet points explaining WHY this city matches THIS specific traveler. Reference their actual interests using **bold** for key phrases. Tone: confident, human, never salesy.
+- personalMatchReasons: Write exactly 3 bullet points. Each bullet must make a completely distinct point — no two bullets may cover the same theme or repeat the same interest. Each bullet must name a specific place, experience, or characteristic of the city that connects to the user's interest — not a general statement. Bad example: "You enjoy cultural heritage / Your interest in culture aligns with the city's history" — these are the same point twice. Good example: "Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last — the oldest continuously inhabited capital in the world." Format each bullet with one **bold** key phrase followed by a specific, vivid sentence. Tone: confident, human, never salesy.
 - perfectDayNarrative: A 3-4 sentence immersive narrative of a perfect day in this city for THIS traveler, flowing morning→afternoon→evening. Reflect their interests. No generic tourism language.
 - featuredExperienceIndex: index (0-based) of the experience that best matches the user's top interests.
 - experienceThemes: group the experiences by user-relevant themes with labels like "For your love of culture", "For authentic food experiences", etc.
@@ -68,7 +68,7 @@ RULES:
 Respond with ONLY valid JSON in this exact format:
 {
   "matchStatement": "2-3 sentences explaining why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
-  "personalMatchReasons": ["You enjoy **cultural heritage** and authentic local food", "You prefer **warm, pleasant weather** during your travel month", "..."],
+  "personalMatchReasons": ["Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last", "The **street food universe** of Chandni Chowk alone — paratha, jalebi, chaat — maps perfectly to your culinary curiosity", "Your preference for **warm, golden-light evenings** aligns with the sunset views from Humayun's Tomb gardens in your travel month"],
   "perfectDayNarrative": "Start your morning exploring... end the day...",
   "experiences": [
     {
@@ -100,7 +100,7 @@ ${requestData.rationale}
 
 Generate:
 1. A match statement (2-3 sentences) explaining why ${requestData.city} fits their interests
-2. 3-4 personalMatchReasons as bullet points referencing their actual interests with **bold** emphasis on key phrases
+2. Exactly 3 personalMatchReasons as bullet points. Each bullet must make a completely distinct point — no two bullets may share the same theme. Each must name a specific place, experience, or local characteristic of ${requestData.city} that connects to one of the traveler's interests. Format: one **bold** key phrase followed by a specific, vivid sentence.
 3. A perfectDayNarrative (3-4 immersive sentences, morning→evening, reflecting their interests)
 4. 5-7 signature experiences curated for their specific interests, each with a category tag
 5. featuredExperienceIndex: the index of the single best-matching experience
