@@ -42,7 +42,7 @@ export const StaysTab = ({
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Analyzing accommodation options in {city}...
+            Checking live hotel prices in {city}...
           </p>
         </div>
       </div>
@@ -63,9 +63,20 @@ export const StaysTab = ({
     );
   }
 
-  if (!data) {
-    return null;
-  }
+  if (!data) return null;
+
+  // Compute total properties checked across all tiers
+  const totalProperties = data.priceCategories.reduce(
+    (sum, cat) => sum + (cat.resultCount || 0), 0
+  ) + (data.vacationRentals?.resultCount || 0);
+
+  const isLive = data.dataSource === "serpapi_live";
+  const fetchedDate = data.fetchedAt
+    ? new Date(data.fetchedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : data.lastUpdated;
+
+  // Hotel median for comparison (use midRange tier)
+  const hotelMedian = data.priceCategories.find(c => c.category === "midRange")?.medianPrice ?? null;
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-10">
@@ -83,6 +94,13 @@ export const StaysTab = ({
         <p className="text-muted-foreground max-w-2xl">
           {data.overview}
         </p>
+
+        {/* Data freshness indicator */}
+        {isLive && totalProperties > 0 && (
+          <p className="text-xs text-muted-foreground/70 mt-2">
+            Live pricing data · {totalProperties} properties checked · {fetchedDate}
+          </p>
+        )}
       </div>
 
       <div className="space-y-10">
@@ -95,9 +113,9 @@ export const StaysTab = ({
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">
-              {data.dataSource === "serpapi_live" ? "Live Prices" : "Typical Prices"} in {data.travelMonth}
+              {isLive ? "Live Prices" : "Typical Prices"} in {data.travelMonth}
             </h3>
-            {data.dataSource === "serpapi_live" && data.stayDuration && (
+            {isLive && data.stayDuration && (
               <span className="text-xs text-muted-foreground">
                 {data.stayDuration}-night stay
               </span>
@@ -105,32 +123,43 @@ export const StaysTab = ({
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {data.priceCategories.map((category, index) => (
-              <PriceCategoryCard key={index} category={category} />
+              <PriceCategoryCard
+                key={index}
+                category={category}
+                fetchedAt={data.fetchedAt}
+              />
             ))}
           </div>
         </section>
 
         {/* Best Neighbourhoods */}
-        <section>
-          <h3 className="text-lg font-semibold text-foreground mb-4">
-            Best Neighbourhoods to Stay
-          </h3>
-          <div className={`grid gap-5 ${
-            data.neighbourhoods.length === 1
-              ? "grid-cols-1"
-              : data.neighbourhoods.length === 2
-                ? "sm:grid-cols-2"
-                : "sm:grid-cols-2 lg:grid-cols-3"
-          }`}>
-            {data.neighbourhoods.map((neighbourhood, index) => (
-              <NeighbourhoodCard key={index} neighbourhood={neighbourhood} city={city} country={country} />
-            ))}
-          </div>
-        </section>
+        {data.neighbourhoods.length > 0 && (
+          <section>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Best Neighbourhoods to Stay
+            </h3>
+            <div className={`grid gap-5 ${
+              data.neighbourhoods.length === 1
+                ? "grid-cols-1"
+                : data.neighbourhoods.length === 2
+                  ? "sm:grid-cols-2"
+                  : "sm:grid-cols-2 lg:grid-cols-3"
+            }`}>
+              {data.neighbourhoods.map((neighbourhood, index) => (
+                <NeighbourhoodCard key={index} neighbourhood={neighbourhood} city={city} country={country} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Hotel vs Apartment */}
         {data.hotelVsApartment && (
-          <HotelVsApartmentSection data={data.hotelVsApartment} />
+          <HotelVsApartmentSection
+            data={data.hotelVsApartment}
+            vacationRentals={data.vacationRentals}
+            currency={data.travellerCurrency || data.priceCategories[0]?.currency}
+            hotelMedianPrice={hotelMedian}
+          />
         )}
 
         {/* Area Guidance */}
