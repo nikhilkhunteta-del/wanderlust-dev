@@ -104,8 +104,17 @@ export const DayCard = ({
             walkingKm={day.estimatedWalkingKm}
             transitMinutes={day.estimatedTransitMinutes}
             paceLabel={day.paceLabel}
+            estimatedBudget={day.estimatedDailyBudget}
+            budgetBreakdown={day.budgetBreakdown}
+            budgetCurrency={day.budgetCurrency}
           />
         </div>
+
+        {day.weatherRationale && (
+          <p className="mt-1.5 text-[11px] text-muted-foreground/50 italic leading-snug">
+            {day.weatherRationale}
+          </p>
+        )}
       </div>
 
       {/* Content */}

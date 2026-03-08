@@ -30,6 +30,12 @@ export interface TimeSlot {
   activities: Activity[];
 }
 
+export interface BudgetBreakdown {
+  entranceFees: number;
+  food: number;
+  transport: number;
+}
+
 export interface ItineraryDay {
   dayNumber: number;
   theme: string;
@@ -40,6 +46,10 @@ export interface ItineraryDay {
   estimatedTransitMinutes?: number;
   paceLabel?: "leisurely" | "moderate" | "active";
   moodLine?: string;
+  estimatedDailyBudget?: number;
+  budgetBreakdown?: BudgetBreakdown;
+  budgetCurrency?: string;
+  weatherRationale?: string;
 }
 
 export interface DayTrip {
