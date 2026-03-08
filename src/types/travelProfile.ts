@@ -26,6 +26,10 @@ export type TravelStyleTag =
 
 export type GroupType = 'solo' | 'couple' | 'family' | 'friends' | 'group';
 
+export type BudgetLevel = 'budget' | 'mid' | 'comfortable' | 'premium';
+
+export type NoveltyPreference = 'familiar' | 'mix' | 'off-beaten-path' | 'surprise';
+
 export interface TravelProfile {
   // Normalized interest scores (0-1)
   interestScores: InterestScores;
@@ -48,6 +52,11 @@ export interface TravelProfile {
   // Companion context
   travelCompanions: string;
   groupType: GroupType;
+
+  // Budget & novelty
+  budgetLevel: BudgetLevel;
+  noveltyPreference: NoveltyPreference;
+  foodDepth: string;
 
   // Inferred tags
   styleTags: TravelStyleTag[];
