@@ -20,6 +20,9 @@ interface TravelProfile {
   travelCompanions: string;
   groupType: string;
   styleTags: string[];
+  budgetLevel?: string;
+  noveltyPreference?: string;
+  foodDepth?: string;
 }
 
 interface CityRecommendation {
@@ -87,9 +90,22 @@ Respond with ONLY valid JSON in this exact format:
   ]
 }`;
 
+    const budgetDesc = profile.budgetLevel === "budget" ? "under £75/day per person"
+      : profile.budgetLevel === "mid" ? "£75–150/day per person"
+      : profile.budgetLevel === "comfortable" ? "£150–300/day per person"
+      : profile.budgetLevel === "premium" ? "£300+/day per person"
+      : "flexible budget";
+
+    const noveltyDesc = profile.noveltyPreference === "familiar" ? "wants classic well-known destinations"
+      : profile.noveltyPreference === "mix" ? "wants a mix of popular and lesser-known destinations"
+      : profile.noveltyPreference === "off-beaten-path" ? "prefers lesser-known off-the-beaten-path cities with lower tourist footfall"
+      : profile.noveltyPreference === "surprise" ? "open to any surprise destination, trusts the recommendation"
+      : "open to any destination";
+
     const userPrompt = `Find 3 destination cities for this traveler:
 
 INTERESTS: ${topInterests.join(", ") || "varied interests"}
+FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
 TRAVEL MONTH: ${profile.travelMonth || "flexible"}
@@ -98,9 +114,12 @@ PREFERRED REGIONS: ${regionConstraint}
 TRIP DURATION: ${profile.tripDuration} days
 TRAVEL PACE: ${profile.travelPace > 0.6 ? "active/packed" : profile.travelPace < 0.4 ? "relaxed/slow" : "balanced"}
 TRAVEL COMPANIONS: ${profile.travelCompanions || "solo"}
+BUDGET: ${budgetDesc}
+DISCOVERY STYLE: ${noveltyDesc}
 STYLE TAGS: ${profile.styleTags.join(", ")}
 
-Remember: Return exactly 3 cities from different countries, matched by interests and experience style, not budget.`;
+IMPORTANT: For "off-beaten-path" or "surprise" discovery styles, prioritise cities with lower mainstream tourist footfall over world-famous hotspots.
+Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and novelty preference.`;
 
     console.log("Sending prompt to AI gateway...");
 
