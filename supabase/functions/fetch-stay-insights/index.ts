@@ -156,7 +156,7 @@ async function searchHotels(
 
 async function fetchNeighbourhoodInsights(
   city: string, country: string, monthName: string, stayDuration: number,
-  perplexityKey: string,
+  perplexityKey: string, currency: string,
 ): Promise<{
   neighbourhoods: any[];
   bookingAdvice: any;
@@ -302,7 +302,7 @@ serve(async (req) => {
     // ── Step 1: Get tier thresholds + neighbourhood insights in parallel ──
     const [thresholds, neighbourhoodData] = await Promise.all([
       fetchTierThresholds(city, resolvedCountry, monthName, currency, PERPLEXITY_API_KEY),
-      fetchNeighbourhoodInsights(city, resolvedCountry, monthName, stayDuration, PERPLEXITY_API_KEY),
+      fetchNeighbourhoodInsights(city, resolvedCountry, monthName, stayDuration, PERPLEXITY_API_KEY, currency),
     ]);
 
     const { budgetCeiling, midCeiling, premiumCeiling } = thresholds;
