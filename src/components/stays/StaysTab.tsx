@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { useStayInsights } from "@/hooks/useCityData";
 import { PriceCategoryCard } from "./PriceCategoryCard";
 import { NeighbourhoodCard } from "./NeighbourhoodCard";
@@ -9,6 +9,7 @@ import { PersonalRecommendation } from "./PersonalRecommendation";
 import { HotelVsApartmentSection } from "./HotelVsApartmentSection";
 import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, Building2, Info } from "lucide-react";
+import { stripMarkdown } from "@/lib/stripMarkdown";
 
 interface StaysTabProps {
   city: string;
@@ -30,11 +31,27 @@ export const StaysTab = ({
     city, country, travelMonth, departureCity, travelCompanions, groupType, tripDuration, styleTags, travelPace,
   );
   const initialLoadTime = useRef<number | null>(null);
+  const searchCtaRef = useRef<HTMLDivElement>(null);
 
   if (data && !initialLoadTime.current) {
     initialLoadTime.current = Date.now();
   }
   const isFromCache = data && !isLoading && dataUpdatedAt < Date.now() - 100;
+
+  // Deduplicate neighbourhood images — detect duplicate URLs via entityName-based query
+  const neighbourhoodsWithDedup = useMemo(() => {
+    if (!data?.neighbourhoods) return [];
+    const seen = new Set<string>();
+    return data.neighbourhoods.map((n) => {
+      const baseQuery = `${n.name} ${city} residential street buildings`;
+      if (seen.has(baseQuery)) {
+        // This shouldn't happen since names differ, but guard anyway
+        return { ...n, alternateQuery: true };
+      }
+      seen.add(baseQuery);
+      return { ...n, alternateQuery: false };
+    });
+  }, [data?.neighbourhoods, city]);
 
   if (isLoading) {
     return (
@@ -78,6 +95,17 @@ export const StaysTab = ({
   // Hotel median for comparison (use midRange tier)
   const hotelMedian = data.priceCategories.find(c => c.category === "midRange")?.medianPrice ?? null;
 
+  // Build stay duration subtitle
+  const stayDuration = data.stayDuration;
+  const checkinLabel = data.fetchedAt ? (() => {
+    // Try to derive from data context
+    return null;
+  })() : null;
+
+  const scrollToSearch = () => {
+    searchCtaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-10">
       {/* Header */}
@@ -92,7 +120,7 @@ export const StaysTab = ({
           <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
         </div>
         <p className="text-muted-foreground max-w-2xl">
-          {data.overview}
+          {stripMarkdown(data.overview)}
         </p>
 
         {/* Data freshness indicator */}
@@ -111,16 +139,21 @@ export const StaysTab = ({
 
         {/* Price Categories */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">
-              {isLive ? "Live Prices" : "Typical Prices"} in {data.travelMonth}
-            </h3>
-            {isLive && data.stayDuration && (
-              <span className="text-xs text-muted-foreground">
-                {data.stayDuration}-night stay
-              </span>
-            )}
-          </div>
+          <h3 className="text-lg font-semibold text-foreground">
+            {isLive ? "Live Prices" : "Typical Prices"} in {data.travelMonth}
+          </h3>
+          {stayDuration && (
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              Prices shown for a {stayDuration}-night stay ·{" "}
+              <button
+                onClick={scrollToSearch}
+                className="text-primary hover:underline"
+              >
+                Adjust below ↓
+              </button>
+            </p>
+          )}
+          {!stayDuration && <div className="mb-4" />}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {data.priceCategories.map((category, index) => (
               <PriceCategoryCard
@@ -133,20 +166,29 @@ export const StaysTab = ({
         </section>
 
         {/* Best Neighbourhoods */}
-        {data.neighbourhoods.length > 0 && (
+        {neighbourhoodsWithDedup.length > 0 && (
           <section>
             <h3 className="text-lg font-semibold text-foreground mb-4">
-              Best Neighbourhoods to Stay
+              Best Neighbourhoods to Stay{" "}
+              <span className="text-sm font-normal text-muted-foreground">
+                · {neighbourhoodsWithDedup.length} areas
+              </span>
             </h3>
             <div className={`grid gap-5 ${
-              data.neighbourhoods.length === 1
+              neighbourhoodsWithDedup.length === 1
                 ? "grid-cols-1"
-                : data.neighbourhoods.length === 2
+                : neighbourhoodsWithDedup.length === 2
                   ? "sm:grid-cols-2"
                   : "sm:grid-cols-2 lg:grid-cols-3"
             }`}>
-              {data.neighbourhoods.map((neighbourhood, index) => (
-                <NeighbourhoodCard key={index} neighbourhood={neighbourhood} city={city} country={country} />
+              {neighbourhoodsWithDedup.map((neighbourhood, index) => (
+                <NeighbourhoodCard
+                  key={index}
+                  neighbourhood={neighbourhood}
+                  city={city}
+                  country={country}
+                  alternateQuery={neighbourhood.alternateQuery}
+                />
               ))}
             </div>
           </section>
@@ -169,7 +211,9 @@ export const StaysTab = ({
         <PracticalStayInsights insights={data.practicalInsights} />
 
         {/* Search Controls */}
-        <StaySearchControls city={city} country={country} travelMonth={travelMonth} />
+        <div ref={searchCtaRef}>
+          <StaySearchControls city={city} country={country} travelMonth={travelMonth} />
+        </div>
 
         {/* Footer */}
         <footer className="flex items-start gap-2 text-xs text-muted-foreground pt-4 border-t border-border/50">

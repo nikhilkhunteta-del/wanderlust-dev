@@ -1,6 +1,7 @@
 import { StayInsight } from "@/types/stayInsights";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Coins, Users, Building2, Info } from "lucide-react";
+import { stripMarkdown } from "@/lib/stripMarkdown";
 
 interface PracticalStayInsightsProps {
   insights: StayInsight[];
@@ -38,10 +39,10 @@ export const PracticalStayInsights = ({ insights }: PracticalStayInsightsProps) 
                 </div>
                 <div>
                   <h4 className="font-medium text-sm text-foreground mb-1">
-                    {insight.title}
+                    {stripMarkdown(insight.title)}
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {insight.description}
+                    {stripMarkdown(insight.description)}
                   </p>
                 </div>
               </CardContent>

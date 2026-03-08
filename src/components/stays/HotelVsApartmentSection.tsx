@@ -1,6 +1,8 @@
 import { HotelVsApartment, VacationRentals, TopProperty } from "@/types/stayInsights";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Coins, Info, ExternalLink } from "lucide-react";
+import { stripMarkdown } from "@/lib/stripMarkdown";
+import { useMemo } from "react";
 
 interface HotelVsApartmentSectionProps {
   data: HotelVsApartment;
@@ -86,10 +88,29 @@ export const HotelVsApartmentSection = ({ data, vacationRentals, currency, hotel
   }
 
   const contextCards = [
-    { icon: Users, title: "Best for apartments", description: data.bestForApartments },
-    { icon: Coins, title: "Price comparison", description: priceComparisonText },
-    { icon: Info, title: "What to know", description: data.whatToKnow },
+    { icon: Users, title: "Best for apartments", description: stripMarkdown(data.bestForApartments) },
+    { icon: Coins, title: "Price comparison", description: stripMarkdown(priceComparisonText) },
+    { icon: Info, title: "What to know", description: stripMarkdown(data.whatToKnow) },
   ];
+
+  // Sort listings by price ascending, filter to only those with valid links
+  const processedListings = useMemo(() => {
+    if (!hasLiveRentalData || !vacationRentals.topProperties.length) return null;
+
+    const withLinks = vacationRentals.topProperties
+      .filter(p => p.link && p.link.trim() !== "")
+      .sort((a, b) => (a.pricePerNight ?? Infinity) - (b.pricePerNight ?? Infinity));
+
+    if (withLinks.length === 0) return null;
+
+    const prices = withLinks.map(p => p.pricePerNight).filter((p): p is number => p !== null && p > 0);
+    const lowest = prices.length ? Math.min(...prices) : null;
+    const highest = prices.length ? Math.max(...prices) : null;
+    const shouldSplit = lowest && highest && highest / lowest > 5;
+    const midpoint = lowest && highest ? Math.round((lowest + highest) / 2) : null;
+
+    return { withLinks, lowest, highest, shouldSplit, midpoint };
+  }, [hasLiveRentalData, vacationRentals?.topProperties]);
 
   return (
     <section>
@@ -115,21 +136,70 @@ export const HotelVsApartmentSection = ({ data, vacationRentals, currency, hotel
       </div>
 
       {/* Live vacation rental listings */}
-      {hasLiveRentalData && vacationRentals.topProperties.length > 0 && (
+      {processedListings && processedListings.withLinks.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-foreground mb-2">
+          <h4 className="text-sm font-medium text-foreground mb-1">
             Top vacation rentals
-            <span className="text-xs text-muted-foreground font-normal ml-2">
-              {vacationRentals.resultCount} listings found
-            </span>
           </h4>
-          <Card className="bg-card/50 border-border/50">
-            <CardContent className="p-4">
-              {vacationRentals.topProperties.slice(0, 3).map((prop, i) => (
-                <RentalPropertyRow key={i} prop={prop} symbol={symbol} />
-              ))}
-            </CardContent>
-          </Card>
+          {processedListings.lowest && processedListings.highest && (
+            <p className="text-xs text-muted-foreground mb-2">
+              From {symbol}{processedListings.lowest} to {symbol}{processedListings.highest}/night · {processedListings.withLinks.length} listings found
+            </p>
+          )}
+
+          {processedListings.shouldSplit && processedListings.midpoint ? (
+            <>
+              {/* Budget sub-group */}
+              {(() => {
+                const budgetItems = processedListings.withLinks.filter(p => (p.pricePerNight ?? 0) < processedListings.midpoint!);
+                if (budgetItems.length === 0) return null;
+                return (
+                  <div className="mb-4">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      Budget options (under {symbol}{processedListings.midpoint})
+                    </p>
+                    <Card className="bg-card/50 border-border/50">
+                      <CardContent className="p-4">
+                        {budgetItems.slice(0, 3).map((prop, i) => (
+                          <RentalPropertyRow key={i} prop={prop} symbol={symbol} />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })()}
+
+              <div className="border-t border-border/30 my-3" />
+
+              {/* Premium sub-group */}
+              {(() => {
+                const premiumItems = processedListings.withLinks.filter(p => (p.pricePerNight ?? 0) >= processedListings.midpoint!);
+                if (premiumItems.length === 0) return null;
+                return (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      Premium options ({symbol}{processedListings.midpoint}+)
+                    </p>
+                    <Card className="bg-card/50 border-border/50">
+                      <CardContent className="p-4">
+                        {premiumItems.slice(0, 3).map((prop, i) => (
+                          <RentalPropertyRow key={i} prop={prop} symbol={symbol} />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })()}
+            </>
+          ) : (
+            <Card className="bg-card/50 border-border/50">
+              <CardContent className="p-4">
+                {processedListings.withLinks.slice(0, 6).map((prop, i) => (
+                  <RentalPropertyRow key={i} prop={prop} symbol={symbol} />
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </section>

@@ -2,15 +2,22 @@ import { useState } from "react";
 import { Neighbourhood } from "@/types/stayInsights";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
+import { stripMarkdown } from "@/lib/stripMarkdown";
 
 interface NeighbourhoodCardProps {
   neighbourhood: Neighbourhood;
   city: string;
   country: string;
+  alternateQuery?: boolean;
 }
 
-export const NeighbourhoodCard = ({ neighbourhood, city, country }: NeighbourhoodCardProps) => {
+export const NeighbourhoodCard = ({ neighbourhood, city, country, alternateQuery }: NeighbourhoodCardProps) => {
   const [expanded, setExpanded] = useState(false);
+
+  // Build explicit neighbourhood-specific image query
+  const imageQuery = alternateQuery
+    ? `${neighbourhood.name} ${city} local area architecture`
+    : `${neighbourhood.name} ${city} residential street buildings`;
 
   return (
     <Card className="overflow-hidden group">
@@ -20,7 +27,7 @@ export const NeighbourhoodCard = ({ neighbourhood, city, country }: Neighbourhoo
             type: 'neighborhood',
             city,
             country,
-            entityName: neighbourhood.name,
+            entityName: imageQuery,
           }}
           alt={neighbourhood.name}
           className="w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -37,7 +44,7 @@ export const NeighbourhoodCard = ({ neighbourhood, city, country }: Neighbourhoo
           <p
             className={`text-sm text-muted-foreground mb-1 ${expanded ? "" : "line-clamp-2"}`}
           >
-            {neighbourhood.description}
+            {stripMarkdown(neighbourhood.description)}
           </p>
           {!expanded && neighbourhood.description.length > 120 && (
             <button
