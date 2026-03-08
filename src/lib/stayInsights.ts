@@ -19,7 +19,7 @@ const DEPARTURE_CURRENCY: Record<string, string> = {
   zurich: "CHF", geneva: "CHF", stockholm: "SEK",
   bangkok: "THB", seoul: "KRW", shanghai: "CNY", beijing: "CNY",
   auckland: "NZD", "cape town": "ZAR", "são paulo": "BRL",
-  "mexico city": "MXN", kuala lumpur: "MYR", manila: "PHP",
+  "mexico city": "MXN", "kuala lumpur": "MYR", manila: "PHP",
   jakarta: "IDR",
 };
 
