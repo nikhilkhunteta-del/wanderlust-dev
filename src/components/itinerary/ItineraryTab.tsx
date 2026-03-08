@@ -282,18 +282,19 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
         </div>
       </div>
 
-      {/* Multi-City Suggestion */}
-      {profile.tripDuration >= 8 && (
+      {/* Multi-City Suggestion — active state banner */}
+      {isMultiCityActive && effectiveTripDuration >= 5 && (
         <div className="mb-6">
           <MultiCitySuggestion
             city={city.city}
             country={city.country}
-            tripDuration={profile.tripDuration}
+            tripDuration={effectiveTripDuration}
             travelMonth={profile.travelMonth}
             userInterests={interests}
             adventureTypes={profile.adventureTypes}
             tripStyle={settings.tripStyle}
             budgetLevel={settings.budgetLevel}
+            gatewayCity={profile.departureCity}
             onSelectMultiCity={handleSelectMultiCity}
             isMultiCityActive={isMultiCityActive}
             onRevertToSingleCity={handleRevertToSingleCity}
@@ -426,6 +427,24 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
                 </div>
               );
             })()}
+
+            {/* Multi-City Suggestion — beneath day list */}
+            {!isMultiCityActive && effectiveTripDuration >= 5 && (
+              <MultiCitySuggestion
+                city={city.city}
+                country={city.country}
+                tripDuration={effectiveTripDuration}
+                travelMonth={profile.travelMonth}
+                userInterests={interests}
+                adventureTypes={profile.adventureTypes}
+                tripStyle={settings.tripStyle}
+                budgetLevel={settings.budgetLevel}
+                gatewayCity={profile.departureCity}
+                onSelectMultiCity={handleSelectMultiCity}
+                isMultiCityActive={false}
+                onRevertToSingleCity={handleRevertToSingleCity}
+              />
+            )}
 
             {/* Journey Completion */}
             <JourneyCompletion

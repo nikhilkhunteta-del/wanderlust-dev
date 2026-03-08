@@ -22,98 +22,166 @@ serve(async (req) => {
       adventureTypes,
       tripStyle,
       budgetLevel,
+      gatewayCity,
     } = body;
 
+    const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    console.log(`Multi-city route: ${originCity}, ${originCountry}, ${totalDays} days`);
+    console.log(`Nearby city discovery: ${originCity}, ${originCountry}, ${totalDays} days`);
 
-    const prompt = `You are a regional travel route planner. Given a primary destination city, suggest a multi-city journey that includes the original city plus 1-3 nearby cities forming a logical travel route.
+    // ── Step 1: Perplexity nearby city discovery ──
+    let nearbyCities: any[] = [];
 
-PRIMARY DESTINATION: ${originCity}, ${originCountry}
-TOTAL TRIP DAYS: ${totalDays}
-TRAVEL MONTH: ${travelMonth}
-TRAVELER INTERESTS: ${userInterests.join(", ") || "varied"}
-ADVENTURE TYPES: ${adventureTypes.join(", ") || "light"}
-PACE: ${tripStyle}
-BUDGET: ${budgetLevel}
+    if (PERPLEXITY_API_KEY) {
+      try {
+        const perplexityPrompt = `The user is planning a ${totalDays}-day trip to ${originCity}, ${originCountry} in ${travelMonth}. Their interests are: ${userInterests?.join(", ") || "varied"}.${gatewayCity ? ` They are arriving via ${gatewayCity}.` : ""} Suggest up to 3 nearby cities or destinations that would combine well with ${originCity} for this traveller. For each suggestion return: city name, country, approximate distance in km from ${originCity}, recommended transport method (train/bus/flight/ferry/drive), journey time as a string like "2h 30min", journey time in decimal hours, why it matches this traveller's interests specifically (one sentence), whether it is likely already on their travel path (e.g. a gateway city they pass through), and an interest match score from 0-3 (0=no match, 3=perfect match).
 
-RULES:
-- Always include ${originCity} as the first stop with the most days allocated
-- Add 1-3 nearby cities reachable within ~3 hours by train, bus, flight, or ferry
-- Create a geographically logical route — no backtracking
-- Allocate days proportionally (primary city gets at least 40% of days)
-- Each additional city needs minimum 2 days
-- Include approximate GPS coordinates for each city center
-- Suggest the best transport mode between cities
-- Consider cultural and thematic variety between stops
-- Match cities to traveler interests when possible
-
-Respond with ONLY valid JSON:
-{
-  "route": {
-    "stops": [
-      {
-        "city": "City Name",
-        "country": "Country",
-        "days": 4,
-        "highlights": ["Top sight 1", "Top sight 2", "Top sight 3"],
-        "lat": 41.39,
-        "lng": 2.17
-      }
-    ],
-    "legs": [
-      {
-        "from": "City A",
-        "to": "City B",
-        "travelTime": "2h 30min",
-        "transportMode": "train",
-        "distanceKm": 180
-      }
-    ],
-    "totalDays": ${totalDays},
-    "routeRationale": "One sentence explaining why this route works for this traveler"
+Return ONLY valid JSON array:
+[
+  {
+    "city": "City Name",
+    "country": "Country",
+    "distanceKm": 180,
+    "transportMode": "train",
+    "journeyTime": "2h 30min",
+    "journeyTimeHours": 2.5,
+    "whyItMatches": "One sentence reason",
+    "isGatewayCity": false,
+    "interestMatchScore": 2
   }
-}`;
+]`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+        const perplexityRes = await fetch("https://api.perplexity.ai/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "sonar",
+            messages: [
+              { role: "system", content: "You are a travel expert. Return only valid JSON, no markdown." },
+              { role: "user", content: perplexityPrompt },
+            ],
+            temperature: 0.2,
+          }),
+        });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        if (perplexityRes.ok) {
+          const perplexityData = await perplexityRes.json();
+          const content = perplexityData.choices?.[0]?.message?.content;
+          if (content) {
+            const jsonMatch = content.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+              nearbyCities = JSON.parse(jsonMatch[0]);
+              console.log(`Perplexity returned ${nearbyCities.length} nearby cities`);
+            }
+          }
+        } else {
+          console.warn("Perplexity query failed:", perplexityRes.status);
+        }
+      } catch (perplexityErr) {
+        console.warn("Perplexity discovery failed, falling back to AI:", perplexityErr);
       }
-      throw new Error(`AI gateway returned ${response.status}`);
     }
 
-    const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content;
-    if (!content) throw new Error("No content in AI response");
+    // ── Fallback: use Lovable AI if Perplexity didn't return results ──
+    if (nearbyCities.length === 0) {
+      const fallbackPrompt = `You are a travel expert. Suggest up to 3 nearby cities that combine well with ${originCity}, ${originCountry} for a ${totalDays}-day trip in ${travelMonth}. Traveler interests: ${userInterests?.join(", ") || "varied"}.${gatewayCity ? ` They arrive via ${gatewayCity}.` : ""}
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Could not parse JSON from AI response");
+Return ONLY valid JSON array:
+[
+  {
+    "city": "City Name",
+    "country": "Country",
+    "distanceKm": 180,
+    "transportMode": "train",
+    "journeyTime": "2h 30min",
+    "journeyTimeHours": 2.5,
+    "whyItMatches": "One sentence reason",
+    "isGatewayCity": false,
+    "interestMatchScore": 2
+  }
+]`;
 
-    const parsed = JSON.parse(jsonMatch[0]);
-    console.log("Multi-city route generated:", parsed.route?.stops?.length, "stops");
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [{ role: "user", content: fallbackPrompt }],
+        }),
+      });
 
-    return new Response(JSON.stringify(parsed), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (aiRes.ok) {
+        const aiData = await aiRes.json();
+        const content = aiData.choices?.[0]?.message?.content;
+        if (content) {
+          const jsonMatch = content.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            nearbyCities = JSON.parse(jsonMatch[0]);
+            console.log(`AI fallback returned ${nearbyCities.length} nearby cities`);
+          }
+        }
+      }
+    }
+
+    // ── Step 2: Score and rank ──
+    const scored = nearbyCities.map((city: any) => {
+      let score = 0;
+
+      // Geographic proximity
+      const hours = city.journeyTimeHours || 99;
+      if (hours <= 2) score += 3;
+      else if (hours <= 4) score += 2;
+      else if (hours <= 6) score += 1;
+
+      // Interest match
+      score += Math.min(city.interestMatchScore || 0, 3);
+
+      // Gateway bonus
+      if (city.isGatewayCity || (gatewayCity && city.city?.toLowerCase() === gatewayCity?.toLowerCase())) {
+        score += 3;
+      }
+
+      // Calculate suggested days: minimum 2, proportional to remaining
+      const mainCityMinDays = Math.max(2, Math.ceil(totalDays * 0.5));
+      const availableDays = totalDays - mainCityMinDays;
+      const suggestedDays = Math.max(2, Math.min(availableDays, Math.round(totalDays * 0.3)));
+
+      return {
+        ...city,
+        score,
+        suggestedDays,
+        // Ensure gateway tag propagates
+        isGatewayCity: city.isGatewayCity || (gatewayCity && city.city?.toLowerCase() === gatewayCity?.toLowerCase()) || false,
+      };
     });
+
+    // Filter score >= 3, sort descending, take top 2
+    const topSuggestions = scored
+      .filter((c: any) => c.score >= 3)
+      .sort((a: any, b: any) => b.score - a.score)
+      .slice(0, 2);
+
+    const mainCityDays = topSuggestions.length > 0
+      ? totalDays - topSuggestions.reduce((s: number, c: any) => s + (c.suggestedDays || 2), 0)
+      : totalDays;
+
+    console.log(`Returning ${topSuggestions.length} scored suggestions (threshold: score >= 3)`);
+
+    return new Response(
+      JSON.stringify({
+        suggestions: topSuggestions,
+        mainCityDays: Math.max(2, mainCityDays),
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("Error in multi-city-route:", error);
     return new Response(
