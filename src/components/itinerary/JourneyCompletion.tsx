@@ -1,4 +1,4 @@
-import { Plane, BedDouble, Share2, RotateCcw, ArrowRight } from "lucide-react";
+import { Plane, BedDouble, Share2, RotateCcw, ArrowRight, Settings2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface JourneyCompletionProps {
@@ -7,6 +7,10 @@ interface JourneyCompletionProps {
   originCity?: string;
   onSwitchTab?: (tab: string) => void;
   onShare?: () => void;
+  // Multi-city props
+  isMultiCity?: boolean;
+  cities?: string[];
+  onScrollToTop?: () => void;
 }
 
 export const JourneyCompletion = ({
@@ -15,14 +19,33 @@ export const JourneyCompletion = ({
   originCity,
   onSwitchTab,
   onShare,
+  isMultiCity = false,
+  cities = [],
+  onScrollToTop,
 }: JourneyCompletionProps) => {
   const navigate = useNavigate();
 
+  const heading = isMultiCity && cities.length >= 2
+    ? `Your ${tripDuration}-day journey across ${cities.slice(0, -1).join(", ")} and ${cities[cities.length - 1]} is ready`
+    : `Your ${tripDuration}-day ${cityName} itinerary is ready`;
+
+  const firstCity = cities[0] || cityName;
+
+  const flightSubtitle = isMultiCity
+    ? `You're flying into ${firstCity} — start here`
+    : originCity
+      ? `See the best options from ${originCity}`
+      : `See the best flight options to ${cityName}`;
+
+  const staySubtitle = isMultiCity
+    ? "Check hotels per city — tap each city tab for live prices"
+    : `Live prices for your dates in ${cityName}`;
+
   return (
-    <section className="rounded-2xl overflow-hidden" style={{ background: '#1C1917' }}>
+    <section className="rounded-2xl overflow-hidden bg-card border border-border/50 shadow-sm" style={{ background: '#1C1917' }}>
       <div className="px-6 md:px-10 py-10 md:py-12">
         <h3 className="font-display text-xl md:text-2xl font-semibold text-white mb-6">
-          Your {tripDuration}-day {cityName} itinerary is ready
+          {heading}
         </h3>
 
         {/* Action cards */}
@@ -38,9 +61,7 @@ export const JourneyCompletion = ({
               <h4 className="font-semibold text-foreground text-[15px]">Sort your flights</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {originCity
-                ? `See the best options from ${originCity}`
-                : `See the best flight options to ${cityName}`}
+              {flightSubtitle}
             </p>
             <span className="inline-flex items-center gap-1 text-xs font-medium text-primary mt-3 group-hover:gap-2 transition-all">
               View options <ArrowRight className="w-3 h-3" />
@@ -58,7 +79,7 @@ export const JourneyCompletion = ({
               <h4 className="font-semibold text-foreground text-[15px]">Find your base</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Live prices for your dates in {cityName}
+              {staySubtitle}
             </p>
             <span className="inline-flex items-center gap-1 text-xs font-medium text-primary mt-3 group-hover:gap-2 transition-all">
               View options <ArrowRight className="w-3 h-3" />
@@ -76,6 +97,16 @@ export const JourneyCompletion = ({
             >
               <Share2 className="w-4 h-4" />
               Share trip
+            </button>
+          )}
+          {isMultiCity && onScrollToTop && (
+            <button
+              onClick={onScrollToTop}
+              className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
+              style={{ color: '#D6D3D1' }}
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              Adjust the journey
             </button>
           )}
           <button

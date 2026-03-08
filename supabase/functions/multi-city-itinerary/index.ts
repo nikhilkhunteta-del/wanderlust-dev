@@ -56,7 +56,7 @@ serve(async (req) => {
           ? `\n  ARRIVING FROM: ${leg.from} by ${leg.transportMode} (~${leg.travelTime})`
           : "";
         return `CITY ${i + 1}: ${stop.city}, ${stop.country} — ${stop.days} days${travelNote}
-  HIGHLIGHTS TO WEAVE IN: ${stop.highlights.join(", ")}`;
+  HIGHLIGHTS TO WEAVE IN: ${(stop.highlights || []).join(", ") || "local highlights"}`;
       })
       .join("\n\n");
 
@@ -73,6 +73,10 @@ RULES:
 - Include dining recommendations matching preferences
 - Weave in seasonal experiences for ${travelMonth}
 - Estimate walking distance and transit time per day
+- For each day, include an estimatedDailyBudget field — approximate spend per person covering entrance fees, meals at the specified dining preference, and local transport. Return as a number. Also include budgetCurrency (e.g. "₹", "£", "€") and budgetBreakdown with entranceFees, food, and transport as numbers. Clearly an estimate.
+- For each activity, include a transitTo field: transport method and time to the next activity (e.g. "10 min walk", "20 min metro"). Return null for the last activity of each day or time period.
+- For each activity, include a personalNote field — one sentence connecting this activity to the user's stated interests. Mandatory for every activity.
+- For each activity, include a practicalNote field — closure day, booking tip, or best visit time for ${travelMonth}. Return null if not relevant.
 
 Respond with ONLY valid JSON:
 {
@@ -87,9 +91,12 @@ Respond with ONLY valid JSON:
       "estimatedWalkingKm": 5.5,
       "estimatedTransitMinutes": 20,
       "paceLabel": "leisurely|moderate|active",
+      "estimatedDailyBudget": 45,
+      "budgetCurrency": "₹",
+      "budgetBreakdown": { "entranceFees": 15, "food": 20, "transport": 10 },
       "slots": [
         {
-      "period": "morning",
+          "period": "morning",
           "activities": [
             {
               "time": "9:00 AM",
@@ -100,8 +107,9 @@ Respond with ONLY valid JSON:
               "lat": 41.3851,
               "lng": 2.1734,
               "seasonalNote": "Optional seasonal note or null",
-              "personalNote": "One sentence connecting this activity to the user's interests — mandatory for every activity",
-              "practicalNote": "Closure day, booking tip, or best visit time — or null if not relevant"
+              "personalNote": "One sentence connecting this activity to the user's interests",
+              "practicalNote": "Closure day, booking tip, or best visit time — or null",
+              "transitTo": "10 min walk or null"
             }
           ]
         },

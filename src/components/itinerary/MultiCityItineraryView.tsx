@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, lazy, Suspense } from "react";
-import { MultiCityItinerary, MultiCityRoute, CityTransition } from "@/types/multiCity";
+import { useState, useRef, useCallback, lazy, Suspense, useMemo } from "react";
+import { MultiCityItinerary, MultiCityRoute, MultiCityDay, CityTransition } from "@/types/multiCity";
 import { Activity } from "@/types/itinerary";
 import { DayCard } from "./DayCard";
 import { CollapsedDayCard } from "./CollapsedDayCard";
@@ -18,6 +18,8 @@ interface MultiCityItineraryViewProps {
   error: Error | null;
   cityName: string;
   tripDuration: number;
+  onSwitchTab?: (tab: string) => void;
+  onScrollToTop?: () => void;
   // Activity interaction props
   onRefineDay?: (dayNumber: number, adjustment: string, cityName?: string, countryName?: string) => void;
   isRefining?: boolean;
@@ -27,7 +29,6 @@ interface MultiCityItineraryViewProps {
   onReplaceActivity?: (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => void;
 }
 
-// Generate narrative chapter titles
 function getChapterTitle(city: string, index: number): string {
   return `Chapter ${index + 1}`;
 }
@@ -39,6 +40,8 @@ export const MultiCityItineraryView = ({
   error,
   cityName,
   tripDuration,
+  onSwitchTab,
+  onScrollToTop,
   onRefineDay,
   isRefining = false,
   refiningDay = null,
@@ -52,29 +55,22 @@ export const MultiCityItineraryView = ({
   const toggleDay = useCallback((dayNumber: number) => {
     setExpandedDays((prev) => {
       const next = new Set(prev);
-      if (next.has(dayNumber)) {
-        next.delete(dayNumber);
-      } else {
-        next.add(dayNumber);
-      }
+      if (next.has(dayNumber)) next.delete(dayNumber);
+      else next.add(dayNumber);
       return next;
     });
   }, []);
 
-  const expandAllInChapter = useCallback((days: typeof itinerary.days) => {
+  const expandAllInChapter = useCallback((days: MultiCityDay[]) => {
     setExpandedDays((prev) => {
       const next = new Set(prev);
       const allExpanded = days.every((d) => next.has(d.dayNumber));
-      if (allExpanded) {
-        days.forEach((d) => next.delete(d.dayNumber));
-      } else {
-        days.forEach((d) => next.add(d.dayNumber));
-      }
+      if (allExpanded) days.forEach((d) => next.delete(d.dayNumber));
+      else days.forEach((d) => next.add(d.dayNumber));
       return next;
     });
   }, []);
 
-  // Wrap onRefineDay for multi-city context
   const handleRefineDay = useCallback(
     (dayNumber: number, adjustment: string) => {
       if (!onRefineDay || !itinerary) return;
@@ -85,13 +81,54 @@ export const MultiCityItineraryView = ({
     [onRefineDay, itinerary, route]
   );
 
-  // Wrap onReplaceActivity for multi-city context
   const handleReplaceActivity = useCallback(
     (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => {
       onReplaceActivity?.(dayNumber, period, activityIndex, newActivity);
     },
     [onReplaceActivity]
   );
+
+  // Group days by city
+  const cityGroups = useMemo(() => {
+    if (!itinerary?.days) return [];
+    const groups: { city: string; days: MultiCityDay[]; transition?: CityTransition }[] = [];
+    let currentCity = "";
+    itinerary.days.forEach((day) => {
+      if (day.cityName !== currentCity) {
+        const transition = itinerary.cityTransitions?.find(
+          (t) => t.toCity === day.cityName && t.dayNumber === day.dayNumber
+        );
+        groups.push({ city: day.cityName, days: [day], transition });
+        currentCity = day.cityName;
+      } else {
+        groups[groups.length - 1].days.push(day);
+      }
+    });
+    return groups;
+  }, [itinerary]);
+
+  // Budget calculations
+  const cityBudgets = useMemo(() => {
+    if (!itinerary?.days) return {};
+    const budgets: Record<string, { total: number; days: number; currency: string }> = {};
+    for (const day of itinerary.days) {
+      if (day.estimatedDailyBudget == null) continue;
+      const city = day.cityName || "Unknown";
+      if (!budgets[city]) budgets[city] = { total: 0, days: 0, currency: (day as any).budgetCurrency || "£" };
+      budgets[city].total += day.estimatedDailyBudget;
+      budgets[city].days += 1;
+    }
+    return budgets;
+  }, [itinerary]);
+
+  const totalBudget = useMemo(() => {
+    const entries = Object.values(cityBudgets);
+    if (entries.length === 0) return null;
+    const total = entries.reduce((s, e) => s + e.total, 0);
+    const days = entries.reduce((s, e) => s + e.days, 0);
+    const currency = entries[0]?.currency || "£";
+    return { total, days, cities: entries.length, currency };
+  }, [cityBudgets]);
 
   if (isLoading) {
     return (
@@ -122,41 +159,22 @@ export const MultiCityItineraryView = ({
 
   if (!itinerary) return null;
 
-  // Regional map
-  const mapSection = (
-    <div className="mb-8">
-      <Suspense
-        fallback={
-          <div className="h-[420px] bg-muted/30 rounded-xl flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
-        }
-      >
-        <MultiCityMap route={route} days={itinerary.days} selectedCity={null} />
-      </Suspense>
-    </div>
-  );
-
-  // Group days by city
-  const cityGroups: { city: string; days: typeof itinerary.days; transition?: CityTransition }[] = [];
-  let currentCity = "";
-
-  itinerary.days.forEach((day) => {
-    if (day.cityName !== currentCity) {
-      const transition = itinerary.cityTransitions?.find(
-        (t) => t.toCity === day.cityName && t.dayNumber === day.dayNumber
-      );
-      cityGroups.push({ city: day.cityName, days: [day], transition });
-      currentCity = day.cityName;
-    } else {
-      cityGroups[cityGroups.length - 1].days.push(day);
-    }
-  });
+  const allCities = route.stops.map((s) => s.city);
 
   return (
     <div className="space-y-6">
-      {/* Regional Map — ONE map only */}
-      {mapSection}
+      {/* Regional Map */}
+      <div className="mb-8">
+        <Suspense
+          fallback={
+            <div className="h-[420px] bg-muted/30 rounded-xl flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          }
+        >
+          <MultiCityMap route={route} days={itinerary.days} selectedCity={null} />
+        </Suspense>
+      </div>
 
       {/* Journey Chapters */}
       {cityGroups.map((group, groupIndex) => {
@@ -165,6 +183,7 @@ export const MultiCityItineraryView = ({
         const leg = group.transition
           ? route.legs.find((l) => l.to === group.city)
           : undefined;
+        const cityBudget = cityBudgets[group.city];
 
         return (
           <div
@@ -172,7 +191,7 @@ export const MultiCityItineraryView = ({
             ref={(el) => { chapterRefs.current[group.city] = el; }}
             className="scroll-mt-[120px]"
           >
-            {/* Travel Transition Card between chapters */}
+            {/* Travel Transition Card */}
             {group.transition && (
               <TravelTransitionCard transition={group.transition} leg={leg} />
             )}
@@ -245,6 +264,14 @@ export const MultiCityItineraryView = ({
                 </div>
               ))}
             </div>
+
+            {/* Per-chapter budget summary */}
+            {cityBudget && cityBudget.total > 0 && (
+              <div className="ml-0 md:ml-[52px] mt-3 bg-muted/30 rounded-lg border border-border/30 px-4 py-3 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Estimated {group.city} spend:</span>{" "}
+                ~{cityBudget.currency}{Math.round(cityBudget.total)} per person · {cityBudget.days} {cityBudget.days === 1 ? "day" : "days"} · excludes accommodation
+              </div>
+            )}
           </div>
         );
       })}
@@ -269,10 +296,23 @@ export const MultiCityItineraryView = ({
         </div>
       )}
 
+      {/* Full trip budget total */}
+      {totalBudget && (
+        <div className="bg-muted/30 rounded-xl border border-border/30 px-5 py-4 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Estimated total activities budget:</span>{" "}
+          ~{totalBudget.currency}{Math.round(totalBudget.total)} per person across {totalBudget.days} days in {totalBudget.cities} {totalBudget.cities === 1 ? "city" : "cities"} · excludes flights and accommodation
+        </div>
+      )}
+
       {/* Journey Completion */}
       <JourneyCompletion
-        cityName={route.stops.map((s) => s.city).join(" → ")}
+        cityName={allCities.join(" → ")}
         tripDuration={tripDuration}
+        onSwitchTab={onSwitchTab}
+        onShare={undefined}
+        isMultiCity={true}
+        cities={allCities}
+        onScrollToTop={onScrollToTop}
       />
     </div>
   );
