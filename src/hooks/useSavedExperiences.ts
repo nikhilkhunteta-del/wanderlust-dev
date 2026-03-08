@@ -54,7 +54,7 @@ export function useSavedExperiences(city: string, country: string) {
           : [...prev, { title, city, country, savedAt: new Date().toISOString() }];
         writeStore(next);
         toast({
-          description: exists ? "Removed from saved ideas." : "Saved to your trip ideas.",
+          description: exists ? "Removed from your experiences." : "Saved to your experiences.",
         });
         return next;
       });

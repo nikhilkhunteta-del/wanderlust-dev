@@ -22,7 +22,7 @@ export const FeaturedExperienceCard = ({ experience, city, country, isSaved, onT
             className="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
           >
             <Bookmark
-              className={`w-5 h-5 transition-colors ${isSaved ? "fill-primary text-primary" : "text-white"}`}
+              className={`w-5 h-5 transition-colors ${isSaved ? "fill-[#EA580C] text-[#EA580C]" : "text-white"}`}
             />
           </button>
         )}

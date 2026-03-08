@@ -21,7 +21,7 @@ export const ExperienceCard = ({ experience, city, country, isSaved, onToggleSav
           className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
         >
           <Bookmark
-            className={`w-4 h-4 transition-colors ${isSaved ? "fill-primary text-primary" : "text-white"}`}
+            className={`w-4 h-4 transition-colors ${isSaved ? "fill-[#EA580C] text-[#EA580C]" : "text-white"}`}
           />
         </button>
       )}
