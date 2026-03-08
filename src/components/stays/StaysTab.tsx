@@ -93,9 +93,16 @@ export const StaysTab = ({
 
         {/* Price Categories */}
         <section>
-          <h3 className="text-lg font-semibold text-foreground mb-4">
-            Typical Prices in {data.travelMonth}
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">
+              {data.dataSource === "serpapi_live" ? "Live Prices" : "Typical Prices"} in {data.travelMonth}
+            </h3>
+            {data.dataSource === "serpapi_live" && data.stayDuration && (
+              <span className="text-xs text-muted-foreground">
+                {data.stayDuration}-night stay
+              </span>
+            )}
+          </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {data.priceCategories.map((category, index) => (
               <PriceCategoryCard key={index} category={category} />
