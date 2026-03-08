@@ -36,7 +36,7 @@ serve(async (req) => {
 
     if (PERPLEXITY_API_KEY) {
       try {
-        const perplexityPrompt = `The user is planning a ${totalDays}-day trip to ${originCity}, ${originCountry} in ${travelMonth}. Their interests are: ${userInterests?.join(", ") || "varied"}.${gatewayCity ? ` They are arriving via ${gatewayCity}.` : ""} Suggest up to 3 nearby cities or destinations that would combine well with ${originCity} for this traveller. For each suggestion return: city name, country, approximate distance in km from ${originCity}, recommended transport method (train/bus/flight/ferry/drive), journey time as a string like "2h 30min", journey time in decimal hours, why it matches this traveller's interests specifically (one sentence), whether it is likely already on their travel path (e.g. a gateway city they pass through), and an interest match score from 0-3 (0=no match, 3=perfect match).
+        const perplexityPrompt = `The user is planning a ${totalDays}-day trip to ${originCity}, ${originCountry} in ${travelMonth}. Their interests are: ${userInterests?.join(", ") || "varied"}.${gatewayCity ? ` They are arriving via ${gatewayCity}.` : ""} Suggest up to 3 nearby cities or destinations that would combine well with ${originCity} for this traveller. For each suggestion return: city name, country, approximate distance in km from ${originCity}, recommended transport method (train/bus/flight/ferry/drive), journey time as a string like "2h 30min", journey time in decimal hours, why it matches this traveller's interests specifically (one sentence), whether it is likely already on their travel path (e.g. a gateway city they pass through), an interest match score from 0-3 (0=no match, 3=perfect match), and a practicalNote about any month-specific warnings for ${travelMonth} (e.g. extreme heat, monsoon, closures) or null if none.
 
 Return ONLY valid JSON array:
 [
@@ -49,7 +49,8 @@ Return ONLY valid JSON array:
     "journeyTimeHours": 2.5,
     "whyItMatches": "One sentence reason",
     "isGatewayCity": false,
-    "interestMatchScore": 2
+    "interestMatchScore": 2,
+    "practicalNote": "Month-specific warning or null"
   }
 ]`;
 
@@ -102,7 +103,8 @@ Return ONLY valid JSON array:
     "journeyTimeHours": 2.5,
     "whyItMatches": "One sentence reason",
     "isGatewayCity": false,
-    "interestMatchScore": 2
+    "interestMatchScore": 2,
+    "practicalNote": null
   }
 ]`;
 
@@ -131,7 +133,7 @@ Return ONLY valid JSON array:
       }
     }
 
-    // ── Step 2: Score and rank ──
+    // ── Step 2: Weighted day allocation + scoring ──
     const scored = nearbyCities.map((city: any) => {
       let score = 0;
 
@@ -145,21 +147,47 @@ Return ONLY valid JSON array:
       score += Math.min(city.interestMatchScore || 0, 3);
 
       // Gateway bonus
-      if (city.isGatewayCity || (gatewayCity && city.city?.toLowerCase() === gatewayCity?.toLowerCase())) {
-        score += 3;
+      const isGateway = city.isGatewayCity || (gatewayCity && city.city?.toLowerCase() === gatewayCity?.toLowerCase());
+      if (isGateway) score += 3;
+
+      // ── Weighted day allocation ──
+      const needsTravelDay = hours > 2;
+      const effectiveDays = needsTravelDay ? totalDays - 1 : totalDays;
+
+      let suggestedDaysForAdded: number;
+      let suggestedDaysForMain: number;
+
+      if (isGateway) {
+        // Gateway city gets ~35% — first/last nights there
+        suggestedDaysForAdded = Math.max(2, Math.ceil(effectiveDays * 0.35));
+        suggestedDaysForMain = effectiveDays - suggestedDaysForAdded;
+      } else {
+        // Standard: main city gets ~60%
+        suggestedDaysForMain = Math.max(2, Math.ceil(effectiveDays * 0.6));
+        suggestedDaysForAdded = effectiveDays - suggestedDaysForMain;
       }
 
-      // Calculate suggested days: minimum 2, proportional to remaining
-      const mainCityMinDays = Math.max(2, Math.ceil(totalDays * 0.5));
-      const availableDays = totalDays - mainCityMinDays;
-      const suggestedDays = Math.max(2, Math.min(availableDays, Math.round(totalDays * 0.3)));
+      // Ensure minimums
+      suggestedDaysForAdded = Math.max(2, suggestedDaysForAdded);
+      suggestedDaysForMain = Math.max(2, suggestedDaysForMain);
+
+      // If we exceed total, trim the added city
+      if (suggestedDaysForMain + suggestedDaysForAdded > effectiveDays) {
+        suggestedDaysForAdded = effectiveDays - suggestedDaysForMain;
+      }
+      if (suggestedDaysForAdded < 2) {
+        suggestedDaysForAdded = 2;
+        suggestedDaysForMain = effectiveDays - suggestedDaysForAdded;
+      }
 
       return {
         ...city,
         score,
-        suggestedDays,
-        // Ensure gateway tag propagates
-        isGatewayCity: city.isGatewayCity || (gatewayCity && city.city?.toLowerCase() === gatewayCity?.toLowerCase()) || false,
+        suggestedDays: suggestedDaysForAdded,
+        needsTravelDay,
+        isGatewayCity: !!isGateway,
+        // Clean up practicalNote
+        practicalNote: city.practicalNote && city.practicalNote !== "null" ? city.practicalNote : null,
       };
     });
 
@@ -169,8 +197,10 @@ Return ONLY valid JSON array:
       .sort((a: any, b: any) => b.score - a.score)
       .slice(0, 2);
 
-    const mainCityDays = topSuggestions.length > 0
-      ? totalDays - topSuggestions.reduce((s: number, c: any) => s + (c.suggestedDays || 2), 0)
+    // Calculate main city days based on top suggestion (if user picks one)
+    const bestSuggestion = topSuggestions[0];
+    const mainCityDays = bestSuggestion
+      ? (bestSuggestion.needsTravelDay ? totalDays - 1 : totalDays) - bestSuggestion.suggestedDays
       : totalDays;
 
     console.log(`Returning ${topSuggestions.length} scored suggestions (threshold: score >= 3)`);

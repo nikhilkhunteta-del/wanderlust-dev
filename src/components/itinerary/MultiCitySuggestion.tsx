@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { NearbyCityOption, NearbyCityDiscoveryResponse, MultiCityRoute } from "@/types/multiCity";
 import { discoverNearbyCities, buildRouteFromSuggestion } from "@/lib/multiCity";
-import { Globe, ArrowRight, Train, Plane, Bus, Ship, Car, Loader2, ChevronRight } from "lucide-react";
+import { Globe, ArrowRight, Train, Plane, Bus, Ship, Car, Loader2, ChevronRight, Minus, Plus, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -53,6 +53,10 @@ export const MultiCitySuggestion = ({
   const [discovery, setDiscovery] = useState<NearbyCityDiscoveryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  // Track which suggestion is in "split preview" mode
+  const [previewSuggestion, setPreviewSuggestion] = useState<NearbyCityOption | null>(null);
+  const [previewMainDays, setPreviewMainDays] = useState(0);
+  const [previewAddedDays, setPreviewAddedDays] = useState(0);
 
   useEffect(() => {
     if (hasLoaded || tripDuration < 5) return;
@@ -82,6 +86,46 @@ export const MultiCitySuggestion = ({
 
     fetchDiscovery();
   }, [hasLoaded, tripDuration]);
+
+  const openSplitPreview = useCallback((suggestion: NearbyCityOption) => {
+    const mainDays = discovery?.mainCityDays || (tripDuration - (suggestion.suggestedDays || 2));
+    const addedDays = suggestion.suggestedDays || 2;
+    setPreviewSuggestion(suggestion);
+    setPreviewMainDays(Math.max(2, mainDays));
+    setPreviewAddedDays(Math.max(2, addedDays));
+  }, [discovery, tripDuration]);
+
+  const adjustSplit = useCallback((target: "main" | "added", delta: number) => {
+    const hasTravelDay = previewSuggestion?.needsTravelDay;
+    const effectiveTotal = hasTravelDay ? tripDuration - 1 : tripDuration;
+
+    if (target === "main") {
+      const newMain = previewMainDays + delta;
+      const newAdded = effectiveTotal - newMain;
+      if (newMain < 2 || newAdded < 2) return;
+      setPreviewMainDays(newMain);
+      setPreviewAddedDays(newAdded);
+    } else {
+      const newAdded = previewAddedDays + delta;
+      const newMain = effectiveTotal - newAdded;
+      if (newMain < 2 || newAdded < 2) return;
+      setPreviewAddedDays(newAdded);
+      setPreviewMainDays(newMain);
+    }
+  }, [previewMainDays, previewAddedDays, previewSuggestion, tripDuration]);
+
+  const confirmSplit = useCallback(() => {
+    if (!previewSuggestion) return;
+    const route = buildRouteFromSuggestion(
+      city,
+      country,
+      tripDuration,
+      previewSuggestion,
+      previewMainDays,
+    );
+    setPreviewSuggestion(null);
+    onSelectMultiCity(route);
+  }, [previewSuggestion, city, country, tripDuration, previewMainDays, onSelectMultiCity]);
 
   if (tripDuration < 5) return null;
 
@@ -125,17 +169,89 @@ export const MultiCitySuggestion = ({
 
   const mainCityDays = discovery?.mainCityDays || tripDuration;
 
-  const handleAddCity = (suggestion: NearbyCityOption) => {
-    const route = buildRouteFromSuggestion(
-      city,
-      country,
-      tripDuration,
-      suggestion,
-      mainCityDays
-    );
-    onSelectMultiCity(route);
-  };
+  // ── Split Preview Mode ──
+  if (previewSuggestion) {
+    const TransportIcon = transportIcons[previewSuggestion.transportMode] || Train;
+    const effectiveTotal = previewSuggestion.needsTravelDay ? tripDuration - 1 : tripDuration;
 
+    return (
+      <div className="space-y-4">
+        <h3 className="font-display font-semibold text-base flex items-center gap-2.5 text-indigo-700 dark:text-indigo-400">
+          <div className="p-1.5 rounded-lg bg-indigo-500/10">
+            <Globe className="w-4 h-4" />
+          </div>
+          Your journey
+        </h3>
+
+        <div className="bg-card rounded-xl border border-indigo-500/30 p-5 space-y-4">
+          {/* Main city row */}
+          <DaySplitRow
+            cityName={city}
+            days={previewMainDays}
+            onMinus={() => adjustSplit("main", -1)}
+            onPlus={() => adjustSplit("main", 1)}
+            minDays={2}
+            maxDays={effectiveTotal - 2}
+          />
+
+          {/* Transport connector */}
+          <div className="flex items-center gap-2 pl-6 text-xs text-muted-foreground">
+            <div className="w-px h-4 bg-border" />
+            <TransportIcon className="w-3.5 h-3.5" />
+            <span>{previewSuggestion.journeyTime} by {previewSuggestion.transportMode}</span>
+          </div>
+
+          {/* Added city row */}
+          <DaySplitRow
+            cityName={previewSuggestion.city}
+            days={previewAddedDays}
+            onMinus={() => adjustSplit("added", -1)}
+            onPlus={() => adjustSplit("added", 1)}
+            minDays={2}
+            maxDays={effectiveTotal - 2}
+            isGateway={previewSuggestion.isGatewayCity}
+          />
+
+          {/* Travel day note */}
+          {previewSuggestion.needsTravelDay && (
+            <p className="text-xs text-muted-foreground/70 italic pl-6">
+              +1 travel day included (journey &gt; 2 hours)
+            </p>
+          )}
+
+          {/* Practical / month warning */}
+          {previewSuggestion.practicalNote && (
+            <div className="flex items-start gap-2 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                {previewSuggestion.practicalNote}
+              </p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-1">
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={confirmSplit}
+            >
+              Generate this itinerary
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Button>
+            <button
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setPreviewSuggestion(null)}
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Suggestion Cards ──
   return (
     <div className="space-y-4">
       <h3 className="font-display font-semibold text-base flex items-center gap-2.5 text-indigo-700 dark:text-indigo-400">
@@ -152,13 +268,60 @@ export const MultiCitySuggestion = ({
             suggestion={suggestion}
             mainCity={city}
             mainCityDays={mainCityDays}
-            onAdd={() => handleAddCity(suggestion)}
+            onAdd={() => openSplitPreview(suggestion)}
           />
         ))}
       </div>
     </div>
   );
 };
+
+// ── Editable day split row ──
+
+interface DaySplitRowProps {
+  cityName: string;
+  days: number;
+  onMinus: () => void;
+  onPlus: () => void;
+  minDays: number;
+  maxDays: number;
+  isGateway?: boolean;
+}
+
+const DaySplitRow = ({ cityName, days, onMinus, onPlus, minDays, maxDays, isGateway }: DaySplitRowProps) => (
+  <div className="flex items-center gap-3">
+    <span className="font-semibold text-sm min-w-0 flex-1 flex items-center gap-2">
+      {cityName}
+      {isGateway && (
+        <Badge
+          variant="secondary"
+          className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+        >
+          Already on your route
+        </Badge>
+      )}
+    </span>
+    <div className="flex items-center gap-2">
+      <button
+        onClick={onMinus}
+        disabled={days <= minDays}
+        className="w-7 h-7 rounded-md border border-border hover:border-primary/50 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <Minus className="w-3 h-3" />
+      </button>
+      <span className="text-sm font-medium min-w-[50px] text-center">
+        {days} {days === 1 ? "day" : "days"}
+      </span>
+      <button
+        onClick={onPlus}
+        disabled={days >= maxDays}
+        className="w-7 h-7 rounded-md border border-border hover:border-primary/50 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <Plus className="w-3 h-3" />
+      </button>
+    </div>
+  </div>
+);
 
 // ── Individual nearby city card ──
 
@@ -208,7 +371,18 @@ const NearbyCityCard = ({ suggestion, mainCity, mainCityDays, onAdd }: NearbyCit
         <span>{mainCity}: {mainCityDays}d</span>
         <ArrowRight className="w-3 h-3 text-muted-foreground/50" />
         <span>{suggestion.city}: {suggestion.suggestedDays || 2}d</span>
+        {suggestion.needsTravelDay && (
+          <span className="text-muted-foreground/50 ml-1">+1 travel</span>
+        )}
       </div>
+
+      {/* Practical warning */}
+      {suggestion.practicalNote && (
+        <div className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+          <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+          <span className="leading-relaxed">{suggestion.practicalNote}</span>
+        </div>
+      )}
 
       {/* CTA */}
       <Button
