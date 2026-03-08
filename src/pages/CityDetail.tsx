@@ -76,6 +76,7 @@ const CityDetail = () => {
     return {
       city: fallbackCity,
       profile: buildDefaultProfile(urlCity),
+      allCities: null,
     };
   }, [state, cityName, location.search]);
 
