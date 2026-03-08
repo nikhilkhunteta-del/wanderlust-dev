@@ -1,12 +1,28 @@
+import { useState } from "react";
 import { ExtensionSuggestion } from "@/types/itinerary";
-import { PlusCircle, Sparkles } from "lucide-react";
+import { PlusCircle, Sparkles, ArrowRight, RefreshCw, Info } from "lucide-react";
 
 interface ExtensionSectionProps {
   suggestions: ExtensionSuggestion[];
+  tripDuration: number;
+  totalDays: number;
+  onAddDay: (suggestion: ExtensionSuggestion) => void;
+  onSwapDay: (suggestion: ExtensionSuggestion, dayNumber: number) => void;
 }
 
-export const ExtensionSection = ({ suggestions }: ExtensionSectionProps) => {
+export const ExtensionSection = ({
+  suggestions,
+  tripDuration,
+  totalDays,
+  onAddDay,
+  onSwapDay,
+}: ExtensionSectionProps) => {
+  const [swappingIndex, setSwappingIndex] = useState<number | null>(null);
+
   if (!suggestions || suggestions.length === 0) return null;
+
+  const newDayNum = totalDays + 1;
+  const wouldExceedDuration = newDayNum > tripDuration;
 
   return (
     <div className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 rounded-xl p-5 md:p-6 border border-violet-500/20">
@@ -38,6 +54,56 @@ export const ExtensionSection = ({ suggestions }: ExtensionSectionProps) => {
                   {highlight}
                 </span>
               ))}
+            </div>
+
+            {/* Actions */}
+            <div className="mt-3 pt-3 border-t border-border/30 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => onAddDay(suggestion)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-400 hover:text-violet-900 dark:hover:text-violet-300 transition-colors"
+                >
+                  Add as Day {newDayNum}
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+                <span className="text-border/40">·</span>
+                <button
+                  onClick={() =>
+                    setSwappingIndex(swappingIndex === index ? null : index)
+                  }
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Swap with a day
+                </button>
+              </div>
+
+              {/* Swap day picker */}
+              {swappingIndex === index && (
+                <div className="flex items-center gap-1.5 flex-wrap animate-fade-in">
+                  <span className="text-xs text-muted-foreground mr-1">Replace:</span>
+                  {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => {
+                        onSwapDay(suggestion, d);
+                        setSwappingIndex(null);
+                      }}
+                      className="w-7 h-7 rounded-full text-[11px] font-bold bg-muted/60 text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Duration warning */}
+              {wouldExceedDuration && (
+                <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground/60 mt-1">
+                  <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                  This would extend your trip to {newDayNum} days — update your travel dates to include it.
+                </p>
+              )}
             </div>
           </article>
         ))}
