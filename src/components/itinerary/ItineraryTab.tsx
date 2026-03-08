@@ -416,6 +416,11 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
               error={multiCityError}
               cityName={city.city}
               tripDuration={effectiveTripDuration}
+              onSwitchTab={onSwitchTab}
+              onScrollToTop={() => {
+                setMultiCitySelectedCity("all");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
               onRefineDay={handleMultiCityRefineDay}
               isRefining={isRefining}
               refiningDay={refiningDay}
