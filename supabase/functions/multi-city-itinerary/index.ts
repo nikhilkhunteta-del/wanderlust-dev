@@ -89,7 +89,7 @@ Respond with ONLY valid JSON:
       "paceLabel": "leisurely|moderate|active",
       "slots": [
         {
-          "period": "morning",
+      "period": "morning",
           "activities": [
             {
               "time": "9:00 AM",
@@ -99,7 +99,9 @@ Respond with ONLY valid JSON:
               "location": "Specific venue or street",
               "lat": 41.3851,
               "lng": 2.1734,
-              "seasonalNote": "Optional seasonal note or null"
+              "seasonalNote": "Optional seasonal note or null",
+              "personalNote": "One sentence connecting this activity to the user's interests — mandatory for every activity",
+              "practicalNote": "Closure day, booking tip, or best visit time — or null if not relevant"
             }
           ]
         },
