@@ -178,24 +178,59 @@ Generate:
         .trim();
 
       const jsonStart = cleaned.search(/[\{\[]/);
-      const jsonEnd = cleaned.lastIndexOf(jsonStart !== -1 && cleaned[jsonStart] === '[' ? ']' : '}');
+      if (jsonStart === -1) throw new Error("No JSON object found in response");
 
-      if (jsonStart === -1 || jsonEnd === -1) {
+      const opener = cleaned[jsonStart];
+      const closer = opener === '[' ? ']' : '}';
+      const jsonEnd = cleaned.lastIndexOf(closer);
+
+      if (jsonEnd === -1 || jsonEnd <= jsonStart) {
         throw new Error("No JSON object found in response");
       }
 
       cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
 
+      // Fix common LLM JSON issues before first attempt
+      cleaned = cleaned
+        .replace(/,\s*([}\]])/g, "$1")       // trailing commas
+        .replace(/[\x00-\x1F\x7F]/g, (c) => c === '\n' || c === '\t' ? c : ""); // control chars
+
       try {
         return JSON.parse(cleaned);
-      } catch (_e) {
-        // Fix common LLM JSON issues
-        cleaned = cleaned
-          .replace(/,\s*}/g, "}")
-          .replace(/,\s*]/g, "]")
-          .replace(/[\x00-\x1F\x7F]/g, "");
+      } catch (e) {
+        console.warn("First JSON parse failed, attempting repair:", (e as Error).message);
 
-        return JSON.parse(cleaned);
+        // Try to fix unescaped quotes inside string values
+        cleaned = cleaned.replace(/:\s*"((?:[^"\\]|\\.)*)"/g, (_match, inner) => {
+          const fixed = inner.replace(/(?<!\\)"/g, '\\"');
+          return `: "${fixed}"`;
+        });
+
+        try {
+          return JSON.parse(cleaned);
+        } catch (_e2) {
+          // Last resort: truncate to last valid closing brace/bracket
+          const lastBrace = cleaned.lastIndexOf("}");
+          if (lastBrace > 0) {
+            // Count open vs close braces to repair truncation
+            let repaired = cleaned.substring(0, lastBrace + 1);
+            repaired = repaired.replace(/,\s*$/gm, "");
+            const openBraces = (repaired.match(/{/g) || []).length;
+            const closeBraces = (repaired.match(/}/g) || []).length;
+            const openBrackets = (repaired.match(/\[/g) || []).length;
+            const closeBrackets = (repaired.match(/]/g) || []).length;
+            repaired += "]".repeat(Math.max(0, openBrackets - closeBrackets));
+            repaired += "}".repeat(Math.max(0, openBraces - closeBraces));
+            try {
+              const result = JSON.parse(repaired);
+              console.warn("Recovered JSON via truncation repair");
+              return result;
+            } catch (_e3) {
+              // fall through
+            }
+          }
+          throw new Error(`Cannot parse AI JSON response: ${(e as Error).message}`);
+        }
       }
     }
 
