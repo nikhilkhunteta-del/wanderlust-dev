@@ -585,6 +585,9 @@ function scoreWikimediaImage(result: any, imageInfo: any, entityName: string): n
   if (title.includes('interior') || title.includes('detail')) score -= 10;
   if (title.includes('map') || title.includes('diagram') || title.includes('plan')) score -= 30;
   if (title.includes('logo') || title.includes('icon') || title.includes('flag')) score -= 30;
+  // Penalize chaotic street-level imagery
+  if (title.includes('traffic') || title.includes('congestion') || title.includes('wires') || title.includes('cables')) score -= 25;
+  if (title.includes('crowd') || title.includes('crowded') || title.includes('rickshaw')) score -= 15;
   
   // Penalize night shots slightly (often harder to see)
   if (title.includes('night')) score -= 5;
