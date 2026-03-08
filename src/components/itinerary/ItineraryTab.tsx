@@ -12,7 +12,7 @@ import {
   ItineraryRequest,
   DEFAULT_ITINERARY_SETTINGS,
 } from "@/types/itinerary";
-import { MultiCityRoute, MultiCityItineraryRequest } from "@/types/multiCity";
+import { MultiCityRoute, MultiCityItineraryRequest, MultiCityItinerary, CitySettings } from "@/types/multiCity";
 import { getCityItinerary } from "@/lib/itinerary";
 import { useCityItinerary, useMultiCityItinerary } from "@/hooks/useCityData";
 import { MultiCityItineraryView } from "./MultiCityItineraryView";
@@ -51,6 +51,9 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
   const [multiCityRoute, setMultiCityRoute] = useState<MultiCityRoute | null>(null);
   const [lockedActivities, setLockedActivities] = useState<Set<string>>(new Set());
   const [customTripDuration, setCustomTripDuration] = useState<number | null>(null);
+  // Multi-city refinement
+  const [multiCitySelectedCity, setMultiCitySelectedCity] = useState("all");
+  const [multiCityCitySettings, setMultiCityCitySettings] = useState<Record<string, CitySettings>>({});
 
   const effectiveTripDuration = customTripDuration ?? profile.tripDuration;
 
@@ -109,6 +112,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
     data: multiCityItinerary,
     isLoading: isMultiCityLoading,
     error: multiCityError,
+    refetch: refetchMultiCity,
   } = useMultiCityItinerary(multiCityItineraryRequest);
 
   const handleSelectDay = useCallback((dayNumber: number) => {
@@ -157,6 +161,84 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
       }
     },
     [itinerary, itineraryRequest, queryClient]
+  );
+
+  // Multi-city day refine — uses city-specific context
+  const handleMultiCityRefineDay = useCallback(
+    async (dayNumber: number, adjustment: string, cityName?: string, countryName?: string) => {
+      if (!multiCityItinerary) return;
+      setIsRefining(true);
+      setRefiningDay(dayNumber);
+
+      try {
+        const result = await getCityItinerary({
+          city: cityName || city.city,
+          country: countryName || city.country,
+          tripDuration: 1,
+          travelMonth: profile.travelMonth,
+          userInterests: interests,
+          adventureTypes: profile.adventureTypes,
+          settings,
+          regenerateDay: dayNumber,
+          adjustment,
+        });
+
+        const regenerated = (result as any).regeneratedDay as ItineraryDay | undefined;
+        if (regenerated && multiCityItineraryRequest) {
+          queryClient.setQueryData<MultiCityItinerary>(
+            ["multi-city-itinerary", multiCityItineraryRequest],
+            (old) => {
+              if (!old) return old;
+              return {
+                ...old,
+                days: old.days.map((d) =>
+                  d.dayNumber === dayNumber ? { ...d, ...regenerated, dayNumber, cityName: d.cityName } : d
+                ),
+              };
+            }
+          );
+          toast.success(`Day ${dayNumber} refreshed`);
+        }
+      } catch (err) {
+        console.error("Failed to refine multi-city day:", err);
+        toast.error("Couldn't refresh this day. Try again.");
+      } finally {
+        setIsRefining(false);
+        setRefiningDay(null);
+      }
+    },
+    [multiCityItinerary, multiCityItineraryRequest, queryClient, city, profile, interests, settings]
+  );
+
+  const handleMultiCityReplaceActivity = useCallback(
+    (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => {
+      if (!multiCityItineraryRequest) return;
+      queryClient.setQueryData<MultiCityItinerary>(
+        ["multi-city-itinerary", multiCityItineraryRequest],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            days: old.days.map((d) => {
+              if (d.dayNumber !== dayNumber) return d;
+              return {
+                ...d,
+                slots: d.slots.map((s) => {
+                  if (s.period !== period) return s;
+                  return {
+                    ...s,
+                    activities: s.activities.map((a, i) =>
+                      i === activityIndex ? { ...newActivity, time: a.time } : a
+                    ),
+                  };
+                }),
+              };
+            }),
+          };
+        }
+      );
+    },
+    [queryClient, multiCityItineraryRequest]
   );
 
   const handleReplaceDayWithTrip = useCallback(
@@ -246,6 +328,25 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
 
   const isMultiCityMode = isMultiCityActive && multiCityRoute;
 
+  const refinementPanel = (
+    <RefinementPanel
+      settings={settings}
+      onSettingsChange={setSettings}
+      onUpdate={() => isMultiCityMode ? refetchMultiCity() : refetch()}
+      isUpdating={isMultiCityMode ? isMultiCityLoading : isLoading}
+      interests={interests}
+      highlightExperiences={highlightExperiences}
+      tripDuration={effectiveTripDuration}
+      onTripDurationChange={(d) => { setCustomTripDuration(d); }}
+      isMultiCity={!!isMultiCityMode}
+      multiCityRoute={multiCityRoute}
+      citySettings={multiCityCitySettings}
+      onCitySettingsChange={setMultiCityCitySettings}
+      selectedCity={multiCitySelectedCity}
+      onSelectedCityChange={setMultiCitySelectedCity}
+    />
+  );
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 relative">
       {/* Header */}
@@ -265,20 +366,9 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <ShareMenu itinerary={itinerary} cityName={city.city} tripDuration={effectiveTripDuration} />
-          {!isMultiCityMode && (
-            <div className="lg:hidden">
-              <RefinementPanel
-                settings={settings}
-                onSettingsChange={setSettings}
-                onUpdate={() => refetch()}
-                isUpdating={isLoading}
-                interests={interests}
-                highlightExperiences={highlightExperiences}
-                tripDuration={effectiveTripDuration}
-                onTripDurationChange={(d) => { setCustomTripDuration(d); }}
-              />
-            </div>
-          )}
+          <div className="lg:hidden">
+            {refinementPanel}
+          </div>
         </div>
       </div>
 
@@ -317,14 +407,30 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
       {/* JOURNEY CONTENT — Only ONE mode renders */}
       {isMultiCityMode ? (
         /* ── Multi-City Journey ── */
-        <MultiCityItineraryView
-          itinerary={multiCityItinerary!}
-          route={multiCityRoute!}
-          isLoading={isMultiCityLoading}
-          error={multiCityError}
-          cityName={city.city}
-          tripDuration={profile.tripDuration}
-        />
+        <div className="flex gap-6 lg:gap-8">
+          <div className="flex-1 min-w-0">
+            <MultiCityItineraryView
+              itinerary={multiCityItinerary!}
+              route={multiCityRoute!}
+              isLoading={isMultiCityLoading}
+              error={multiCityError}
+              cityName={city.city}
+              tripDuration={effectiveTripDuration}
+              onRefineDay={handleMultiCityRefineDay}
+              isRefining={isRefining}
+              refiningDay={refiningDay}
+              lockedActivities={lockedActivities}
+              onToggleLock={handleToggleLock}
+              onReplaceActivity={handleMultiCityReplaceActivity}
+            />
+          </div>
+          {/* Desktop Refinement Panel */}
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className="sticky top-[120px]">
+              {refinementPanel}
+            </div>
+          </div>
+        </div>
       ) : (
         /* ── Single-City Journey ── */
         <div className="flex gap-6 lg:gap-8">
@@ -462,16 +568,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
           {/* Desktop Refinement Panel */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-[120px]">
-              <RefinementPanel
-                settings={settings}
-                onSettingsChange={setSettings}
-                onUpdate={() => refetch()}
-                isUpdating={isLoading}
-                interests={interests}
-                highlightExperiences={highlightExperiences}
-                tripDuration={effectiveTripDuration}
-                onTripDurationChange={(d) => { setCustomTripDuration(d); }}
-              />
+              {refinementPanel}
             </div>
           </div>
         </div>

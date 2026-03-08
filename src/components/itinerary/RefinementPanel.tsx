@@ -5,6 +5,7 @@ import {
   BudgetLevel,
   DiningPreference,
 } from "@/types/itinerary";
+import { MultiCityRoute, CitySettings } from "@/types/multiCity";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -21,6 +22,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RefinementPanelProps {
   settings: ItinerarySettings;
@@ -31,6 +39,13 @@ interface RefinementPanelProps {
   highlightExperiences: string[];
   tripDuration: number;
   onTripDurationChange?: (days: number) => void;
+  // Multi-city props
+  isMultiCity?: boolean;
+  multiCityRoute?: MultiCityRoute | null;
+  citySettings?: Record<string, CitySettings>;
+  onCitySettingsChange?: (citySettings: Record<string, CitySettings>) => void;
+  selectedCity?: string;
+  onSelectedCityChange?: (city: string) => void;
 }
 
 const tripStyleOptions: { value: TripStyle; label: string; description: string }[] = [
@@ -82,6 +97,12 @@ export const RefinementPanel = ({
   highlightExperiences,
   tripDuration,
   onTripDurationChange,
+  isMultiCity = false,
+  multiCityRoute,
+  citySettings,
+  onCitySettingsChange,
+  selectedCity,
+  onSelectedCityChange,
 }: RefinementPanelProps) => {
   // Multi-select dining state derived from settings
   const [selectedDining, setSelectedDining] = useState<DiningChoice[]>(() => {
@@ -141,11 +162,43 @@ export const RefinementPanel = ({
     }
   };
 
+  // Multi-city: city selector
+  const cities = multiCityRoute?.stops.map((s) => s.city) || [];
+  const isPerCity = isMultiCity && selectedCity && selectedCity !== "all";
+
+  // Button label changes based on multi-city context
+  const updateButtonLabel = isMultiCity
+    ? isPerCity
+      ? `Update ${selectedCity} chapter only`
+      : "Regenerate full journey"
+    : "Update Itinerary";
+
   // Settings summary
   const summaryLine = `${tripStyleLabel[settings.tripStyle]} pace · ${budgetLabel[settings.budgetLevel]} budget · ${diningDisplayLabel} dining`;
 
   const panelContent = (
     <div className="space-y-6">
+      {/* Multi-City Selector */}
+      {isMultiCity && cities.length > 0 && (
+        <div>
+          <Label className="text-sm font-medium mb-2 block">Customising</Label>
+          <Select
+            value={selectedCity || "all"}
+            onValueChange={(v) => onSelectedCityChange?.(v)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All cities</SelectItem>
+              {cities.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {/* Trip Duration */}
       {onTripDurationChange && (
         <div>
@@ -326,7 +379,7 @@ export const RefinementPanel = ({
         ) : (
           <>
             <RefreshCw className="w-4 h-4" />
-            Update Itinerary
+            {updateButtonLabel}
           </>
         )}
       </Button>

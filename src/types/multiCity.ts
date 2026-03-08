@@ -12,6 +12,8 @@ export interface NearbyCityOption {
   interestMatchScore: number; // 0-3
   score?: number;
   suggestedDays?: number;
+  needsTravelDay?: boolean;
+  practicalNote?: string | null;
 }
 
 export interface NearbyCityDiscoveryResponse {
@@ -84,4 +86,11 @@ export interface MultiCityRequest {
   tripStyle: string;
   budgetLevel: string;
   gatewayCity?: string;
+}
+
+// Per-city settings for multi-city refinement
+export interface CitySettings {
+  tripStyle: string;
+  budgetLevel: string;
+  diningPreference: string;
 }

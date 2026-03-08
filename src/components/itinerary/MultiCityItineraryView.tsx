@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, lazy, Suspense } from "react";
 import { MultiCityItinerary, MultiCityRoute, CityTransition } from "@/types/multiCity";
+import { Activity } from "@/types/itinerary";
 import { DayCard } from "./DayCard";
 import { CollapsedDayCard } from "./CollapsedDayCard";
 import { TravelTransitionCard } from "./TravelTransitionCard";
@@ -17,6 +18,13 @@ interface MultiCityItineraryViewProps {
   error: Error | null;
   cityName: string;
   tripDuration: number;
+  // Activity interaction props
+  onRefineDay?: (dayNumber: number, adjustment: string, cityName?: string, countryName?: string) => void;
+  isRefining?: boolean;
+  refiningDay?: number | null;
+  lockedActivities?: Set<string>;
+  onToggleLock?: (activityTitle: string) => void;
+  onReplaceActivity?: (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => void;
 }
 
 // Generate narrative chapter titles
@@ -31,6 +39,12 @@ export const MultiCityItineraryView = ({
   error,
   cityName,
   tripDuration,
+  onRefineDay,
+  isRefining = false,
+  refiningDay = null,
+  lockedActivities,
+  onToggleLock,
+  onReplaceActivity,
 }: MultiCityItineraryViewProps) => {
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
   const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -59,6 +73,25 @@ export const MultiCityItineraryView = ({
       return next;
     });
   }, []);
+
+  // Wrap onRefineDay for multi-city context
+  const handleRefineDay = useCallback(
+    (dayNumber: number, adjustment: string) => {
+      if (!onRefineDay || !itinerary) return;
+      const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
+      const stop = day ? route.stops.find((s) => s.city === day.cityName) : undefined;
+      onRefineDay(dayNumber, adjustment, day?.cityName, stop?.country);
+    },
+    [onRefineDay, itinerary, route]
+  );
+
+  // Wrap onReplaceActivity for multi-city context
+  const handleReplaceActivity = useCallback(
+    (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => {
+      onReplaceActivity?.(dayNumber, period, activityIndex, newActivity);
+    },
+    [onReplaceActivity]
+  );
 
   if (isLoading) {
     return (
@@ -194,8 +227,14 @@ export const MultiCityItineraryView = ({
                       day={day}
                       city={group.city}
                       country={stop?.country || ""}
-                      isRefining={false}
-                      refiningDay={null}
+                      travelMonth={undefined}
+                      userInterests={undefined}
+                      onRefineDay={onRefineDay ? handleRefineDay : undefined}
+                      isRefining={isRefining}
+                      refiningDay={refiningDay}
+                      lockedActivities={lockedActivities}
+                      onToggleLock={onToggleLock}
+                      onReplaceActivity={onReplaceActivity ? handleReplaceActivity : undefined}
                     />
                   ) : (
                     <CollapsedDayCard
