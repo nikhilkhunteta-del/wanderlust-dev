@@ -1,6 +1,6 @@
 import { TimeSlot as TimeSlotType, Activity } from "@/types/itinerary";
 import { ActivityItem } from "./ActivityItem";
-import { Sunrise, Sun, Moon } from "lucide-react";
+import { Sunrise, Sun, Moon, ArrowRight } from "lucide-react";
 
 interface TimeSlotProps {
   slot: TimeSlotType;
@@ -63,25 +63,30 @@ export const TimeSlotCard = ({
         </div>
         <span className="text-sm font-medium text-foreground">{config.label}</span>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-0">
         {slot.activities.map((activity, index) => (
-          <ActivityItem
-            key={`${activity.title}-${index}`}
-            activity={activity}
-            city={city}
-            country={country}
-            dayTheme={dayTheme}
-            period={slot.period}
-            travelMonth={travelMonth}
-            userInterests={userInterests}
-            isLocked={lockedActivities?.has(activity.title)}
-            onToggleLock={onToggleLock ? () => onToggleLock(activity.title) : undefined}
-            onReplaceActivity={
-              onReplaceActivity
-                ? (newAct) => onReplaceActivity(slot.period, index, newAct)
-                : undefined
-            }
-          />
+          <div key={`${activity.title}-${index}`}>
+            <ActivityItem
+              activity={activity}
+              city={city}
+              country={country}
+              dayTheme={dayTheme}
+              period={slot.period}
+              travelMonth={travelMonth}
+              userInterests={userInterests}
+              isLocked={lockedActivities?.has(activity.title)}
+              onToggleLock={onToggleLock ? () => onToggleLock(activity.title) : undefined}
+              onReplaceActivity={
+                onReplaceActivity
+                  ? (newAct) => onReplaceActivity(slot.period, index, newAct)
+                  : undefined
+              }
+            />
+            {/* Transition line */}
+            {activity.transitTo && index < slot.activities.length - 1 && (
+              <TransitionLine text={activity.transitTo} />
+            )}
+          </div>
         ))}
         {slot.activities.length === 0 && (
           <p className="text-sm text-muted-foreground italic flex items-center gap-2 py-2">
@@ -93,3 +98,17 @@ export const TimeSlotCard = ({
     </div>
   );
 };
+
+function TransitionLine({ text }: { text: string }) {
+  // Check if transition exceeds 30 min
+  const minMatch = text.match(/(\d+)\s*min/);
+  const minutes = minMatch ? parseInt(minMatch[1], 10) : 0;
+  const isLong = minutes >= 30;
+
+  return (
+    <div className={`flex items-center gap-1.5 py-1 pl-[74px] text-[11px] ${isLong ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground/40"}`}>
+      <ArrowRight className="w-2.5 h-2.5 flex-shrink-0" />
+      <span>{text}</span>
+    </div>
+  );
+}

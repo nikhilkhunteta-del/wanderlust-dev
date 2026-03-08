@@ -22,6 +22,7 @@ export interface Activity {
   personalNote?: string;
   lat?: number;
   lng?: number;
+  transitTo?: string;
 }
 
 export interface TimeSlot {

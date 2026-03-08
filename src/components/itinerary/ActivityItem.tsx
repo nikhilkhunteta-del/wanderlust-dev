@@ -120,8 +120,13 @@ export const ActivityItem = ({
     }
   }, [undoPrevious, onReplaceActivity, undoTimer]);
 
+  const isFood = activity.category === "food";
+
   return (
-    <div className={`relative py-2.5 group ${isLocked ? "border-l-[3px] border-l-primary pl-2 -ml-2" : ""}`}>
+    <div
+      className={`relative py-2.5 group ${isLocked ? "border-l-[3px] border-l-primary pl-2 -ml-2" : ""} ${isFood ? "rounded-md px-2 -mx-2" : ""}`}
+      style={isFood ? { backgroundColor: '#FFF9F0' } : undefined}
+    >
       <div className="flex gap-3">
         {/* Time */}
         <div className="flex-shrink-0 w-14 text-[11px] text-muted-foreground/60 font-medium pt-1.5">
