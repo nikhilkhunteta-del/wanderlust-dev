@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface LocationState {
   city: CityRecommendation;
   profile: TravelProfile;
+  allCities?: CityRecommendation[];
 }
 
 function buildDefaultProfile(cityName: string): TravelProfile {

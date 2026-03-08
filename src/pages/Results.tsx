@@ -58,7 +58,7 @@ const Results = () => {
 
   const handleExploreCity = (city: CityRecommendation) => {
     const citySlug = city.city.toLowerCase().replace(/\s+/g, "-");
-    navigate(`/city/${citySlug}`, { state: { city, profile } });
+    navigate(`/city/${citySlug}`, { state: { city, profile, allCities: recommendations } });
   };
 
   const handleStartOver = () => {
