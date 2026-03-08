@@ -407,6 +407,21 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
               />
             )}
 
+            {/* Trip Budget Summary */}
+            {(() => {
+              const daysWithBudget = itinerary.days.filter(d => d.estimatedDailyBudget != null);
+              if (daysWithBudget.length === 0) return null;
+              const total = daysWithBudget.reduce((s, d) => s + (d.estimatedDailyBudget || 0), 0);
+              const avg = Math.round(total / daysWithBudget.length);
+              const cur = daysWithBudget[0]?.budgetCurrency || "£";
+              return (
+                <div className="bg-muted/30 rounded-xl border border-border/30 px-5 py-4 text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Estimated activities budget:</span>{" "}
+                  ~{cur}{Math.round(total)} total · ~{cur}{avg}/day average · excludes flights and accommodation
+                </div>
+              );
+            })()}
+
             {/* Journey Completion */}
             <JourneyCompletion
               cityName={city.city}

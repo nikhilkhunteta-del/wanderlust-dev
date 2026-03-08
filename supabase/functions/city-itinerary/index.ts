@@ -106,6 +106,9 @@ TRANSITION RULES:
 - For each activity, include a "transitTo" field: a short string describing travel to the NEXT activity. Format: "N min walk" or "N min by metro/auto-rickshaw/taxi". If this is the last activity of the day, set transitTo to null.
 - If a transition exceeds 30 minutes, append " · consider [faster option] to save time".
 
+BUDGET ESTIMATION:
+- Estimate estimatedDailyBudget (single number), budgetBreakdown ({entranceFees, food, transport}), and budgetCurrency (symbol like £, $, ₹, €) for this day.
+
 Respond with ONLY valid JSON for a single day:
 {
   "dayNumber": ${requestData.regenerateDay},
@@ -115,7 +118,11 @@ Respond with ONLY valid JSON for a single day:
   "estimatedWalkingKm": 5.5,
   "estimatedTransitMinutes": 25,
   "paceLabel": "leisurely|moderate|active",
-  "moodLine": "Three evocative words separated by · e.g. Historic · Immersive · Active",
+  "moodLine": "Three evocative words separated by ·",
+  "estimatedDailyBudget": 45,
+  "budgetBreakdown": {"entranceFees": 12, "food": 25, "transport": 8},
+  "budgetCurrency": "£",
+  "weatherRationale": null,
   "slots": [
     {
       "period": "morning",
@@ -189,6 +196,8 @@ Respond with ONLY valid JSON for a single day:
     }
 
     // Full itinerary generation
+    const currencySymbol = requestData.userInterests.includes("currency") ? "₹" : "£"; // Default; AI should infer from destination
+
     const systemPrompt = `You are a travel itinerary planner creating personalized day-by-day travel plans with spatial intelligence.
 
 RULES:
@@ -201,6 +210,17 @@ RULES:
 - Estimate walking distance and transit time per day realistically
 - Suggest 3-5 day trips within ~2 hours of the city
 - Suggest 2-3 activities for "if you had one more day"
+
+BUDGET ESTIMATION RULES:
+- For each day, estimate the total daily spend per person: entrance fees at standard rates, one lunch and one dinner at the dining style specified (${diningDescription}), and local transport between activities.
+- Return estimatedDailyBudget as a single number and budgetBreakdown as {entranceFees, food, transport} — all numbers.
+- Use the local currency symbol appropriate for the destination (e.g. £ for UK, $ for USA, ₹ for India, € for Europe). Return this as budgetCurrency.
+- Label clearly as an estimate. Do not include accommodation. If an activity is free, its entrance fee contribution is 0.
+
+WEATHER-AWARE DAY ORDERING:
+- If the travel month has significant intra-month weather variation for ${requestData.city} — e.g. early monsoon weeks are lighter than peak monsoon, or early summer is cooler than late summer — schedule outdoor-heavy days earlier in the trip and indoor/museum-heavy days later.
+- For hot-weather destinations in summer months, schedule the most physically demanding days (most walking, most outdoor time) in the first half of the trip when the traveller is fresher.
+- Add a weatherRationale field to each day: one sentence explaining why this day is positioned where it is in the trip sequence if weather influenced it. Set to null if weather was not a factor.
 
 MEAL RULES:
 - For every day, include at minimum one lunch and one dinner as explicit time-slotted activities with category "food".
@@ -225,7 +245,11 @@ Respond with ONLY valid JSON in this exact format:
       "estimatedWalkingKm": 5.5,
       "estimatedTransitMinutes": 20,
       "paceLabel": "leisurely|moderate|active",
-      "moodLine": "Three evocative words separated by · describing the day's feel, e.g. Historic · Immersive · Active",
+      "moodLine": "Three evocative words separated by · describing the day's feel",
+      "estimatedDailyBudget": 45,
+      "budgetBreakdown": {"entranceFees": 12, "food": 25, "transport": 8},
+      "budgetCurrency": "£",
+      "weatherRationale": "Outdoor walking day placed early when June heat is still manageable" or null,
       "slots": [
         {
           "period": "morning",
