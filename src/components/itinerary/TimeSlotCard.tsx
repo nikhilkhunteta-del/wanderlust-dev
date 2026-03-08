@@ -1,6 +1,6 @@
 import { TimeSlot as TimeSlotType, Activity } from "@/types/itinerary";
 import { ActivityItem } from "./ActivityItem";
-import { Sunrise, Sun, Moon } from "lucide-react";
+import { Sunrise, Sun, Moon, ArrowRight } from "lucide-react";
 
 interface TimeSlotProps {
   slot: TimeSlotType;
