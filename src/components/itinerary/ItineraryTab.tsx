@@ -358,9 +358,14 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
                       day={day}
                       city={city.city}
                       country={city.country}
+                      travelMonth={profile.travelMonth}
+                      userInterests={interests}
                       onRefineDay={handleRefineDay}
                       isRefining={isRefining}
                       refiningDay={refiningDay}
+                      lockedActivities={lockedActivities}
+                      onToggleLock={handleToggleLock}
+                      onReplaceActivity={handleReplaceActivity}
                     />
                   </div>
                 ) : (
