@@ -7,6 +7,7 @@ import {
   CityItinerary,
   ItinerarySettings,
   ItineraryDay,
+  Activity,
   DayTrip,
   ItineraryRequest,
   DEFAULT_ITINERARY_SETTINGS,
@@ -48,6 +49,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
   const [refiningDay, setRefiningDay] = useState<number | null>(null);
   const [isMultiCityActive, setIsMultiCityActive] = useState(false);
   const [multiCityRoute, setMultiCityRoute] = useState<MultiCityRoute | null>(null);
+  const [lockedActivities, setLockedActivities] = useState<Set<string>>(new Set());
 
   const interests = useMemo(
     () =>
@@ -173,6 +175,45 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
   const handleRevertToSingleCity = useCallback(() => {
     setIsMultiCityActive(false);
   }, []);
+
+  const handleToggleLock = useCallback((activityTitle: string) => {
+    setLockedActivities((prev) => {
+      const next = new Set(prev);
+      if (next.has(activityTitle)) next.delete(activityTitle);
+      else next.add(activityTitle);
+      return next;
+    });
+  }, []);
+
+  const handleReplaceActivity = useCallback(
+    (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => {
+      queryClient.setQueryData<CityItinerary>(
+        ["city-itinerary", itineraryRequest.city, itineraryRequest.country, itineraryRequest.tripDuration, itineraryRequest.travelMonth, itineraryRequest.settings],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            days: old.days.map((d) => {
+              if (d.dayNumber !== dayNumber) return d;
+              return {
+                ...d,
+                slots: d.slots.map((s) => {
+                  if (s.period !== period) return s;
+                  return {
+                    ...s,
+                    activities: s.activities.map((a, i) =>
+                      i === activityIndex ? { ...newActivity, time: a.time } : a
+                    ),
+                  };
+                }),
+              };
+            }),
+          };
+        }
+      );
+    },
+    [queryClient, itineraryRequest]
+  );
 
   if (isLoading) {
     return (
@@ -317,9 +358,14 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
                       day={day}
                       city={city.city}
                       country={city.country}
+                      travelMonth={profile.travelMonth}
+                      userInterests={interests}
                       onRefineDay={handleRefineDay}
                       isRefining={isRefining}
                       refiningDay={refiningDay}
+                      lockedActivities={lockedActivities}
+                      onToggleLock={handleToggleLock}
+                      onReplaceActivity={handleReplaceActivity}
                     />
                   </div>
                 ) : (

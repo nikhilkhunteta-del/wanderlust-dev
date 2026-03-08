@@ -19,6 +19,7 @@ export interface Activity {
   isMustDo?: boolean;
   location?: string;
   seasonalNote?: string;
+  personalNote?: string;
   lat?: number;
   lng?: number;
 }
