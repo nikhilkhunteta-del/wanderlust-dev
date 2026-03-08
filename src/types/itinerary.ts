@@ -37,6 +37,7 @@ export interface ItineraryDay {
   estimatedWalkingKm?: number;
   estimatedTransitMinutes?: number;
   paceLabel?: "leisurely" | "moderate" | "active";
+  moodLine?: string;
 }
 
 export interface DayTrip {
