@@ -49,6 +49,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
   const [refiningDay, setRefiningDay] = useState<number | null>(null);
   const [isMultiCityActive, setIsMultiCityActive] = useState(false);
   const [multiCityRoute, setMultiCityRoute] = useState<MultiCityRoute | null>(null);
+  const [lockedActivities, setLockedActivities] = useState<Set<string>>(new Set());
 
   const interests = useMemo(
     () =>
