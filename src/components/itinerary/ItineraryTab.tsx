@@ -39,7 +39,7 @@ interface ItineraryTabProps {
   onSwitchTab?: (tab: string) => void;
 }
 
-export const ItineraryTab = ({ city, profile, highlights }: ItineraryTabProps) => {
+export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: ItineraryTabProps) => {
   const queryClient = useQueryClient();
   const dayRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
