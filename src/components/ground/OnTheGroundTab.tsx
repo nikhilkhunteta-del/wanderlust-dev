@@ -7,6 +7,7 @@ import { SafetyGuidance } from "./SafetyGuidance";
 import { EntryVisa } from "./EntryVisa";
 import { EmergencyContacts } from "./EmergencyContacts";
 import { GroundFooter } from "./GroundFooter";
+import { CompactHealthSection } from "./CompactHealthSection";
 import { Loader2 } from "lucide-react";
 
 interface OnTheGroundTabProps {
