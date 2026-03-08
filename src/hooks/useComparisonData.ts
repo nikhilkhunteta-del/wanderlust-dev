@@ -35,36 +35,75 @@ function buildHighlightsRequest(city: CityRecommendation, profile: TravelProfile
   };
 }
 
-function verdictToScore(level: "green" | "amber" | "red"): number {
+// --- Raw value extractors (not scores yet) ---
+
+function rawSafetyValue(level: "green" | "amber" | "red" | undefined): number {
   if (level === "green") return 9;
   if (level === "amber") return 6;
   return 3;
 }
 
-function weatherRankToScore(rank: number, total: number): number {
-  if (total <= 0) return 5;
-  const pct = 1 - (rank - 1) / total;
+function rawWeatherValue(rank: { rank: number; totalMonths: number } | undefined): number {
+  if (!rank || rank.totalMonths <= 0) return 5;
+  const pct = 1 - (rank.rank - 1) / rank.totalMonths;
   return Math.round(pct * 9) + 1;
 }
 
-function priceToScore(price: number | null): number {
+function rawFlightValue(price: number | null): number {
+  // Lower price = higher raw value (inverted)
   if (!price || price <= 0) return 5;
-  if (price < 200) return 9;
-  if (price < 400) return 7;
+  if (price < 150) return 10;
+  if (price < 250) return 8;
+  if (price < 400) return 6.5;
   if (price < 700) return 5;
-  if (price < 1200) return 3;
+  if (price < 1000) return 3.5;
+  if (price < 1500) return 2;
   return 1;
 }
 
-function stayValueScore(categories: any[]): number {
+function rawStayValue(categories: any[]): number {
   const mid = categories?.find((c: any) => c.category === "midRange");
   if (!mid?.medianPrice) return 5;
   const price = mid.medianPrice;
-  if (price < 50) return 9;
+  if (price < 40) return 10;
+  if (price < 70) return 8;
   if (price < 100) return 7;
-  if (price < 180) return 5;
-  if (price < 300) return 3;
+  if (price < 150) return 5.5;
+  if (price < 250) return 4;
+  if (price < 400) return 2.5;
   return 1;
+}
+
+function rawMatchValue(matchReasons: number): number {
+  // More granular: 0 reasons=3, 1=5, 2=6.5, 3=7.5, 4=8.5, 5+=9.5
+  if (matchReasons <= 0) return 3;
+  return Math.min(10, 3 + matchReasons * 1.5);
+}
+
+/**
+ * Normalize an array of raw values across 3 cities to ensure differentiation.
+ * The best city gets a score stretched toward 10, the worst toward the floor.
+ * Guarantees at least `minSpread` points between best and worst when raw values differ.
+ */
+function normalizeAcrossCities(rawValues: number[], minSpread = 1.5): number[] {
+  const min = Math.min(...rawValues);
+  const max = Math.max(...rawValues);
+  const range = max - min;
+
+  // If all identical, return as-is (no fake differentiation)
+  if (range < 0.01) return rawValues.map((v) => Math.round(v * 10) / 10);
+
+  // Map to 1-10 scale with the best at ceiling, worst at floor
+  // Use the raw midpoint to set the anchor
+  const avg = rawValues.reduce((a, b) => a + b, 0) / rawValues.length;
+  const ceiling = Math.min(10, Math.max(avg + 1.5, max));
+  const floor = Math.max(1, Math.min(avg - 1.5, min));
+  const targetRange = Math.max(minSpread, ceiling - floor);
+
+  return rawValues.map((v) => {
+    const normalized = floor + ((v - min) / range) * targetRange;
+    return Math.round(Math.min(10, Math.max(1, normalized)) * 10) / 10;
+  });
 }
 
 export function useComparisonData(
@@ -131,6 +170,48 @@ export function useComparisonData(
   );
 
   const cityScores = useMemo<CityScores[]>(() => {
+    // Step 1: Extract raw values for all cities
+    const rawMatch = cities.map((_, i) => {
+      const h = highlights[i].data;
+      return h ? rawMatchValue(h.personalMatchReasons?.length ?? 0) : 5;
+    });
+    const rawWeather = cities.map((_, i) => {
+      const w = weather[i].data;
+      return rawWeatherValue(w?.monthRanking);
+    });
+    const rawFlight = cities.map((_, i) => {
+      const f = flights[i].data;
+      return rawFlightValue(f?.priceSnapshot?.lowPrice ?? null);
+    });
+    const rawSafety = cities.map((_, i) => {
+      const g = ground[i].data;
+      return rawSafetyValue(g?.verdictLevel);
+    });
+    // Seasonal: normalize by best city's matched event count
+    const matchedCounts = cities.map((_, i) => {
+      const s = seasonal[i].data;
+      return s?.highlights?.filter((e: any) => e.matchesInterests)?.length ?? 0;
+    });
+    const maxMatched = Math.max(...matchedCounts, 1);
+    const rawSeasonal = matchedCounts.map((count) => {
+      // Best city = 10, others proportional, minimum 2 if they have any events
+      if (count === 0) return 2;
+      return Math.max(2, Math.round((count / maxMatched) * 10 * 10) / 10);
+    });
+    const rawAccom = cities.map((_, i) => {
+      const st = stays[i].data;
+      return st ? rawStayValue(st.priceCategories) : 5;
+    });
+
+    // Step 2: Normalize each dimension across all 3 cities
+    const normMatch = normalizeAcrossCities(rawMatch);
+    const normWeather = normalizeAcrossCities(rawWeather);
+    const normFlight = normalizeAcrossCities(rawFlight);
+    const normSafety = normalizeAcrossCities(rawSafety);
+    const normSeasonal = normalizeAcrossCities(rawSeasonal, 2);
+    const normAccom = normalizeAcrossCities(rawAccom);
+
+    // Step 3: Build scored objects
     return cities.map((city, i) => {
       const h = highlights[i].data;
       const w = weather[i].data;
@@ -139,41 +220,17 @@ export function useComparisonData(
       const s = seasonal[i].data;
       const st = stays[i].data;
 
-      // Personal match
-      const matchReasons = h?.personalMatchReasons?.length ?? 0;
-      const matchScore = h ? Math.min(10, 5 + matchReasons) : 5;
-
-      // Weather
-      const rank = w?.monthRanking;
-      const weatherScore = rank ? weatherRankToScore(rank.rank, rank.totalMonths) : 5;
-
-      // Flight cost
-      const flightPrice = f?.priceSnapshot?.lowPrice ?? null;
-      const flightScore = priceToScore(flightPrice);
-
-      // Safety
-      const safetyScore = g ? verdictToScore(g.verdictLevel) : 5;
-
-      // Seasonal events
-      const matchedEvents = s?.highlights?.filter((e) => e.matchesInterests)?.length ?? 0;
-      const totalEvents = s?.highlights?.length ?? 0;
-      const seasonalScore = Math.min(10, 3 + matchedEvents * 2 + Math.min(totalEvents, 3));
-
-      // Accommodation value
-      const accomScore = st ? stayValueScore(st.priceCategories) : 5;
-
       const scores: CityScores = {
         city,
-        personalMatch: { score: matchScore, summary: h?.matchStatement?.split('.')[0] ?? "Data loading" },
-        weatherFit: { score: weatherScore, summary: w?.verdict?.split('.')[0] ?? "Data loading" },
-        gettingThere: { score: flightScore, summary: f ? `From ${f.priceSnapshot.currency}${f.priceSnapshot.lowPrice}` : "No departure city" },
-        safety: { score: safetyScore, summary: g?.verdict?.split('.')[0] ?? "Data loading" },
-        seasonalEvents: { score: seasonalScore, summary: s ? `${matchedEvents} events matching your interests` : "Data loading" },
-        accommodationValue: { score: accomScore, summary: st?.overview?.split('.')[0] ?? "Data loading" },
+        personalMatch: { score: normMatch[i], summary: h?.matchStatement?.split('.')[0] ?? "Data loading" },
+        weatherFit: { score: normWeather[i], summary: w?.verdict?.split('.')[0] ?? "Data loading" },
+        gettingThere: { score: normFlight[i], summary: f ? `From ${f.priceSnapshot.currency}${f.priceSnapshot.lowPrice}` : "No departure city" },
+        safety: { score: normSafety[i], summary: g?.verdict?.split('.')[0] ?? "Data loading" },
+        seasonalEvents: { score: normSeasonal[i], summary: s ? `${matchedCounts[i]} events matching your interests` : "Data loading" },
+        accommodationValue: { score: normAccom[i], summary: st?.overview?.split('.')[0] ?? "Data loading" },
         weightedTotal: 0,
       };
 
-      // Calculate weighted total
       const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
       scores.weightedTotal =
         (scores.personalMatch.score * weights.personalMatch +
