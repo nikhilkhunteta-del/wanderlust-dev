@@ -106,6 +106,9 @@ TRANSITION RULES:
 - For each activity, include a "transitTo" field: a short string describing travel to the NEXT activity. Format: "N min walk" or "N min by metro/auto-rickshaw/taxi". If this is the last activity of the day, set transitTo to null.
 - If a transition exceeds 30 minutes, append " · consider [faster option] to save time".
 
+BUDGET ESTIMATION:
+- Estimate estimatedDailyBudget (single number), budgetBreakdown ({entranceFees, food, transport}), and budgetCurrency (symbol like £, $, ₹, €) for this day.
+
 Respond with ONLY valid JSON for a single day:
 {
   "dayNumber": ${requestData.regenerateDay},
@@ -115,7 +118,11 @@ Respond with ONLY valid JSON for a single day:
   "estimatedWalkingKm": 5.5,
   "estimatedTransitMinutes": 25,
   "paceLabel": "leisurely|moderate|active",
-  "moodLine": "Three evocative words separated by · e.g. Historic · Immersive · Active",
+  "moodLine": "Three evocative words separated by ·",
+  "estimatedDailyBudget": 45,
+  "budgetBreakdown": {"entranceFees": 12, "food": 25, "transport": 8},
+  "budgetCurrency": "£",
+  "weatherRationale": null,
   "slots": [
     {
       "period": "morning",
