@@ -37,13 +37,15 @@ Rankings (best to worst):
 2. ${ranked[1].city} (score: ${ranked[1].score.toFixed(1)}) — match: ${ranked[1].personalMatch}, weather: ${ranked[1].weatherFit}, cost: ${ranked[1].gettingThere}, safety: ${ranked[1].safety}
 3. ${ranked[2].city} (score: ${ranked[2].score.toFixed(1)}) — match: ${ranked[2].personalMatch}, weather: ${ranked[2].weatherFit}, cost: ${ranked[2].gettingThere}, safety: ${ranked[2].safety}
 
+IMPORTANT: The scores above reflect genuine differences between these cities for this specific traveller and month. Your verdict MUST clearly explain WHY the top city beats the others — reference specific dimensional advantages. Do not hedge or treat the cities as interchangeable. Be honest about real trade-offs: if the top city has a weaker dimension, name it explicitly.
+
 Return ONLY valid JSON:
 {
-  "verdictParagraph": "2-3 sentences explaining why city #1 wins for THIS traveller. Reference the travel month, top 2 interests, and travel party. Acknowledge one honest trade-off.",
-  "runnerUpReason": "One sentence why #2 is the runner-up.",
+  "verdictParagraph": "2-3 sentences explaining why city #1 wins for THIS traveller. Reference the travel month, top 2 interests, and travel party. Must acknowledge one specific trade-off honestly — name the dimension where another city beats it.",
+  "runnerUpReason": "One sentence why #2 is the runner-up — what specific advantage does it have over #3?",
   "whyNot": [
-    {"city": "${ranked[1].city}", "reason": "One positive-framed sentence explaining why it didn't top the ranking."},
-    {"city": "${ranked[2].city}", "reason": "One positive-framed sentence explaining why it didn't top the ranking."}
+    {"city": "${ranked[1].city}", "reason": "One specific sentence explaining the dimensional gap vs the winner."},
+    {"city": "${ranked[2].city}", "reason": "One specific sentence explaining the dimensional gap vs the winner."}
   ]
 }`;
 
