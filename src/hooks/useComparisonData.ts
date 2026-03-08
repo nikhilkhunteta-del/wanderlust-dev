@@ -35,36 +35,75 @@ function buildHighlightsRequest(city: CityRecommendation, profile: TravelProfile
   };
 }
 
-function verdictToScore(level: "green" | "amber" | "red"): number {
+// --- Raw value extractors (not scores yet) ---
+
+function rawSafetyValue(level: "green" | "amber" | "red" | undefined): number {
   if (level === "green") return 9;
   if (level === "amber") return 6;
   return 3;
 }
 
-function weatherRankToScore(rank: number, total: number): number {
-  if (total <= 0) return 5;
-  const pct = 1 - (rank - 1) / total;
+function rawWeatherValue(rank: { rank: number; totalMonths: number } | undefined): number {
+  if (!rank || rank.totalMonths <= 0) return 5;
+  const pct = 1 - (rank.rank - 1) / rank.totalMonths;
   return Math.round(pct * 9) + 1;
 }
 
-function priceToScore(price: number | null): number {
+function rawFlightValue(price: number | null): number {
+  // Lower price = higher raw value (inverted)
   if (!price || price <= 0) return 5;
-  if (price < 200) return 9;
-  if (price < 400) return 7;
+  if (price < 150) return 10;
+  if (price < 250) return 8;
+  if (price < 400) return 6.5;
   if (price < 700) return 5;
-  if (price < 1200) return 3;
+  if (price < 1000) return 3.5;
+  if (price < 1500) return 2;
   return 1;
 }
 
-function stayValueScore(categories: any[]): number {
+function rawStayValue(categories: any[]): number {
   const mid = categories?.find((c: any) => c.category === "midRange");
   if (!mid?.medianPrice) return 5;
   const price = mid.medianPrice;
-  if (price < 50) return 9;
+  if (price < 40) return 10;
+  if (price < 70) return 8;
   if (price < 100) return 7;
-  if (price < 180) return 5;
-  if (price < 300) return 3;
+  if (price < 150) return 5.5;
+  if (price < 250) return 4;
+  if (price < 400) return 2.5;
   return 1;
+}
+
+function rawMatchValue(matchReasons: number): number {
+  // More granular: 0 reasons=3, 1=5, 2=6.5, 3=7.5, 4=8.5, 5+=9.5
+  if (matchReasons <= 0) return 3;
+  return Math.min(10, 3 + matchReasons * 1.5);
+}
+
+/**
+ * Normalize an array of raw values across 3 cities to ensure differentiation.
+ * The best city gets a score stretched toward 10, the worst toward the floor.
+ * Guarantees at least `minSpread` points between best and worst when raw values differ.
+ */
+function normalizeAcrossCities(rawValues: number[], minSpread = 1.5): number[] {
+  const min = Math.min(...rawValues);
+  const max = Math.max(...rawValues);
+  const range = max - min;
+
+  // If all identical, return as-is (no fake differentiation)
+  if (range < 0.01) return rawValues.map((v) => Math.round(v * 10) / 10);
+
+  // Map to 1-10 scale with the best at ceiling, worst at floor
+  // Use the raw midpoint to set the anchor
+  const avg = rawValues.reduce((a, b) => a + b, 0) / rawValues.length;
+  const ceiling = Math.min(10, Math.max(avg + 1.5, max));
+  const floor = Math.max(1, Math.min(avg - 1.5, min));
+  const targetRange = Math.max(minSpread, ceiling - floor);
+
+  return rawValues.map((v) => {
+    const normalized = floor + ((v - min) / range) * targetRange;
+    return Math.round(Math.min(10, Math.max(1, normalized)) * 10) / 10;
+  });
 }
 
 export function useComparisonData(
