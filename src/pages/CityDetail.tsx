@@ -85,7 +85,7 @@ const CityDetail = () => {
     city: city.city,
     country: city.country,
     rationale: city.rationale,
-    userInterests: Object.entries(profile.interestScores)
+    userInterests: Object.entries(profile.interestScores as Record<string, number>)
       .filter(([_, score]) => score > 0)
       .map(([interest]) => interest),
     adventureTypes: profile.adventureTypes,
