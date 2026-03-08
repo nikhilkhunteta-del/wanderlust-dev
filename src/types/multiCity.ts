@@ -1,5 +1,24 @@
 import { ItineraryDay } from "@/types/itinerary";
 
+export interface NearbyCityOption {
+  city: string;
+  country: string;
+  distanceKm: number;
+  transportMode: "flight" | "train" | "bus" | "ferry" | "drive";
+  journeyTime: string;
+  journeyTimeHours: number;
+  whyItMatches: string;
+  isGatewayCity: boolean;
+  interestMatchScore: number; // 0-3
+  score?: number;
+  suggestedDays?: number;
+}
+
+export interface NearbyCityDiscoveryResponse {
+  suggestions: NearbyCityOption[];
+  mainCityDays: number;
+}
+
 export interface MultiCityStop {
   city: string;
   country: string;
@@ -64,4 +83,5 @@ export interface MultiCityRequest {
   adventureTypes: string[];
   tripStyle: string;
   budgetLevel: string;
+  gatewayCity?: string;
 }
