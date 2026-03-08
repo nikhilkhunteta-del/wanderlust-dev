@@ -245,6 +245,8 @@ const CityDetail = () => {
             error={error instanceof Error ? error.message : error ? String(error) : null}
             travelMonth={profile.travelMonth}
             onSwitchTab={handleTabChange}
+            allCities={allCities}
+            profile={profile}
           />
         </TabsContent>
 
