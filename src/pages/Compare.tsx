@@ -185,6 +185,7 @@ const Compare = () => {
                   onChange={setWeights}
                   onReset={resetWeights}
                   ranked={ranked}
+                  originalCities={cities}
                   onWeightChanged={handleWeightChanged}
                 />
               </div>
