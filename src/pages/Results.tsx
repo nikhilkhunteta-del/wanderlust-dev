@@ -8,7 +8,7 @@ import { ResultsLoading } from "@/components/results/ResultsLoading";
 import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw, ArrowRight } from "lucide-react";
 import { usePrefetchCityImages } from "@/hooks/useImagePack";
 
 const Results = () => {
@@ -107,6 +107,20 @@ const Results = () => {
             />
           ))}
         </div>
+
+        {/* Compare CTA */}
+        {recommendations.length >= 3 && profile && (
+          <div className="text-center mb-8">
+            <Button
+              onClick={() => navigate("/compare", { state: { cities: recommendations, profile } })}
+              className="gap-2"
+              style={{ backgroundColor: "#EA580C", color: "#FFFFFF" }}
+            >
+              Compare all three cities
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
