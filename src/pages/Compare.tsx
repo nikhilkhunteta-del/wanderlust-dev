@@ -175,7 +175,7 @@ const Compare = () => {
               <h2 className="text-lg font-semibold text-foreground">
                 Dimension breakdown
               </h2>
-              <ComparisonTable cityScores={cityScores} />
+              <ComparisonTable cityScores={cityScores} allCities={cities} profile={profile} />
             </section>
 
             {/* 6. Why Not */}
