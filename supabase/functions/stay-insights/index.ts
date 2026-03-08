@@ -204,7 +204,7 @@ serve(async (req) => {
       uae: "AED", "united arab emirates": "AED", switzerland: "CHF",
       sweden: "SEK", norway: "NOK", denmark: "DKK", egypt: "EGP",
       colombia: "COP", peru: "PEN", argentina: "ARS", chile: "CLP",
-      czech republic: "CZK", czechia: "CZK", poland: "PLN",
+      "czech republic": "CZK", czechia: "CZK", poland: "PLN",
       hungary: "HUF", romania: "RON", croatia: "EUR", nepal: "NPR",
       "sri lanka": "LKR", cambodia: "KHR", myanmar: "MMK", kenya: "KES",
       tanzania: "TZS", iceland: "ISK", jordan: "JOD", israel: "ILS",
