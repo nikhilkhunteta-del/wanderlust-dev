@@ -25,7 +25,7 @@ import { DayTripSection } from "./DayTripSection";
 import { ExtensionSection } from "./ExtensionSection";
 import { ShareMenu } from "./ShareMenu";
 import { MultiCitySuggestion } from "./MultiCitySuggestion";
-import { Loader2, Lightbulb } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const ItineraryMap = lazy(() =>
