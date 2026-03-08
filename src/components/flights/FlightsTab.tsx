@@ -117,7 +117,7 @@ const DEST_AIRPORTS: Record<string, string> = {
   "phnom penh": "PNH", yangon: "RGN", vientiane: "VTE",
   taipei: "TPE", seoul: "ICN", osaka: "KIX", beijing: "PEK",
   shanghai: "PVG", guangzhou: "CAN", manila: "MNL", jakarta: "CGK",
-  mumbai: "BOM", chennai: "MAA", kolkata: "CCU", bangalore: "BLR",
+  chennai: "MAA", kolkata: "CCU", bangalore: "BLR",
   hyderabad: "HYD", goa: "GOI", varanasi: "VNS", udaipur: "UDR",
   jodhpur: "JDH", amritsar: "ATQ", kochi: "COK",
   porto: "OPO", seville: "SVQ", florence: "FLR", venice: "VCE",
