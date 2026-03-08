@@ -14,6 +14,7 @@ interface WeightSlidersProps {
   onChange: (weights: DimensionWeights) => void;
   onReset: () => void;
   ranked: CityScores[];
+  originalCities: import("@/types/recommendations").CityRecommendation[];
   onWeightChanged?: () => void;
 }
 
