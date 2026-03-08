@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CityScores, CITY_COLORS, CITY_BG_COLORS, DIMENSION_LABELS, DimensionWeights } from "@/types/comparison";
-import { ChevronDown, Trophy } from "lucide-react";
+import { ChevronDown, Trophy, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CityRecommendation } from "@/types/recommendations";
@@ -11,6 +11,7 @@ interface ComparisonTableProps {
   cityScores: CityScores[];
   allCities?: CityRecommendation[];
   profile?: TravelProfile;
+  groundData?: any[];
 }
 
 const DIMENSIONS: (keyof DimensionWeights)[] = [
@@ -43,12 +44,55 @@ function ScoreBadge({ score, isTop }: { score: number; isTop: boolean }) {
   );
 }
 
-export const ComparisonTable = ({ cityScores, allCities, profile }: ComparisonTableProps) => {
+function SafetyExpandedRow({ cs, groundItem }: { cs: CityScores; groundItem: any }) {
+  if (!groundItem) {
+    return (
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        {cs.safety.summary}
+      </p>
+    );
+  }
+
+  const advisories = groundItem.advisories || [];
+  const ukAdvisory = advisories.find((a: any) => a.source === "UK FCDO");
+  const usAdvisory = advisories.find((a: any) => a.source === "US State Dept");
+  const caAdvisory = advisories.find((a: any) => a.source === "Canada DFATD" || a.source === "Canada");
+
+  const alerts = groundItem.currentIssues || [];
+  const alertSummary = alerts.length > 0
+    ? alerts.slice(0, 2).map((a: any) => a.title || a.summary).join("; ")
+    : "None reported";
+
+  const keyRisk = groundItem.safetyGuidance?.topRisk || groundItem.keyRisk || "None specific";
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <Shield className="w-3 h-3" />
+        <span>
+          UK FCDO: {ukAdvisory?.level || "N/A"} · US State Dept: {usAdvisory?.level || "N/A"} · Canada: {caAdvisory?.level || "N/A"}
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Current alerts: {alertSummary}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Key risk: {keyRisk}
+      </p>
+      <p className="text-[10px] text-muted-foreground/60 mt-1">
+        Based on UK FCDO, US State Dept, and Canada DFATD advisories for {cs.city.city} specifically
+      </p>
+    </div>
+  );
+}
+
+export const ComparisonTable = ({ cityScores, allCities, profile, groundData }: ComparisonTableProps) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const sorted = [...cityScores].sort((a, b) => b.weightedTotal - a.weightedTotal);
-  const topCity = sorted[0];
+  // Find the winner by highest weightedTotal
+  const highestTotal = Math.max(...cityScores.map((cs) => cs.weightedTotal));
+  const winnerIndex = cityScores.findIndex((cs) => cs.weightedTotal === highestTotal);
 
   const handleExplore = (cs: CityScores) => {
     const slug = cs.city.city.toLowerCase().replace(/\s+/g, "-");
@@ -109,11 +153,15 @@ export const ComparisonTable = ({ cityScores, allCities, profile }: ComparisonTa
             {isExpanded && (
               <div className="grid grid-cols-4 gap-0 bg-muted/10 border-t border-border/20">
                 <div className="p-3" />
-                {cityScores.map((cs) => (
+                {cityScores.map((cs, i) => (
                   <div key={cs.city.city} className="p-3">
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {cs[dim].summary}
-                    </p>
+                    {dim === "safety" && groundData?.[i] ? (
+                      <SafetyExpandedRow cs={cs} groundItem={groundData[i]} />
+                    ) : (
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {cs[dim].summary}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -131,7 +179,7 @@ export const ComparisonTable = ({ cityScores, allCities, profile }: ComparisonTa
           Weighted Total
         </div>
         {cityScores.map((cs, i) => {
-          const isWinner = cs === topCity;
+          const isWinner = i === winnerIndex;
           return (
             <div
               key={cs.city.city}
@@ -152,8 +200,8 @@ export const ComparisonTable = ({ cityScores, allCities, profile }: ComparisonTa
       {profile && (
         <div className="grid grid-cols-4 gap-0 border-t border-border/30 bg-muted/10">
           <div className="p-3" />
-          {cityScores.map((cs) => {
-            const isWinner = cs === topCity;
+          {cityScores.map((cs, i) => {
+            const isWinner = i === winnerIndex;
             return (
               <div key={cs.city.city} className="p-3 flex justify-center">
                 <Button
