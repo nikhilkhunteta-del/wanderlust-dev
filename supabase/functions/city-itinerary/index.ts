@@ -95,6 +95,17 @@ TRAVELER PREFERENCES:
 - Dining: ${settings.diningPreference} (${diningDescription})
 ${mustDoNote}${focusNote}${freeTimeNote}
 
+MEAL RULES:
+- Always include at least one lunch and one dinner as explicit time-slotted activities with category "food".
+- Name a specific restaurant or food experience — never just "lunch" or "dinner".
+- Meals should be in the same neighbourhood as surrounding activities to avoid unnecessary travel.
+- Reflect the dining preference: ${diningDescription}.
+${requestData.userInterests.includes("family") || requestData.adventureTypes.includes("family") ? "- Note if a restaurant is child-friendly." : ""}
+
+TRANSITION RULES:
+- For each activity, include a "transitTo" field: a short string describing travel to the NEXT activity. Format: "N min walk" or "N min by metro/auto-rickshaw/taxi". If this is the last activity of the day, set transitTo to null.
+- If a transition exceeds 30 minutes, append " · consider [faster option] to save time".
+
 Respond with ONLY valid JSON for a single day:
 {
   "dayNumber": ${requestData.regenerateDay},
@@ -117,7 +128,8 @@ Respond with ONLY valid JSON for a single day:
           "location": "Specific venue or street name",
           "lat": 41.3851,
           "lng": 2.1734,
-          "personalNote": "One sentence connecting this activity to the traveler's interests or style — like a friend explaining why they specifically will love it"
+          "personalNote": "One sentence connecting this activity to the traveler's interests",
+          "transitTo": "5 min walk"
         }
       ]
     },
@@ -184,12 +196,23 @@ RULES:
 - Group activities by neighborhood/area to minimize travel
 - Include specific venue/location names and approximate GPS coordinates (lat, lng)
 - Keep activity descriptions to ONE concise line
-- Include dining recommendations matching the preference
 - Add practical travel tips
 - If traveling in ${requestData.travelMonth}, weave in seasonal or time-specific experiences (festivals, seasonal foods, weather-dependent activities) and mark them with a seasonalNote
 - Estimate walking distance and transit time per day realistically
 - Suggest 3-5 day trips within ~2 hours of the city
 - Suggest 2-3 activities for "if you had one more day"
+
+MEAL RULES:
+- For every day, include at minimum one lunch and one dinner as explicit time-slotted activities with category "food".
+- Breakfast is optional unless the day starts very early.
+- Each meal must name a specific restaurant or food experience — never just "lunch" or "dinner".
+- Meals should be in the same neighbourhood as surrounding activities.
+- Reflect the dining preference: ${diningDescription}.
+${requestData.userInterests.includes("family") || requestData.adventureTypes.includes("family") ? "- Note if a restaurant is child-friendly in the description." : ""}
+
+TRANSITION RULES:
+- For each activity, include a "transitTo" field describing approximate travel to the NEXT activity. Format: "N min walk" or "N min by metro/auto-rickshaw/taxi/bus". Set to null for the last activity of each period/day.
+- If a transition exceeds 30 minutes, append " · consider [faster option] to save time".
 
 Respond with ONLY valid JSON in this exact format:
 {
@@ -215,8 +238,9 @@ Respond with ONLY valid JSON in this exact format:
               "location": "Specific venue or street name",
               "lat": 41.3851,
               "lng": 2.1734,
-              "seasonalNote": "Only include if relevant to the travel month, e.g. 'Cherry blossoms peak in April' or null",
-              "personalNote": "One sentence connecting this activity to the traveler's interests — like a friend explaining why they will love it. Do not repeat the description."
+              "seasonalNote": "Only include if relevant to the travel month or null",
+              "personalNote": "One sentence connecting this activity to the traveler's interests — do not repeat the description.",
+              "transitTo": "5 min walk"
             }
           ]
         },
@@ -257,7 +281,7 @@ ITINERARY SETTINGS:
 - Dining: ${settings.diningPreference} (${diningDescription})
 ${mustDoNote}${focusNote}${freeTimeNote}
 
-Create a ${requestData.tripDuration}-day plan with Morning, Afternoon, and Evening for each day. Include neighbourhood context, realistic pacing estimates, seasonal highlights for ${requestData.travelMonth}, day trip suggestions, and extension ideas. Make it locally authentic with real coordinates.`;
+Create a ${requestData.tripDuration}-day plan with Morning, Afternoon, and Evening for each day. Include specific meal recommendations as activities, transition times between activities, neighbourhood context, realistic pacing estimates, seasonal highlights for ${requestData.travelMonth}, day trip suggestions, and extension ideas. Make it locally authentic with real coordinates.`;
 
     console.log("Sending prompt to AI gateway...");
 
