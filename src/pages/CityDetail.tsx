@@ -231,6 +231,8 @@ const CityDetail = () => {
             highlights={highlights ?? null}
             isLoading={isLoading}
             error={error instanceof Error ? error.message : error ? String(error) : null}
+            travelMonth={profile.travelMonth}
+            onSwitchTab={handleTabChange}
           />
         </TabsContent>
 
