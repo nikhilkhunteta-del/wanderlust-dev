@@ -1,6 +1,7 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState } from "react";
 import { useStayInsights } from "@/hooks/useCityData";
 import { PriceCategoryCard } from "./PriceCategoryCard";
+import { HotelPicksPanel } from "./HotelPicksPanel";
 import { NeighbourhoodCard } from "./NeighbourhoodCard";
 import { AreaGuidance } from "./AreaGuidance";
 import { PracticalStayInsights } from "./PracticalStayInsights";
@@ -10,6 +11,7 @@ import { HotelVsApartmentSection } from "./HotelVsApartmentSection";
 import { DataFreshness } from "@/components/shared/DataFreshness";
 import { Loader2, Building2, Info } from "lucide-react";
 import { stripMarkdown } from "@/lib/stripMarkdown";
+import { PriceCategory } from "@/types/stayInsights";
 
 interface StaysTabProps {
   city: string;
@@ -23,6 +25,25 @@ interface StaysTabProps {
   travelPace?: number;
 }
 
+/** Pick the default tier based on user's style tags budget signal */
+function getDefaultTier(
+  styleTags: string[] | undefined,
+  categories: PriceCategory[],
+): string {
+  if (styleTags) {
+    const joined = styleTags.join(" ").toLowerCase();
+    if (joined.includes("budget") || joined.includes("backpack")) {
+      return "budget";
+    }
+    if (joined.includes("luxury") || joined.includes("premium") || joined.includes("splurge")) {
+      return "luxury";
+    }
+  }
+  // Default to midRange if it exists
+  const hasMidRange = categories.some((c) => c.category === "midRange");
+  return hasMidRange ? "midRange" : categories[0]?.category || "midRange";
+}
+
 export const StaysTab = ({
   city, country, travelMonth, departureCity,
   travelCompanions, groupType, tripDuration, styleTags, travelPace,
@@ -32,26 +53,40 @@ export const StaysTab = ({
   );
   const initialLoadTime = useRef<number | null>(null);
   const searchCtaRef = useRef<HTMLDivElement>(null);
+  const [selectedTier, setSelectedTier] = useState<string | null>(null);
+  const defaultTierSet = useRef(false);
 
   if (data && !initialLoadTime.current) {
     initialLoadTime.current = Date.now();
   }
+
+  // Set default tier once data arrives
+  if (data && !defaultTierSet.current) {
+    defaultTierSet.current = true;
+    const def = getDefaultTier(styleTags, data.priceCategories);
+    setSelectedTier(def);
+  }
+
   const isFromCache = data && !isLoading && dataUpdatedAt < Date.now() - 100;
 
-  // Deduplicate neighbourhood images — detect duplicate URLs via entityName-based query
+  // Deduplicate neighbourhood images
   const neighbourhoodsWithDedup = useMemo(() => {
     if (!data?.neighbourhoods) return [];
     const seen = new Set<string>();
     return data.neighbourhoods.map((n) => {
       const baseQuery = `${n.name} ${city} residential street buildings`;
       if (seen.has(baseQuery)) {
-        // This shouldn't happen since names differ, but guard anyway
         return { ...n, alternateQuery: true };
       }
       seen.add(baseQuery);
       return { ...n, alternateQuery: false };
     });
   }, [data?.neighbourhoods, city]);
+
+  const selectedCategory = useMemo(() => {
+    if (!data || !selectedTier) return null;
+    return data.priceCategories.find((c) => c.category === selectedTier) ?? null;
+  }, [data, selectedTier]);
 
   if (isLoading) {
     return (
@@ -82,7 +117,6 @@ export const StaysTab = ({
 
   if (!data) return null;
 
-  // Compute total properties checked across all tiers
   const totalProperties = data.priceCategories.reduce(
     (sum, cat) => sum + (cat.resultCount || 0), 0
   ) + (data.vacationRentals?.resultCount || 0);
@@ -92,18 +126,15 @@ export const StaysTab = ({
     ? new Date(data.fetchedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : data.lastUpdated;
 
-  // Hotel median for comparison (use midRange tier)
   const hotelMedian = data.priceCategories.find(c => c.category === "midRange")?.medianPrice ?? null;
-
-  // Build stay duration subtitle
   const stayDuration = data.stayDuration;
-  const checkinLabel = data.fetchedAt ? (() => {
-    // Try to derive from data context
-    return null;
-  })() : null;
 
   const scrollToSearch = () => {
     searchCtaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleTierClick = (tierCategory: string) => {
+    setSelectedTier((prev) => (prev === tierCategory ? null : tierCategory));
   };
 
   return (
@@ -123,7 +154,6 @@ export const StaysTab = ({
           {stripMarkdown(data.overview)}
         </p>
 
-        {/* Data freshness indicator */}
         {isLive && totalProperties > 0 && (
           <p className="text-xs text-muted-foreground/70 mt-2">
             Live pricing data · {totalProperties} properties checked · {fetchedDate}
@@ -137,7 +167,7 @@ export const StaysTab = ({
           <PersonalRecommendation recommendation={data.personalRecommendation} />
         )}
 
-        {/* Price Categories */}
+        {/* Price Categories — Layer 1: Compact tier cards */}
         <section>
           <h3 className="text-lg font-semibold text-foreground">
             {isLive ? "Live Prices" : "Typical Prices"} in {data.travelMonth}
@@ -154,15 +184,29 @@ export const StaysTab = ({
             </p>
           )}
           {!stayDuration && <div className="mb-4" />}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {data.priceCategories.map((category, index) => (
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+            {data.priceCategories.map((category) => (
               <PriceCategoryCard
-                key={index}
+                key={category.category}
                 category={category}
                 fetchedAt={data.fetchedAt}
+                isSelected={selectedTier === category.category}
+                onClick={() => handleTierClick(category.category)}
               />
             ))}
           </div>
+
+          {/* Layer 2: Hotel picks panel */}
+          {selectedCategory && (selectedCategory.topProperties?.length ?? 0) > 0 && (
+            <div className="mt-4">
+              <HotelPicksPanel
+                category={selectedCategory}
+                city={city}
+                onClose={() => setSelectedTier(null)}
+              />
+            </div>
+          )}
         </section>
 
         {/* Best Neighbourhoods */}
