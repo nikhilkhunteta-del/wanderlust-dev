@@ -191,16 +191,6 @@ export const WeightSliders = ({ weights, onChange, onReset, ranked, originalCiti
   );
 };
 
-/** Find the color index for a ranked city by matching back to original order */
-function findCityColorIndex(cityScore: CityScores, allRanked: CityScores[]): number {
-  // CITY_COLORS maps to the original cities array order (pre-ranking)
-  // We need to use the city property which carries the original recommendation
-  // The parent passes ranked which is sorted by score, but colors are by original index
-  // Since we don't have the original order here, use a simple heuristic:
-  // colors are [0]=coral, [1]=teal, [2]=purple — assigned to cities in their original order
-  // For now, return the index in the original unsorted array
-  return allRanked.indexOf(cityScore);
-}
 
 interface SliderRowProps {
   dim: keyof DimensionWeights;
@@ -250,7 +240,7 @@ function SliderRow({ dim, value, onChange, onDragStart, onDragEnd }: SliderRowPr
           onMouseUp={onDragEnd}
           onTouchEnd={onDragEnd}
           ref={trackRef as any}
-          className="w-full h-3 rounded-full appearance-none cursor-pointer"
+          className="w-full h-3 rounded-full cursor-pointer weight-slider"
           style={{
             background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${percentage}%, hsl(var(--muted)) ${percentage}%, hsl(var(--muted)) 100%)`,
           }}
