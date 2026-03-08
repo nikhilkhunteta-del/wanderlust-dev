@@ -46,6 +46,7 @@ const Compare = () => {
     resetWeights,
     isLoading,
     allLoaded,
+    rawData,
   } = useComparisonData(cities, profile);
 
   const handleWeightChanged = useCallback(() => {
@@ -196,7 +197,12 @@ const Compare = () => {
               <h2 className="text-lg font-semibold text-foreground">
                 Dimension breakdown
               </h2>
-              <ComparisonTable cityScores={cityScores} allCities={cities} profile={profile} />
+              <ComparisonTable
+                cityScores={cityScores}
+                allCities={cities}
+                profile={profile}
+                groundData={rawData.ground.map((g) => g.data)}
+              />
             </section>
 
             {/* 6. Why Not */}
