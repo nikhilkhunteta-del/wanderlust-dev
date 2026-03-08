@@ -7,7 +7,6 @@ interface JourneyCompletionProps {
   originCity?: string;
   onSwitchTab?: (tab: string) => void;
   onShare?: () => void;
-  // Multi-city props
   isMultiCity?: boolean;
   cities?: string[];
   onScrollToTop?: () => void;
@@ -37,10 +36,6 @@ export const JourneyCompletion = ({
       ? `See the best options from ${originCity}`
       : `See the best flight options to ${cityName}`;
 
-  const staySubtitle = isMultiCity
-    ? "Check hotels per city — tap each city tab for live prices"
-    : `Live prices for your dates in ${cityName}`;
-
   return (
     <section className="rounded-2xl overflow-hidden bg-card border border-border/50 shadow-sm" style={{ background: '#1C1917' }}>
       <div className="px-6 md:px-10 py-10 md:py-12">
@@ -68,23 +63,47 @@ export const JourneyCompletion = ({
             </span>
           </button>
 
-          <button
-            onClick={() => onSwitchTab?.("stays")}
-            className="group text-left bg-white rounded-xl p-5 border-2 border-transparent hover:border-primary transition-colors"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <BedDouble className="w-5 h-5 text-primary" />
+          {/* Fix 8: Multi-city shows per-city hotel links */}
+          {isMultiCity && cities.length >= 2 ? (
+            <div className="bg-white rounded-xl p-5 border-2 border-transparent">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <BedDouble className="w-5 h-5 text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground text-[15px]">Find your base</h4>
               </div>
-              <h4 className="font-semibold text-foreground text-[15px]">Find your base</h4>
+              <div className="space-y-2">
+                {cities.filter((c, i, arr) => arr.indexOf(c) === i).map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => onSwitchTab?.("stays")}
+                    className="group flex items-center justify-between w-full text-left text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                  >
+                    <span>Hotels in {c}</span>
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {staySubtitle}
-            </p>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-primary mt-3 group-hover:gap-2 transition-all">
-              View options <ArrowRight className="w-3 h-3" />
-            </span>
-          </button>
+          ) : (
+            <button
+              onClick={() => onSwitchTab?.("stays")}
+              className="group text-left bg-white rounded-xl p-5 border-2 border-transparent hover:border-primary transition-colors"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <BedDouble className="w-5 h-5 text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground text-[15px]">Find your base</h4>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Live prices for your dates in {cityName}
+              </p>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary mt-3 group-hover:gap-2 transition-all">
+                View options <ArrowRight className="w-3 h-3" />
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Footer actions */}
