@@ -6,7 +6,7 @@ import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
 import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { InsiderMissedSection } from "./InsiderMissedSection";
-import { HighlightsCuratedTours } from "./HighlightsCuratedTours";
+import { HighlightsClosingCTA } from "./HighlightsClosingCTA";
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { useSavedExperiences } from "@/hooks/useSavedExperiences";
@@ -17,6 +17,8 @@ interface HighlightsTabProps {
   highlights: CityHighlights | null;
   isLoading: boolean;
   error: string | null;
+  travelMonth?: string;
+  onSwitchTab?: (tab: string) => void;
 }
 
 export const HighlightsTab = ({
@@ -25,6 +27,8 @@ export const HighlightsTab = ({
   highlights,
   isLoading,
   error,
+  travelMonth,
+  onSwitchTab,
 }: HighlightsTabProps) => {
   const scrollRef = useScrollFade<HTMLDivElement>();
   const { isSaved, toggle } = useSavedExperiences(city, country);
@@ -115,16 +119,14 @@ export const HighlightsTab = ({
         {highlights.insiderMissed && (
           <InsiderMissedSection city={city} content={highlights.insiderMissed} />
         )}
-
-        {/* 6. Action-oriented tours section */}
-        <section className="mt-14" data-scroll-fade>
-          <HighlightsCuratedTours
-            experiences={highlights.experiences}
-            cityName={city}
-            country={country}
-          />
-        </section>
       </div>
+
+      {/* 6. Closing CTA */}
+      <HighlightsClosingCTA
+        city={city}
+        travelMonth={travelMonth}
+        onSwitchTab={onSwitchTab}
+      />
     </div>
   );
 };
