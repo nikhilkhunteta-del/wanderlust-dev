@@ -109,6 +109,12 @@ TRANSITION RULES:
 BUDGET ESTIMATION:
 - Estimate estimatedDailyBudget (single number), budgetBreakdown ({entranceFees, food, transport}), and budgetCurrency (symbol like £, $, ₹, €) for this day.
 
+PRACTICAL NOTES:
+- For each activity, include a "practicalNote" field if relevant: closing day, advance booking requirement, best time to visit, or access tip. Set to null if not applicable.
+
+DAY TRIP STRUCTURE:
+- If this is a day trip, structure the day around transport anchors: departure time and method, arrival, realistic on-site schedule, return departure, return arrival. Flag early departures in the first activity's practicalNote.
+
 Respond with ONLY valid JSON for a single day:
 {
   "dayNumber": ${requestData.regenerateDay},
@@ -136,6 +142,7 @@ Respond with ONLY valid JSON for a single day:
           "lat": 41.3851,
           "lng": 2.1734,
           "personalNote": "One sentence connecting this activity to the traveler's interests",
+          "practicalNote": "Closed Mondays" or null,
           "transitTo": "5 min walk"
         }
       ]
@@ -211,6 +218,20 @@ RULES:
 - Suggest 3-5 day trips within ~2 hours of the city
 - Suggest 2-3 activities for "if you had one more day"
 
+DAY TRIP STRUCTURE:
+- For any day designated as a day trip away from ${requestData.city}, always structure the day around fixed transport anchors:
+  (1) Departure time and transport method from ${requestData.city} (e.g. "06:15 AM — Gatimaan Express from Hazrat Nizamuddin")
+  (2) Approximate arrival time at the day trip destination
+  (3) A realistic activity schedule that fits within the available on-site hours — never schedule more activities than the time allows
+  (4) Latest feasible departure time for return journey
+  (5) Approximate return arrival time back in ${requestData.city}
+- If the day trip requires very early departure, flag it in the first activity's practicalNote: e.g. "Note: Gatimaan Express departs 08:10 from Hazrat Nizamuddin — plan to leave your hotel by 07:15."
+
+PRACTICAL NOTES:
+- For each activity, include a "practicalNote" field if relevant: closing day of the week, advance booking requirement, best time of day to visit given the travel month, or a specific access tip.
+- If no practical note applies, set to null — do NOT generate a generic note.
+- Examples: "Closed Mondays", "Book tickets online — queues are long in peak season", "Visit before 9am in May to avoid peak heat", "Last entry 30 mins before closing."
+
 BUDGET ESTIMATION RULES:
 - For each day, estimate the total daily spend per person: entrance fees at standard rates, one lunch and one dinner at the dining style specified (${diningDescription}), and local transport between activities.
 - Return estimatedDailyBudget as a single number and budgetBreakdown as {entranceFees, food, transport} — all numbers.
@@ -264,6 +285,7 @@ Respond with ONLY valid JSON in this exact format:
               "lng": 2.1734,
               "seasonalNote": "Only include if relevant to the travel month or null",
               "personalNote": "One sentence connecting this activity to the traveler's interests — do not repeat the description.",
+              "practicalNote": "Closed Mondays" or null,
               "transitTo": "5 min walk"
             }
           ]

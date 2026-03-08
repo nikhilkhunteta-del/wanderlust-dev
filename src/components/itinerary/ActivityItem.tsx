@@ -191,6 +191,14 @@ export const ActivityItem = ({
             )}
           </div>
 
+          {/* Practical Note */}
+          {activity.practicalNote && (
+            <p className="mt-1 text-[11px] leading-snug text-amber-600 dark:text-amber-400 inline-flex items-start gap-1">
+              <span className="flex-shrink-0">⚠</span>
+              {activity.practicalNote}
+            </p>
+          )}
+
           {/* Hover actions: Replace + Undo */}
           <div className="flex items-center gap-3 mt-1">
             {onReplaceActivity && !isLocked && (

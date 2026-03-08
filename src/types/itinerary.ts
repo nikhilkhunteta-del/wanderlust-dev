@@ -20,6 +20,7 @@ export interface Activity {
   location?: string;
   seasonalNote?: string;
   personalNote?: string;
+  practicalNote?: string;
   lat?: number;
   lng?: number;
   transitTo?: string;

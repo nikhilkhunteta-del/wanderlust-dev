@@ -62,7 +62,8 @@ Return ONLY valid JSON for a single replacement activity:
   "location": "Specific venue or street name",
   "lat": 28.6,
   "lng": 77.2,
-  "personalNote": "One sentence connecting this to the traveler's interests — like a friend explaining why they will love it"
+  "personalNote": "One sentence connecting this to the traveler's interests — like a friend explaining why they will love it",
+  "practicalNote": "Closing day, booking tip, or best visit time — or null if not applicable"
 }`;
 
     const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite"];
