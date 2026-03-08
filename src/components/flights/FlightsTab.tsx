@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatMonthName } from "@/lib/formatMonth";
 import { Loader2, Plane, ChevronDown, Route, Calendar, ArrowLeftRight, Info, ExternalLink, Ticket, Search } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { VisaStatusCallout } from "./VisaStatusCallout";
 
 interface FlightsTabProps {
   departureCity: string;
@@ -11,6 +12,7 @@ interface FlightsTabProps {
   destinationCountry: string;
   travelMonth: string;
   tripDuration?: number;
+  onSwitchTab?: (tab: string) => void;
 }
 
 interface OriginResult {
@@ -180,6 +182,7 @@ export const FlightsTab = ({
   destinationCountry,
   travelMonth,
   tripDuration = 7,
+  onSwitchTab,
 }: FlightsTabProps) => {
   const monthName = formatMonthName(travelMonth);
   const destAirport = getDestAirport(destinationCity);
@@ -305,6 +308,16 @@ export const FlightsTab = ({
         <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
 
         <OneWayVsRoundTrip data={data} sym={sym} />
+
+        {/* Visa status callout */}
+        <div className="my-10">
+          <VisaStatusCallout
+            city={destinationCity}
+            country={destinationCountry}
+            travelMonth={travelMonth}
+            onSwitchTab={onSwitchTab}
+          />
+        </div>
       </div>
 
       {/* Section 6: Book Your Flights CTA — dark warm background */}

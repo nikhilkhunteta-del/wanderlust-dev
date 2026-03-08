@@ -4,7 +4,6 @@ import { WeatherVerdict } from "./WeatherVerdict";
 import { WeatherStats } from "./WeatherStats";
 import { WeatherCharts } from "./WeatherCharts";
 import { WeeklyInsights } from "./WeeklyInsights";
-import { PackingTips } from "./PackingTips";
 import { WeatherWatch } from "./WeatherWatch";
 import { SensoryNarrative } from "./SensoryNarrative";
 import { MonthComparison } from "./MonthComparison";
@@ -54,7 +53,7 @@ export const WeatherTab = ({ city, country, travelMonth, onSwitchTab }: WeatherT
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-10">
-      {/* Header row: Verdict + controls — #1 remove Instant badge, keep toggle */}
+      {/* Header row: Verdict + controls */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-end gap-3">
           <TemperatureToggle unit={tempUnit} onUnitChange={setTempUnit} />
@@ -67,10 +66,10 @@ export const WeatherTab = ({ city, country, travelMonth, onSwitchTab }: WeatherT
         />
       </div>
 
-      {/* Travel comfort signals — #3 primary/secondary layout */}
+      {/* Travel comfort signals */}
       <WeatherStats stats={weather.stats} unit={tempUnit} month={travelMonth} />
 
-      {/* Sensory narrative — unchanged */}
+      {/* Sensory narrative */}
       <SensoryNarrative periods={weather.sensoryNarrative} month={travelMonth} />
 
       {/* Charts + Sidebar grid */}
@@ -90,17 +89,16 @@ export const WeatherTab = ({ city, country, travelMonth, onSwitchTab }: WeatherT
         </div>
       </div>
 
-      {/* #4 Weather Watch full-width above, Packing below */}
+      {/* Weather Watch */}
       {weather.weatherRisks && weather.weatherRisks.length > 0 && (
         <WeatherWatch risks={weather.weatherRisks} />
       )}
-      <PackingTips tips={weather.packingTips} notNeeded={weather.notNeeded} />
 
       {/* Weather impact cross-tab note */}
       <div className="flex items-center gap-2 p-4 rounded-xl bg-muted/20 border border-border/30">
         <CloudSun className="w-4 h-4 text-muted-foreground shrink-0" />
         <p className="text-sm text-muted-foreground">
-          Some <span className="font-medium">While You're There</span> experiences and <span className="font-medium">Your Days</span> activities have been adjusted for {displayMonth}'s weather conditions.
+          Packing suggestions based on {displayMonth}'s weather are included in the <span className="font-medium">Stay Well</span> tab.
         </p>
       </div>
 
