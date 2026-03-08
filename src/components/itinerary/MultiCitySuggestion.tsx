@@ -143,25 +143,29 @@ export const MultiCitySuggestion = ({
   const suggestions = discovery?.suggestions || [];
   if (!shouldSuggestMultiCity(tripDuration, suggestions)) return null;
 
-  // Active multi-city state — compact summary
+  // Active multi-city state — compact summary (Fix 7: more visible revert button)
   if (isMultiCityActive) {
+    // Build route label from suggestions
+    const routeLabel = suggestions.length > 0
+      ? `${city} → ${suggestions.map((s) => s.city).join(" → ")}`
+      : `Multi-City Journey`;
+
     return (
       <div className="bg-gradient-to-br from-indigo-500/5 to-violet-500/5 rounded-xl p-5 md:p-6 border border-indigo-500/30">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <h3 className="font-display font-semibold text-base flex items-center gap-2.5 text-indigo-700 dark:text-indigo-400">
             <div className="p-1.5 rounded-lg bg-indigo-500/10">
               <Globe className="w-4 h-4" />
             </div>
-            Multi-City Journey Active
+            <span>Multi-City Journey · <span className="font-bold">{routeLabel}</span></span>
           </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-muted-foreground hover:text-foreground"
+          <button
             onClick={onRevertToSingleCity}
+            className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+            style={{ borderColor: '#D1D5DB' }}
           >
-            Switch to {city} only
-          </Button>
+            ← Single city only
+          </button>
         </div>
       </div>
     );

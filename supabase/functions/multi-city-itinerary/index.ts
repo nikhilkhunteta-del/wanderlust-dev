@@ -118,7 +118,7 @@ Respond with ONLY valid JSON:
       ]
     }
   ],
-  "tips": ["3-5 practical tips covering multi-city logistics"],
+  "tips": ["Generate 3-4 tips specific to the logistics of moving between the cities on this route. Focus on: booking windows for inter-city transport, what to do on travel days, luggage handling when moving hotels, and route-specific practical knowledge. Do NOT include generic tips about hydration, clothing, sunscreen, or local apps."],
   "cityTransitions": [
     {
       "fromCity": "City A",

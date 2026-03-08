@@ -1,5 +1,5 @@
 import { CityTransition } from "@/types/multiCity";
-import { Train, Plane, Bus, Ship, Car, Clock, Route, Ticket } from "lucide-react";
+import { Train, Plane, Bus, Ship, Car, Clock, Route, Ticket, ExternalLink } from "lucide-react";
 
 interface TravelTransitionCardProps {
   transition: CityTransition;
@@ -22,9 +22,33 @@ const transportLabels: Record<string, string> = {
   drive: "By car",
 };
 
+// Fix 9: Booking links per transport mode
+const bookingLinks: Record<string, { label: string; url: string } | null> = {
+  train: { label: "Book on IRCTC", url: "https://www.irctc.co.in" },
+  bus: { label: "Search on RedBus", url: "https://www.redbus.in" },
+  flight: { label: "Search on Skyscanner", url: "https://www.skyscanner.co.in" },
+  drive: { label: "Book via Ola/Uber", url: "https://www.olacabs.com" },
+  ferry: null,
+};
+
+// Fix 4: Replace "passport" with "government-issued ID" for domestic India
+function sanitizeTip(tip: string): string {
+  return tip
+    .replace(
+      /[Kk]eep your passport handy as it may be checked/g,
+      "Keep a government ID handy — it may be checked alongside your digital ticket"
+    )
+    .replace(
+      /[Kk]eep your passport handy/g,
+      "Keep a government ID handy"
+    );
+}
+
 export const TravelTransitionCard = ({ transition, leg }: TravelTransitionCardProps) => {
   const TransportIcon = transportIcons[transition.transportMode] || Train;
   const label = transportLabels[transition.transportMode] || "Onward";
+  const booking = bookingLinks[transition.transportMode] || null;
+  const sanitizedTip = transition.tip ? sanitizeTip(transition.tip) : null;
 
   return (
     <div className="relative my-8">
@@ -78,10 +102,23 @@ export const TravelTransitionCard = ({ transition, leg }: TravelTransitionCardPr
             </div>
 
             {/* Narrative tip */}
-            {transition.tip && (
-              <p className="text-sm text-muted-foreground/70 leading-relaxed italic border-l-2 border-primary/15 pl-3">
-                {transition.tip}
+            {sanitizedTip && (
+              <p className="text-sm text-muted-foreground/70 leading-relaxed italic border-l-2 border-primary/15 pl-3 mb-3">
+                {sanitizedTip}
               </p>
+            )}
+
+            {/* Fix 9: Booking CTA */}
+            {booking && (
+              <a
+                href={booking.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                {booking.label}
+                <ExternalLink className="w-3 h-3" />
+              </a>
             )}
           </div>
         </div>

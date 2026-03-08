@@ -4,6 +4,7 @@ import { Activity } from "@/types/itinerary";
 import { DayCard } from "./DayCard";
 import { CollapsedDayCard } from "./CollapsedDayCard";
 import { TravelTransitionCard } from "./TravelTransitionCard";
+import { DepartureEpilogueCard } from "./DepartureEpilogueCard";
 import { JourneyCompletion } from "./JourneyCompletion";
 import { Loader2, Lightbulb, BookOpen } from "lucide-react";
 
@@ -20,7 +21,6 @@ interface MultiCityItineraryViewProps {
   tripDuration: number;
   onSwitchTab?: (tab: string) => void;
   onScrollToTop?: () => void;
-  // Activity interaction props
   onRefineDay?: (dayNumber: number, adjustment: string, cityName?: string, countryName?: string) => void;
   isRefining?: boolean;
   refiningDay?: number | null;
@@ -29,8 +29,23 @@ interface MultiCityItineraryViewProps {
   onReplaceActivity?: (dayNumber: number, period: string, activityIndex: number, newActivity: Activity) => void;
 }
 
-function getChapterTitle(city: string, index: number): string {
-  return `Chapter ${index + 1}`;
+// Generic tip patterns to filter out
+const GENERIC_TIP_PATTERNS = [
+  /hydrat/i,
+  /sun\s*(protection|screen|block)/i,
+  /sunscreen/i,
+  /cloth(ing|es)/i,
+  /dress\s*(light|appropriate|comfortable)/i,
+  /ride[- ]?sharing\s*app/i,
+  /uber|ola|grab/i,
+  /stay\s*cool/i,
+  /wear\s*(comfortable|light|loose)/i,
+  /water\s*bottle/i,
+  /hat\s*(and|or)\s*sunglasses/i,
+];
+
+function isGenericTip(tip: string): boolean {
+  return GENERIC_TIP_PATTERNS.some((pattern) => pattern.test(tip));
 }
 
 export const MultiCityItineraryView = ({
@@ -107,28 +122,38 @@ export const MultiCityItineraryView = ({
     return groups;
   }, [itinerary]);
 
-  // Budget calculations
-  const cityBudgets = useMemo(() => {
-    if (!itinerary?.days) return {};
-    const budgets: Record<string, { total: number; days: number; currency: string }> = {};
-    for (const day of itinerary.days) {
-      if (day.estimatedDailyBudget == null) continue;
-      const city = day.cityName || "Unknown";
-      if (!budgets[city]) budgets[city] = { total: 0, days: 0, currency: (day as any).budgetCurrency || "£" };
-      budgets[city].total += day.estimatedDailyBudget;
-      budgets[city].days += 1;
+  // Detect departure epilogue: last chapter same city as first, only 1 day
+  const { renderGroups, departureEpilogue } = useMemo(() => {
+    if (
+      cityGroups.length >= 3 &&
+      cityGroups[cityGroups.length - 1].city === cityGroups[0].city &&
+      cityGroups[cityGroups.length - 1].days.length === 1
+    ) {
+      return {
+        renderGroups: cityGroups.slice(0, -1),
+        departureEpilogue: cityGroups[cityGroups.length - 1],
+      };
     }
-    return budgets;
+    return { renderGroups: cityGroups, departureEpilogue: null };
+  }, [cityGroups]);
+
+  // Total budget from all days (including epilogue)
+  const totalBudget = useMemo(() => {
+    if (!itinerary?.days) return null;
+    const daysWithBudget = itinerary.days.filter((d) => d.estimatedDailyBudget != null);
+    if (daysWithBudget.length === 0) return null;
+    const total = daysWithBudget.reduce((s, d) => s + (d.estimatedDailyBudget || 0), 0);
+    const currency = (daysWithBudget[0] as any).budgetCurrency || "£";
+    // Count unique cities
+    const uniqueCities = new Set(daysWithBudget.map((d) => d.cityName));
+    return { total, days: daysWithBudget.length, cities: uniqueCities.size, currency };
   }, [itinerary]);
 
-  const totalBudget = useMemo(() => {
-    const entries = Object.values(cityBudgets);
-    if (entries.length === 0) return null;
-    const total = entries.reduce((s, e) => s + e.total, 0);
-    const days = entries.reduce((s, e) => s + e.days, 0);
-    const currency = entries[0]?.currency || "£";
-    return { total, days, cities: entries.length, currency };
-  }, [cityBudgets]);
+  // Filter tips
+  const filteredTips = useMemo(() => {
+    if (!itinerary?.tips) return [];
+    return itinerary.tips.filter((tip) => !isGenericTip(tip));
+  }, [itinerary]);
 
   if (isLoading) {
     return (
@@ -177,13 +202,15 @@ export const MultiCityItineraryView = ({
       </div>
 
       {/* Journey Chapters */}
-      {cityGroups.map((group, groupIndex) => {
-        const stopIndex = route.stops.findIndex((s) => s.city === group.city);
-        const stop = route.stops[stopIndex];
+      {renderGroups.map((group, groupIndex) => {
+        const stop = route.stops.find((s) => s.city === group.city);
         const leg = group.transition
           ? route.legs.find((l) => l.to === group.city)
           : undefined;
-        const cityBudget = cityBudgets[group.city];
+
+        // Fix 1: chapter-scoped budget
+        const chapterBudget = group.days.reduce((sum, day) => sum + (day.estimatedDailyBudget || 0), 0);
+        const chapterCurrency = (group.days.find((d) => (d as any).budgetCurrency) as any)?.budgetCurrency || "£";
 
         return (
           <div
@@ -196,18 +223,18 @@ export const MultiCityItineraryView = ({
               <TravelTransitionCard transition={group.transition} leg={leg} />
             )}
 
-            {/* Chapter Header */}
+            {/* Chapter Header — Fix 2: sequential chapter number */}
             <div className="mb-5">
               <div className="flex items-center gap-4 mb-2">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm">
-                    {stopIndex + 1}
+                    {groupIndex + 1}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-primary/70 uppercase tracking-wider flex items-center gap-1.5">
                         <BookOpen className="w-3 h-3" />
-                        {getChapterTitle(group.city, groupIndex)}
+                        Chapter {groupIndex + 1}
                       </span>
                     </div>
                     <h3 className="font-display font-semibold text-xl leading-tight text-foreground">
@@ -265,19 +292,32 @@ export const MultiCityItineraryView = ({
               ))}
             </div>
 
-            {/* Per-chapter budget summary */}
-            {cityBudget && cityBudget.total > 0 && (
+            {/* Per-chapter budget summary — Fix 1 */}
+            {chapterBudget > 0 && (
               <div className="ml-0 md:ml-[52px] mt-3 bg-muted/30 rounded-lg border border-border/30 px-4 py-3 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">Estimated {group.city} spend:</span>{" "}
-                ~{cityBudget.currency}{Math.round(cityBudget.total)} per person · {cityBudget.days} {cityBudget.days === 1 ? "day" : "days"} · excludes accommodation
+                ~{chapterCurrency}{Math.round(chapterBudget)} per person · {group.days.length} {group.days.length === 1 ? "day" : "days"} · excludes accommodation
               </div>
             )}
           </div>
         );
       })}
 
-      {/* Tips */}
-      {itinerary.tips && itinerary.tips.length > 0 && (
+      {/* Fix 5: Departure epilogue card */}
+      {departureEpilogue && (
+        <>
+          {departureEpilogue.transition && (
+            <TravelTransitionCard transition={departureEpilogue.transition} leg={route.legs.find((l) => l.to === departureEpilogue.city)} />
+          )}
+          <DepartureEpilogueCard
+            day={departureEpilogue.days[0]}
+            city={departureEpilogue.city}
+          />
+        </>
+      )}
+
+      {/* Tips — Fix 6: filtered */}
+      {filteredTips.length > 0 && (
         <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-xl p-5 md:p-6 border border-amber-500/20">
           <h3 className="font-semibold flex items-center gap-2.5 mb-4 text-amber-700 dark:text-amber-400">
             <div className="p-1.5 rounded-lg bg-amber-500/10">
@@ -286,7 +326,7 @@ export const MultiCityItineraryView = ({
             Multi-City Travel Tips
           </h3>
           <ul className="space-y-2.5">
-            {itinerary.tips.map((tip, index) => (
+            {filteredTips.map((tip, index) => (
               <li key={index} className="text-sm text-muted-foreground flex gap-3 items-start">
                 <span className="text-amber-500 mt-1.5 text-xs">◆</span>
                 <span>{tip}</span>
