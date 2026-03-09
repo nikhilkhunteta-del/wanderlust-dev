@@ -4,7 +4,6 @@ import {
   InterestScores,
   TravelStyleTag,
   GroupType,
-  BudgetLevel,
   NoveltyPreference,
 } from '@/types/travelProfile';
 
@@ -14,13 +13,6 @@ const COMPANION_LABELS: Record<string, string> = {
   family: 'family trip',
   friends: 'friends trip',
   group: 'group travel',
-};
-
-const BUDGET_LABELS: Record<string, string> = {
-  budget: 'budget-friendly',
-  mid: 'mid-range',
-  comfortable: 'comfortable',
-  premium: 'premium',
 };
 
 export function normalizeInterestScores(interests: string[]): InterestScores {
@@ -74,11 +66,9 @@ export function generateSummary(profile: Partial<TravelProfile>): string {
   const {
     travelCompanions = 'solo',
     interestScores = {} as InterestScores,
-    weatherPreference = 0.5,
     travelMonth = '',
     tripDuration = 7,
     travelPace = 0.5,
-    budgetLevel = 'mid',
   } = profile;
 
   const sortedInterests = Object.entries(interestScores)
@@ -89,12 +79,6 @@ export function generateSummary(profile: Partial<TravelProfile>): string {
 
   const topInterests = sortedInterests.length > 0 ? sortedInterests.join(' and ') : 'diverse experiences';
 
-  const weatherDesc =
-    weatherPreference >= 0.75 ? 'tropical'
-    : weatherPreference >= 0.5 ? 'warm'
-    : weatherPreference >= 0.25 ? 'mild'
-    : 'cool';
-
   const MONTH_LABELS: Record<string, string> = {
     jan: 'January', feb: 'February', mar: 'March', apr: 'April',
     may: 'May', jun: 'June', jul: 'July', aug: 'August',
@@ -103,11 +87,10 @@ export function generateSummary(profile: Partial<TravelProfile>): string {
   };
 
   const monthLabel = MONTH_LABELS[travelMonth] || 'your chosen dates';
-  const paceDesc = travelPace >= 75 ? 'action-packed' : travelPace <= 25 ? 'relaxed' : 'balanced';
+  const paceDesc = travelPace >= 0.75 ? 'action-packed' : travelPace <= 0.25 ? 'relaxed' : 'balanced';
   const companionLabel = COMPANION_LABELS[travelCompanions] || 'trip';
-  const budgetDesc = BUDGET_LABELS[budgetLevel] || '';
 
-  return `We'll find destinations perfect for a ${companionLabel} focused on ${topInterests}. Looking for ${weatherDesc} weather in ${monthLabel}, with a ${paceDesc} ${tripDuration}-day${budgetDesc ? ` ${budgetDesc}` : ''} itinerary.`;
+  return `We'll find destinations perfect for a ${companionLabel} focused on ${topInterests} in ${monthLabel}, with a ${paceDesc} ${tripDuration}-day itinerary.`;
 }
 
 function mapToGroupType(companion: string): GroupType {
@@ -115,13 +98,8 @@ function mapToGroupType(companion: string): GroupType {
   return validTypes.includes(companion as GroupType) ? (companion as GroupType) : 'solo';
 }
 
-function mapToBudgetLevel(budget: string): BudgetLevel {
-  const valid: BudgetLevel[] = ['budget', 'mid', 'comfortable', 'premium'];
-  return valid.includes(budget as BudgetLevel) ? (budget as BudgetLevel) : 'mid';
-}
-
 function mapToNovelty(novelty: string): NoveltyPreference {
-  const valid: NoveltyPreference[] = ['familiar', 'mix', 'off-beaten-path', 'surprise'];
+  const valid: NoveltyPreference[] = ['classics', 'mix', 'off-beaten-path', 'surprise'];
   return valid.includes(novelty as NoveltyPreference) ? (novelty as NoveltyPreference) : 'mix';
 }
 
@@ -136,14 +114,10 @@ export function buildTravelProfile(preferences: TravelPreferences): TravelProfil
     adventureTypes: preferences.adventureExperiences.filter((exp) => exp !== 'none'),
     departureCity: preferences.departureCity,
     travelMonth: preferences.travelMonth,
-    preferredRegions: [],
-    isFlexibleOnRegion: true,
-    weatherPreference: preferences.weatherPreference / 100,
     tripDuration: preferences.tripDuration,
     travelPace: preferences.travelPace / 100,
     travelCompanions: preferences.travelCompanions,
     groupType: mapToGroupType(preferences.travelCompanions),
-    budgetLevel: mapToBudgetLevel(preferences.budgetLevel),
     noveltyPreference: mapToNovelty(preferences.noveltyPreference),
     foodDepth: preferences.foodDepth || '',
     styleTags,
@@ -152,8 +126,7 @@ export function buildTravelProfile(preferences: TravelPreferences): TravelProfil
     followUpQuestion: null,
   };
 
-  // Completeness
-  const totalFields = 10;
+  const totalFields = 8;
   const filledFields = Object.entries(preferences).filter(([_, value]) => {
     if (Array.isArray(value)) return value.length > 0;
     if (typeof value === 'string') return value.trim() !== '';

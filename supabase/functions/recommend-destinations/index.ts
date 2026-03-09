@@ -12,15 +12,11 @@ interface TravelProfile {
   adventureTypes: string[];
   departureCity: string;
   travelMonth: string;
-  preferredRegions: string[];
-  isFlexibleOnRegion: boolean;
-  weatherPreference: number;
   tripDuration: number;
   travelPace: number;
   travelCompanions: string;
   groupType: string;
   styleTags: string[];
-  budgetLevel?: string;
   noveltyPreference?: string;
   foodDepth?: string;
 }
@@ -52,30 +48,37 @@ serve(async (req) => {
       .filter(([_, score]) => score > 0)
       .map(([interest]) => interest);
 
-    const weatherDesc =
-      profile.weatherPreference >= 0.75
-        ? "tropical/hot"
-        : profile.weatherPreference >= 0.5
-          ? "warm"
-          : profile.weatherPreference >= 0.25
-            ? "mild/cool"
-            : "cold";
+    const noveltyMap: Record<string, string> = {
+      'classics': 'wants classic, globally recognised destinations that are excellent for their interests',
+      'mix': 'wants one well-known city, one moderately known, and one lesser-visited destination',
+      'off-beaten-path': 'prefers lesser-known cities that reward curious travellers — avoid top 20 most visited cities globally',
+      'surprise': 'open to any destination — recommend purely on interest and timing match, no constraints',
+    };
 
-    const regionConstraint =
-      profile.isFlexibleOnRegion || profile.preferredRegions.length === 0
-        ? "anywhere globally"
-        : profile.preferredRegions.join(", ");
+    const noveltyDesc = noveltyMap[profile.noveltyPreference || ''] || 'open to any destination';
 
-    const systemPrompt = `You are a travel recommendation expert. You recommend destination cities based on traveler preferences. 
+    const systemPrompt = `You are a travel recommendation expert. Recommend destination cities based on traveller preferences.
 
-IMPORTANT RULES:
-- Recommend exactly 3 cities that best match the traveler's profile
-- Each city must be from a DIFFERENT country unless the user specifically constrained to one region
+RULES:
+- Recommend exactly 3 cities that best match the traveller's profile
+- Each city must be from a DIFFERENT country
 - DO NOT consider budget, hotel prices, or flight prices in your selection
-- Match cities based on: interests, adventure preferences, travel month + weather suitability, continent preference, and trip duration
+- Match cities based on: interests, adventure preferences, travel month weather suitability, trip duration, and travel companions
 - Ensure the three cities are meaningfully distinct in experience style
-- For each city, provide a compelling one-sentence rationale (max 40 words)
-- Include 3-5 relevant interest tags for each city
+- For each city, provide a compelling rationale (max 40 words)
+- Include 3-5 relevant interest tags per city
+
+TRAVEL COMPANIONS RULES:
+- Family trips: prioritise cities with child-friendly infrastructure, manageable logistics, and safe environments
+- Solo travellers: can handle complex, remote, or adventurous destinations
+- Couples: weight towards cities with romantic character, walkability, and quality dining
+- Groups/friends: prioritise cities with variety, nightlife options, and social experiences
+
+DISCOVERY STYLE RULES:
+- classics: recommend globally recognised cities excellent for stated interests — no obscure choices
+- mix: one well-known city, one moderately known, one genuinely lesser-visited
+- off-beaten-path: actively avoid top 20 most visited cities globally — prioritise cities with authentic character that rewards curious travellers
+- surprise: no constraints — recommend purely on best interest and timing match
 
 Respond with ONLY valid JSON in this exact format:
 {
@@ -83,43 +86,28 @@ Respond with ONLY valid JSON in this exact format:
     {
       "city": "City Name",
       "country": "Country Name",
-      "rationale": "One compelling sentence explaining why this city matches the traveler's preferences (max 40 words).",
+      "rationale": "One compelling sentence explaining why this city matches the traveller's preferences (max 40 words).",
       "tags": ["tag1", "tag2", "tag3"],
       "imageQuery": "descriptive search term for a beautiful photo of this city's most iconic view"
     }
   ]
 }`;
 
-    const budgetDesc = profile.budgetLevel === "budget" ? "under £75/day per person"
-      : profile.budgetLevel === "mid" ? "£75–150/day per person"
-      : profile.budgetLevel === "comfortable" ? "£150–300/day per person"
-      : profile.budgetLevel === "premium" ? "£300+/day per person"
-      : "flexible budget";
-
-    const noveltyDesc = profile.noveltyPreference === "familiar" ? "wants classic well-known destinations"
-      : profile.noveltyPreference === "mix" ? "wants a mix of popular and lesser-known destinations"
-      : profile.noveltyPreference === "off-beaten-path" ? "prefers lesser-known off-the-beaten-path cities with lower tourist footfall"
-      : profile.noveltyPreference === "surprise" ? "open to any surprise destination, trusts the recommendation"
-      : "open to any destination";
-
-    const userPrompt = `Find 3 destination cities for this traveler:
+    const userPrompt = `Find 3 destination cities for this traveller:
 
 INTERESTS: ${topInterests.join(", ") || "varied interests"}
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
 TRAVEL MONTH: ${profile.travelMonth || "flexible"}
-WEATHER PREFERENCE: ${weatherDesc}
-PREFERRED REGIONS: ${regionConstraint}
 TRIP DURATION: ${profile.tripDuration} days
 TRAVEL PACE: ${profile.travelPace > 0.6 ? "active/packed" : profile.travelPace < 0.4 ? "relaxed/slow" : "balanced"}
 TRAVEL COMPANIONS: ${profile.travelCompanions || "solo"}
-BUDGET: ${budgetDesc}
 DISCOVERY STYLE: ${noveltyDesc}
 STYLE TAGS: ${profile.styleTags.join(", ")}
 
 IMPORTANT: For "off-beaten-path" or "surprise" discovery styles, prioritise cities with lower mainstream tourist footfall over world-famous hotspots.
-Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and novelty preference.`;
+Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and discovery preference.`;
 
     console.log("Sending prompt to AI gateway...");
 
@@ -174,7 +162,6 @@ Remember: Return exactly 3 cities from different countries, matched by interests
       throw new Error("No content in AI response");
     }
 
-    // Parse the JSON from the AI response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error("Could not parse JSON from AI response");

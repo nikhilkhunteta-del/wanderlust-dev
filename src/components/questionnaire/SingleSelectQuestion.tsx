@@ -5,6 +5,7 @@ interface Option {
   value: string;
   label: string;
   icon?: string;
+  description?: string;
 }
 
 interface SingleSelectQuestionProps {
@@ -18,8 +19,13 @@ export const SingleSelectQuestion = ({
   selected,
   onChange,
 }: SingleSelectQuestionProps) => {
+  const hasDescriptions = options.some((o) => o.description);
+
   return (
-    <div className="flex flex-wrap justify-center gap-3">
+    <div className={cn(
+      'flex flex-wrap justify-center gap-3',
+      hasDescriptions && 'flex-col items-center max-w-md mx-auto'
+    )}>
       {options.map((option) => {
         const isSelected = selected === option.value;
         return (
@@ -31,11 +37,17 @@ export const SingleSelectQuestion = ({
             transition={{ duration: 0.14, ease: 'easeOut' }}
             className={cn(
               'option-chip',
-              isSelected && 'option-chip-selected'
+              isSelected && 'option-chip-selected',
+              hasDescriptions && 'w-full flex-col items-start text-left py-3 px-4'
             )}
           >
-            {option.icon && <span className="mr-2">{option.icon}</span>}
-            {option.label}
+            <span className="flex items-center">
+              {option.icon && <span className="mr-2">{option.icon}</span>}
+              {option.label}
+            </span>
+            {option.description && (
+              <span className="text-xs text-muted-foreground mt-0.5">{option.description}</span>
+            )}
           </motion.button>
         );
       })}
