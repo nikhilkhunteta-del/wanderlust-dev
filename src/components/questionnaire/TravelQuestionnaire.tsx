@@ -21,10 +21,8 @@ const initialPreferences: TravelPreferences = {
   foodDepth: '',
   departureCity: '',
   travelMonth: '',
-  weatherPreference: 50,
   tripDuration: 7,
   travelCompanions: '',
-  budgetLevel: '',
   noveltyPreference: '',
   travelPace: 50,
 };
@@ -35,7 +33,6 @@ export const TravelQuestionnaire = () => {
   const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
 
-  // Build dynamic question list based on Q1 selections
   const questions = useMemo(
     () => buildDynamicQuestions(preferences.interests),
     [preferences.interests]
@@ -74,9 +71,6 @@ export const TravelQuestionnaire = () => {
     setDirection(-1);
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
-
-  // When Q1 changes and we're on step 0, reset step to stay at 0
-  // The dynamic questions will rebuild via useMemo
 
   const renderQuestion = () => {
     const value = preferences[currentQuestion.id];
@@ -133,12 +127,10 @@ export const TravelQuestionnaire = () => {
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
 
-      {/* Progress — dynamic segment count */}
       <div className="px-4 pb-8">
         <ProgressIndicator currentStep={currentStep} totalSteps={questions.length} />
       </div>
 
-      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
@@ -161,7 +153,6 @@ export const TravelQuestionnaire = () => {
         </AnimatePresence>
       </main>
 
-      {/* Navigation */}
       <footer className="py-6 px-4 border-t border-border/50 bg-card/50 backdrop-blur-sm">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <Button

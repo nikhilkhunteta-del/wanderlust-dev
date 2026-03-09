@@ -4,10 +4,8 @@ export interface TravelPreferences {
   foodDepth: string;
   departureCity: string;
   travelMonth: string;
-  weatherPreference: number;
   travelCompanions: string;
   tripDuration: number;
-  budgetLevel: string;
   noveltyPreference: string;
   travelPace: number;
 }
@@ -17,7 +15,7 @@ export interface QuestionConfig {
   questionText: string;
   subtitle: string;
   inputType: 'multi-select' | 'single-select' | 'slider' | 'dropdown' | 'text-input';
-  options?: { value: string; label: string; icon?: string; group?: string }[];
+  options?: { value: string; label: string; icon?: string; group?: string; description?: string }[];
   sliderConfig?: {
     min: number;
     max: number;
@@ -100,7 +98,7 @@ export const FOOD_DEPTH_QUESTION: QuestionConfig = {
   defaultValue: '',
 };
 
-// Base questions (excluding dynamic Q2 and removed regions)
+// Base questions (excluding dynamic Q2)
 export const QUESTIONS: QuestionConfig[] = [
   {
     id: 'interests',
@@ -195,48 +193,15 @@ export const QUESTIONS: QuestionConfig[] = [
     defaultValue: 7,
   },
   {
-    id: 'weatherPreference',
-    questionText: 'What weather do you prefer?',
-    subtitle: "Sun or snow - there's magic in every climate.",
-    inputType: 'slider',
-    sliderConfig: {
-      min: 0,
-      max: 100,
-      step: 25,
-      labels: ['Cold & Snowy', 'Hot & Tropical'],
-      emotionalLabels: [
-        { range: [0, 0], label: 'Crisp mountain air and cozy firesides' },
-        { range: [25, 25], label: 'Fresh breezes and gentle sunshine' },
-        { range: [50, 50], label: 'Golden light and comfortable warmth' },
-        { range: [75, 75], label: 'Tropical heat and endless blue skies' },
-        { range: [100, 100], label: 'Blazing sun and ocean-warm nights' },
-      ],
-    },
-    defaultValue: 50,
-  },
-  {
-    id: 'budgetLevel',
-    questionText: "What's your daily travel budget?",
-    subtitle: 'Per person, excluding flights — helps us match accommodation and experiences.',
-    inputType: 'single-select',
-    options: [
-      { value: 'budget', label: 'Budget explorer', icon: '💰' },
-      { value: 'mid', label: 'Independent traveller', icon: '🎒' },
-      { value: 'comfortable', label: 'Comfortable explorer', icon: '✈️' },
-      { value: 'premium', label: 'Premium experience', icon: '⭐' },
-    ],
-    defaultValue: '',
-  },
-  {
     id: 'noveltyPreference',
     questionText: 'How do you like to discover?',
-    subtitle: 'Helps us choose between familiar favourites and hidden gems.',
+    subtitle: 'Helps us choose between celebrated classics and hidden gems.',
     inputType: 'single-select',
     options: [
-      { value: 'familiar', label: 'Familiar & comfortable', icon: '🏠' },
-      { value: 'mix', label: 'Mix it up', icon: '🗺️' },
-      { value: 'off-beaten-path', label: 'Off the beaten path', icon: '🌍' },
-      { value: 'surprise', label: 'Surprise me completely', icon: '🎲' },
+      { value: 'classics', label: 'The classics done well', icon: '🏠', description: 'Iconic destinations, done properly' },
+      { value: 'mix', label: 'A mix of known and new', icon: '🗺️', description: 'Some familiar, some surprising' },
+      { value: 'off-beaten-path', label: 'Off the beaten path', icon: '🌍', description: 'Somewhere most travellers miss' },
+      { value: 'surprise', label: 'Surprise me completely', icon: '🎲', description: 'I trust you entirely' },
     ],
     defaultValue: '',
   },
@@ -272,7 +237,6 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
   const showFood = shouldShowFoodQuestion(interests);
 
   if (categories) {
-    // Filter adventure options to only relevant categories + "Keep it Relaxed"
     const filteredOptions = ADVENTURE_OPTIONS.filter(
       (opt) => !opt.group || categories.includes(opt.group)
     );
@@ -285,13 +249,10 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
       options: filteredOptions,
       defaultValue: [],
     };
-    // Insert after Q1 (interests)
     baseQuestions.splice(1, 0, adventureQ);
   } else if (showFood) {
-    // Replace Q2 with food depth question
     baseQuestions.splice(1, 0, FOOD_DEPTH_QUESTION);
   }
-  // else: skip Q2 entirely
 
   return baseQuestions;
 }

@@ -26,9 +26,7 @@ export type TravelStyleTag =
 
 export type GroupType = 'solo' | 'couple' | 'family' | 'friends' | 'group';
 
-export type BudgetLevel = 'budget' | 'mid' | 'comfortable' | 'premium';
-
-export type NoveltyPreference = 'familiar' | 'mix' | 'off-beaten-path' | 'surprise';
+export type NoveltyPreference = 'classics' | 'mix' | 'off-beaten-path' | 'surprise';
 
 export interface TravelProfile {
   // Normalized interest scores (0-1)
@@ -41,11 +39,8 @@ export interface TravelProfile {
   // Travel constraints
   departureCity: string;
   travelMonth: string;
-  preferredRegions: string[];
-  isFlexibleOnRegion: boolean;
 
   // Normalized preferences (0-1)
-  weatherPreference: number; // 0=cold, 1=tropical
   tripDuration: number; // actual days
   travelPace: number; // 0=relaxed, 1=packed
 
@@ -53,8 +48,7 @@ export interface TravelProfile {
   travelCompanions: string;
   groupType: GroupType;
 
-  // Budget & novelty
-  budgetLevel: BudgetLevel;
+  // Novelty
   noveltyPreference: NoveltyPreference;
   foodDepth: string;
 

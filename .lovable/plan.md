@@ -1,46 +1,32 @@
 
 
-## Plan: Remove weather & budget questions, update novelty question, clean up edge function
+# Cache the Itinerary Tab with React Query
 
-### Files to edit (6 files)
+## Problem
+The Itinerary tab stores its data in local component state (`useState` + `useEffect`). When you navigate to another tab and back, React unmounts and remounts the component, losing all state and triggering a fresh API call. Every other tab already uses React Query, which keeps data in a shared cache that survives tab switches.
 
-**1. `src/types/questionnaire.ts`**
-- Remove `weatherPreference` and `budgetLevel` from `TravelPreferences` interface
-- Delete the weather question (lines 197-216) and budget question (lines 217-229) from `QUESTIONS` array
-- Update novelty question (lines 230-242): new copy "Helps us choose between celebrated classics and hidden gems", new options with `description` field: classics/mix/off-beaten-path/surprise
-- Reorder so novelty comes before pace (Q7 novelty, Q8 pace)
+## Solution
+Migrate the Itinerary tab's data fetching to React Query, matching the pattern used by all other tabs.
 
-**2. `src/types/travelProfile.ts`**
-- Remove `weatherPreference`, `preferredRegions`, `isFlexibleOnRegion` from `TravelProfile`
-- Remove `BudgetLevel` type
-- Update `NoveltyPreference`: replace `'familiar'` with `'classics'`
-- Remove `budgetLevel` field
+## Changes
 
-**3. `src/components/questionnaire/SingleSelectQuestion.tsx`**
-- Add `description?: string` to Option interface
-- Render description beneath label when present (small muted text)
-- Switch layout to flex-col when description exists
+### 1. Add `useCityItinerary` hook to `src/hooks/useCityData.ts`
+- Create a new hook wrapping `getCityItinerary` with React Query
+- Use a query key like `["city-itinerary", city, country, tripDuration, travelMonth, settings]`
+- Apply the same 5-minute stale time / 10-minute cache time as other tabs
 
-**4. `src/components/questionnaire/TravelQuestionnaire.tsx`**
-- Remove `weatherPreference` and `budgetLevel` from `initialPreferences`
+### 2. Refactor `src/components/itinerary/ItineraryTab.tsx`
+- Replace the local `useState` for itinerary/isLoading/error with the new `useCityItinerary` hook
+- Keep the local state for UI-only concerns (showMap, selectedMapDay, settings, multi-city toggle)
+- For day refinement (`handleRefineDay`), use React Query's `queryClient.setQueryData` to patch the cached itinerary in-place after a successful per-day regeneration, so the update is also cached
+- For full re-generation (when the user clicks "Update" in the refinement panel), call `refetch()` from the query result
+- Remove the `useEffect(() => fetchItinerary(), [])` call entirely
 
-**5. `src/pages/PlanCity.tsx`**
-- Remove `weatherPreference` and `budgetLevel` from `initialPreferences`
+### 3. Add itinerary prefetching to `src/hooks/useTabPrefetch.ts`
+- In the `"itinerary"` case, prefetch the itinerary query so data is warm when the user navigates to it from an adjacent tab
 
-**6. `src/lib/profileBuilder.ts`**
-- Remove `weatherPreference` normalization, `budgetLevel` mapping, and related summary logic
-- Remove `BUDGET_LABELS`
-- Update `mapToNovelty` to use `'classics'` instead of `'familiar'`
-- Remove `preferredRegions`, `isFlexibleOnRegion`, `weatherPreference`, `budgetLevel` from profile construction
-- Update completeness score denominator
-
-**7. `src/components/questionnaire/ProgressIndicator.tsx`**
-- Change text to "8 quick questions · Takes about 1 minute"
-
-**8. `supabase/functions/recommend-destinations/index.ts`**
-- Remove `weatherPreference`, `preferredRegions`, `isFlexibleOnRegion`, `budgetLevel` from TravelProfile interface
-- Delete `weatherDesc`, `regionConstraint`, `budgetDesc` variables
-- Remove WEATHER PREFERENCE, PREFERRED REGIONS, BUDGET lines from user prompt
-- Update novelty mapping: `'familiar'` → `'classics'` with new descriptions
-- Replace system prompt with the provided version including TRAVEL COMPANIONS RULES and DISCOVERY STYLE RULES
+## What stays the same
+- All UI components (DayCard, RefinementPanel, etc.) remain unchanged
+- Day refinement and multi-city features work identically
+- Settings state stays local since it drives the query parameters
 

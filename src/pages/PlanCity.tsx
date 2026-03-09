@@ -22,10 +22,8 @@ const initialPreferences: TravelPreferences = {
   foodDepth: '',
   departureCity: "",
   travelMonth: "",
-  weatherPreference: 50,
   tripDuration: 7,
   travelCompanions: "",
-  budgetLevel: '',
   noveltyPreference: '',
   travelPace: 50,
 };
