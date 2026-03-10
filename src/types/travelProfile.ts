@@ -40,9 +40,8 @@ export interface TravelProfile {
   departureCity: string;
   travelMonth: string;
 
-  // Normalized preferences (0-1)
+  // Trip details
   tripDuration: number; // actual days
-  travelPace: number; // 0=relaxed, 1=packed
 
   // Companion context
   travelCompanions: string;

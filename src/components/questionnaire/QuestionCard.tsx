@@ -9,8 +9,6 @@ interface QuestionCardProps {
 }
 
 export const QuestionCard = ({
-  questionNumber,
-  totalQuestions,
   questionText,
   subtitle,
   children,
@@ -19,9 +17,6 @@ export const QuestionCard = ({
     <div className="question-card animate-fade-in w-full max-w-2xl mx-auto">
       <div className="space-y-6">
         <div className="text-center space-y-3">
-          <span className="text-sm font-medium text-primary">
-            Question {questionNumber} of {totalQuestions}
-          </span>
           <h2 className="text-2xl md:text-3xl font-display font-semibold text-foreground">
             {questionText}
           </h2>

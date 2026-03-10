@@ -1,16 +1,17 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/shared/Header";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Sparkles, MapPin, Search } from "lucide-react";
 import { TextInputQuestion } from "@/components/questionnaire/TextInputQuestion";
+import { InterestGridQuestion } from "@/components/questionnaire/InterestGridQuestion";
 import { MultiSelectQuestion } from "@/components/questionnaire/MultiSelectQuestion";
 import { SingleSelectQuestion } from "@/components/questionnaire/SingleSelectQuestion";
 import { MonthGridQuestion } from "@/components/questionnaire/MonthGridQuestion";
-import { SliderQuestion } from "@/components/questionnaire/SliderQuestion";
 import { QuestionCard } from "@/components/questionnaire/QuestionCard";
 import { ProgressIndicator } from "@/components/questionnaire/ProgressIndicator";
+import { TransitionCard } from "@/components/questionnaire/TransitionCard";
 import { TravelPreferences, buildDynamicQuestions } from "@/types/questionnaire";
 import { buildTravelProfile } from "@/lib/profileBuilder";
 import { CityRecommendation } from "@/types/recommendations";
@@ -22,10 +23,9 @@ const initialPreferences: TravelPreferences = {
   foodDepth: '',
   departureCity: "",
   travelMonth: "",
-  tripDuration: 7,
+  tripDuration: '',
   travelCompanions: "",
   noveltyPreference: '',
-  travelPace: 50,
 };
 
 const PlanCity = () => {
@@ -36,8 +36,9 @@ const PlanCity = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
+  const [showTransition, setShowTransition] = useState(false);
+  const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  // Dynamic questions based on Q1 interests (no regions question for PlanCity)
   const allQuestions = useMemo(
     () => buildDynamicQuestions(preferences.interests),
     [preferences.interests]
@@ -46,6 +47,12 @@ const PlanCity = () => {
   const currentQuestion = allQuestions[currentStep];
   const isLastStep = currentStep === allQuestions.length - 1;
   const isFirstStep = currentStep === 0;
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    };
+  }, []);
 
   const handleCitySelected = useCallback(() => {
     if (!city.trim()) return;
@@ -86,10 +93,22 @@ const PlanCity = () => {
       navigate(`/city/${encodeURIComponent(city)}`, {
         state: { city: cityRec, profile },
       });
-    } else {
-      setDirection(1);
-      setCurrentStep((prev) => Math.min(prev + 1, allQuestions.length - 1));
+      return;
     }
+
+    // Show transition after Q1 (interests)
+    if (currentStep === 0) {
+      setShowTransition(true);
+      transitionTimer.current = setTimeout(() => {
+        setShowTransition(false);
+        setDirection(1);
+        setCurrentStep((prev) => Math.min(prev + 1, allQuestions.length - 1));
+      }, 1500);
+      return;
+    }
+
+    setDirection(1);
+    setCurrentStep((prev) => Math.min(prev + 1, allQuestions.length - 1));
   };
 
   const handleBack = () => {
@@ -105,6 +124,15 @@ const PlanCity = () => {
     const value = preferences[currentQuestion.id];
     switch (currentQuestion.inputType) {
       case "multi-select":
+        if (currentQuestion.id === "interests") {
+          return (
+            <InterestGridQuestion
+              options={currentQuestion.options!}
+              selected={value as string[]}
+              onChange={updatePreference}
+            />
+          );
+        }
         return (
           <MultiSelectQuestion
             options={currentQuestion.options!}
@@ -130,20 +158,13 @@ const PlanCity = () => {
             onChange={updatePreference}
           />
         );
-      case "slider":
-        return (
-          <SliderQuestion
-            config={currentQuestion.sliderConfig!}
-            value={value as number}
-            onChange={updatePreference}
-          />
-        );
       case "text-input":
         return (
           <TextInputQuestion
             value={value as string}
             onChange={updatePreference}
             placeholder={currentQuestion.placeholder}
+            enableGeolocation={currentQuestion.id === "departureCity"}
           />
         );
       default:
@@ -205,6 +226,23 @@ const PlanCity = () => {
               Continue
             </Button>
           </motion.div>
+        </main>
+      </div>
+    );
+  }
+
+  if (showTransition) {
+    return (
+      <div className="min-h-screen flex flex-col gradient-warm">
+        <Header
+          rightContent={
+            <span className="text-sm text-muted-foreground">
+              Planning: <span className="text-foreground font-medium">{city}</span>
+            </span>
+          }
+        />
+        <main className="flex-1 flex items-center justify-center px-4 pb-8">
+          <TransitionCard interests={preferences.interests} />
         </main>
       </div>
     );

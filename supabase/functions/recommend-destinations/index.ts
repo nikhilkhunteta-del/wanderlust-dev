@@ -13,7 +13,6 @@ interface TravelProfile {
   departureCity: string;
   travelMonth: string;
   tripDuration: number;
-  travelPace: number;
   travelCompanions: string;
   groupType: string;
   styleTags: string[];
@@ -101,7 +100,6 @@ ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.jo
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
 TRAVEL MONTH: ${profile.travelMonth || "flexible"}
 TRIP DURATION: ${profile.tripDuration} days
-TRAVEL PACE: ${profile.travelPace > 0.6 ? "active/packed" : profile.travelPace < 0.4 ? "relaxed/slow" : "balanced"}
 TRAVEL COMPANIONS: ${profile.travelCompanions || "solo"}
 DISCOVERY STYLE: ${noveltyDesc}
 STYLE TAGS: ${profile.styleTags.join(", ")}

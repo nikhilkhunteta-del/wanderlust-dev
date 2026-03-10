@@ -1,27 +1,21 @@
-import { cn } from '@/lib/utils';
-
 interface ProgressIndicatorProps {
   currentStep: number;
   totalSteps: number;
 }
 
 export const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) => {
+  const progress = ((currentStep + 1) / totalSteps) * 100;
+
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="flex items-center justify-center gap-2">
-        {Array.from({ length: totalSteps }).map((_, index) => (
-          <div
-            key={index}
-            className={cn(
-              'progress-step',
-              index === currentStep && 'progress-step-active',
-              index < currentStep && 'progress-step-completed'
-            )}
-          />
-        ))}
+      <div className="w-full max-w-[480px] mx-auto h-1 rounded-sm bg-muted overflow-hidden">
+        <div
+          className="h-full rounded-sm bg-primary transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
       </div>
       <span className="text-xs text-muted-foreground/70 font-body tracking-wide">
-        8 quick questions · Takes about 1 minute
+        7 quick questions · Takes about 1 minute
       </span>
     </div>
   );
