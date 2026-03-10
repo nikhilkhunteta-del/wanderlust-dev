@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -6,11 +6,12 @@ import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Header } from '@/components/shared/Header';
 import { ProgressIndicator } from './ProgressIndicator';
 import { QuestionCard } from './QuestionCard';
+import { InterestGridQuestion } from './InterestGridQuestion';
 import { MultiSelectQuestion } from './MultiSelectQuestion';
 import { SingleSelectQuestion } from './SingleSelectQuestion';
 import { MonthGridQuestion } from './MonthGridQuestion';
-import { SliderQuestion } from './SliderQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
+import { TransitionCard } from './TransitionCard';
 import { TravelPreferences, buildDynamicQuestions } from '@/types/questionnaire';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
@@ -21,10 +22,9 @@ const initialPreferences: TravelPreferences = {
   foodDepth: '',
   departureCity: '',
   travelMonth: '',
-  tripDuration: 7,
+  tripDuration: '',
   travelCompanions: '',
   noveltyPreference: '',
-  travelPace: 50,
 };
 
 export const TravelQuestionnaire = () => {
@@ -32,6 +32,8 @@ export const TravelQuestionnaire = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
+  const [showTransition, setShowTransition] = useState(false);
+  const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const questions = useMemo(
     () => buildDynamicQuestions(preferences.interests),
@@ -41,6 +43,12 @@ export const TravelQuestionnaire = () => {
   const currentQuestion = questions[currentStep];
   const isLastStep = currentStep === questions.length - 1;
   const isFirstStep = currentStep === 0;
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    };
+  }, []);
 
   const updatePreference = (value: string | string[] | number) => {
     setPreferences((prev) => ({
@@ -61,10 +69,22 @@ export const TravelQuestionnaire = () => {
       const profile = buildTravelProfile(preferences);
       console.log('Travel Profile:', profile);
       navigate('/results', { state: { profile } });
-    } else {
-      setDirection(1);
-      setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+      return;
     }
+
+    // Show transition after Q1 (interests)
+    if (currentStep === 0) {
+      setShowTransition(true);
+      transitionTimer.current = setTimeout(() => {
+        setShowTransition(false);
+        setDirection(1);
+        setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+      }, 1500);
+      return;
+    }
+
+    setDirection(1);
+    setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
   };
 
   const handleBack = () => {
@@ -77,6 +97,15 @@ export const TravelQuestionnaire = () => {
 
     switch (currentQuestion.inputType) {
       case 'multi-select':
+        if (currentQuestion.id === 'interests') {
+          return (
+            <InterestGridQuestion
+              options={currentQuestion.options!}
+              selected={value as string[]}
+              onChange={updatePreference}
+            />
+          );
+        }
         return (
           <MultiSelectQuestion
             options={currentQuestion.options!}
@@ -102,26 +131,30 @@ export const TravelQuestionnaire = () => {
             onChange={updatePreference}
           />
         );
-      case 'slider':
-        return (
-          <SliderQuestion
-            config={currentQuestion.sliderConfig!}
-            value={value as number}
-            onChange={updatePreference}
-          />
-        );
       case 'text-input':
         return (
           <TextInputQuestion
             value={value as string}
             onChange={updatePreference}
             placeholder={currentQuestion.placeholder}
+            enableGeolocation={currentQuestion.id === 'departureCity'}
           />
         );
       default:
         return null;
     }
   };
+
+  if (showTransition) {
+    return (
+      <div className="min-h-screen flex flex-col gradient-warm">
+        <Header />
+        <main className="flex-1 flex items-center justify-center px-4 pb-8">
+          <TransitionCard interests={preferences.interests} />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col gradient-warm">

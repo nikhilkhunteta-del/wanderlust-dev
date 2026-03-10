@@ -36,7 +36,7 @@ export function calculateAdventureLevel(experiences: string[]): number {
 
 export function inferStyleTags(preferences: TravelPreferences): TravelStyleTag[] {
   const tags: TravelStyleTag[] = [];
-  const { interests, adventureExperiences, travelCompanions, travelPace } = preferences;
+  const { interests, adventureExperiences, travelCompanions } = preferences;
 
   if (interests.includes('culture')) tags.push('culture-focused');
   if (interests.includes('nature')) tags.push('nature-lover');
@@ -56,8 +56,6 @@ export function inferStyleTags(preferences: TravelPreferences): TravelStyleTag[]
   }
 
   if (travelCompanions === 'family') tags.push('family-friendly');
-  if (travelPace >= 75) tags.push('active-explorer');
-  else if (travelPace <= 25) tags.push('slow-traveler');
 
   return tags;
 }
@@ -68,7 +66,6 @@ export function generateSummary(profile: Partial<TravelProfile>): string {
     interestScores = {} as InterestScores,
     travelMonth = '',
     tripDuration = 7,
-    travelPace = 0.5,
   } = profile;
 
   const sortedInterests = Object.entries(interestScores)
@@ -87,10 +84,9 @@ export function generateSummary(profile: Partial<TravelProfile>): string {
   };
 
   const monthLabel = MONTH_LABELS[travelMonth] || 'your chosen dates';
-  const paceDesc = travelPace >= 0.75 ? 'action-packed' : travelPace <= 0.25 ? 'relaxed' : 'balanced';
   const companionLabel = COMPANION_LABELS[travelCompanions] || 'trip';
 
-  return `We'll find destinations perfect for a ${companionLabel} focused on ${topInterests} in ${monthLabel}, with a ${paceDesc} ${tripDuration}-day itinerary.`;
+  return `We'll find destinations perfect for a ${companionLabel} focused on ${topInterests} in ${monthLabel}, with a ${tripDuration}-day itinerary.`;
 }
 
 function mapToGroupType(companion: string): GroupType {
@@ -107,6 +103,7 @@ export function buildTravelProfile(preferences: TravelPreferences): TravelProfil
   const interestScores = normalizeInterestScores(preferences.interests);
   const adventureLevel = calculateAdventureLevel(preferences.adventureExperiences);
   const styleTags = inferStyleTags(preferences);
+  const tripDuration = parseInt(preferences.tripDuration) || 7;
 
   const profile: TravelProfile = {
     interestScores,
@@ -114,8 +111,7 @@ export function buildTravelProfile(preferences: TravelPreferences): TravelProfil
     adventureTypes: preferences.adventureExperiences.filter((exp) => exp !== 'none'),
     departureCity: preferences.departureCity,
     travelMonth: preferences.travelMonth,
-    tripDuration: preferences.tripDuration,
-    travelPace: preferences.travelPace / 100,
+    tripDuration,
     travelCompanions: preferences.travelCompanions,
     groupType: mapToGroupType(preferences.travelCompanions),
     noveltyPreference: mapToNovelty(preferences.noveltyPreference),
@@ -126,7 +122,7 @@ export function buildTravelProfile(preferences: TravelPreferences): TravelProfil
     followUpQuestion: null,
   };
 
-  const totalFields = 8;
+  const totalFields = 7;
   const filledFields = Object.entries(preferences).filter(([_, value]) => {
     if (Array.isArray(value)) return value.length > 0;
     if (typeof value === 'string') return value.trim() !== '';

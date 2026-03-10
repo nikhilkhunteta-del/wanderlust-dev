@@ -5,9 +5,8 @@ export interface TravelPreferences {
   departureCity: string;
   travelMonth: string;
   travelCompanions: string;
-  tripDuration: number;
+  tripDuration: string;
   noveltyPreference: string;
-  travelPace: number;
 }
 
 export interface QuestionConfig {
@@ -166,31 +165,15 @@ export const QUESTIONS: QuestionConfig[] = [
     id: 'tripDuration',
     questionText: 'How long is your ideal trip?',
     subtitle: "Whether it's a weekend or a month, we'll plan every day beautifully.",
-    inputType: 'slider',
-    sliderConfig: {
-      min: 3,
-      max: 30,
-      step: 1,
-      labels: ['Weekend', 'Month'],
-      unit: 'days',
-      tickMarks: [
-        { value: 3, label: '3d' },
-        { value: 5, label: '5d' },
-        { value: 7, label: '7d' },
-        { value: 10, label: '10d' },
-        { value: 14, label: '14d' },
-        { value: 21, label: '21d' },
-        { value: 30, label: '30d' },
-      ],
-      emotionalLabels: [
-        { range: [3, 4], label: 'A quick escape' },
-        { range: [5, 7], label: 'A refreshing break' },
-        { range: [8, 14], label: 'A full immersion' },
-        { range: [15, 21], label: 'A deep exploration' },
-        { range: [22, 30], label: 'A once-in-a-lifetime journey' },
-      ],
-    },
-    defaultValue: 7,
+    inputType: 'single-select',
+    options: [
+      { value: '3', label: 'Weekend', icon: '🌙', description: '2–3 days' },
+      { value: '5', label: 'Short break', icon: '☀️', description: '4–5 days' },
+      { value: '7', label: 'One week', icon: '✈️', description: '7 days' },
+      { value: '14', label: 'Two weeks', icon: '🗺️', description: '14 days' },
+      { value: '21', label: 'Extended trip', icon: '🌍', description: '21+ days' },
+    ],
+    defaultValue: '',
   },
   {
     id: 'noveltyPreference',
@@ -204,26 +187,6 @@ export const QUESTIONS: QuestionConfig[] = [
       { value: 'surprise', label: 'Surprise me completely', icon: '🎲', description: 'I trust you entirely' },
     ],
     defaultValue: '',
-  },
-  {
-    id: 'travelPace',
-    questionText: 'How do you like to explore?',
-    subtitle: "There's no wrong answer - only your rhythm.",
-    inputType: 'slider',
-    sliderConfig: {
-      min: 0,
-      max: 100,
-      step: 25,
-      labels: ['Slow & Relaxed', 'Active & Packed'],
-      emotionalLabels: [
-        { range: [0, 0], label: 'Linger over coffee, wander without a plan' },
-        { range: [25, 25], label: 'A gentle mix of discovery and downtime' },
-        { range: [50, 50], label: 'See the highlights with room to breathe' },
-        { range: [75, 75], label: 'Packed days with purposeful energy' },
-        { range: [100, 100], label: 'Every hour an adventure, every day a story' },
-      ],
-    },
-    defaultValue: 50,
   },
 ];
 
