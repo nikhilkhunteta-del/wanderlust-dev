@@ -295,7 +295,7 @@ const CityDetail = () => {
             groupType={profile.groupType}
             tripDuration={profile.tripDuration}
             styleTags={profile.styleTags}
-            travelPace={profile.travelPace}
+            
           />
         </TabsContent>
 
