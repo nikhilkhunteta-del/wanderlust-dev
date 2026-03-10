@@ -150,9 +150,9 @@ export function useComparisonData(
   const s1 = useSeasonalHighlights(cities[1]?.city ?? "", cities[1]?.country ?? "", profile.travelMonth, interests, profile.travelCompanions, profile.styleTags);
   const s2 = useSeasonalHighlights(cities[2]?.city ?? "", cities[2]?.country ?? "", profile.travelMonth, interests, profile.travelCompanions, profile.styleTags);
 
-  const st0 = useStayInsights(cities[0]?.city ?? "", cities[0]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, profile.travelPace);
-  const st1 = useStayInsights(cities[1]?.city ?? "", cities[1]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, profile.travelPace);
-  const st2 = useStayInsights(cities[2]?.city ?? "", cities[2]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, profile.travelPace);
+  const st0 = useStayInsights(cities[0]?.city ?? "", cities[0]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, 0.5);
+  const st1 = useStayInsights(cities[1]?.city ?? "", cities[1]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, 0.5);
+  const st2 = useStayInsights(cities[2]?.city ?? "", cities[2]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, 0.5);
 
   const highlights = [h0, h1, h2];
   const weather = [w0, w1, w2];

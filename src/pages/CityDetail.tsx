@@ -31,7 +31,7 @@ function buildDefaultProfile(cityName: string): TravelProfile {
     travelMonth: monthNames[now.getMonth()],
     tripDuration: 7,
     departureCity: "",
-    travelPace: 0.5,
+    
     travelCompanions: "",
     groupType: "solo",
     noveltyPreference: "mix",
