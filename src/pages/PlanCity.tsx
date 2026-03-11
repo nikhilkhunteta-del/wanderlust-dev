@@ -131,6 +131,8 @@ const PlanCity = () => {
               options={currentQuestion.options!}
               selected={value as string[]}
               onChange={updatePreference}
+              primaryInterest={preferences.primaryInterest}
+              onPrimaryChange={(val) => setPreferences(prev => ({ ...prev, primaryInterest: val }))}
             />
           );
         }

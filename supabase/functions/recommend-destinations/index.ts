@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface TravelProfile {
   interestScores: Record<string, number>;
+  primaryInterest?: string;
   adventureLevel: number;
   adventureTypes: string[];
   departureCity: string;
@@ -67,6 +68,16 @@ RULES:
 - For each city, provide a compelling rationale (max 40 words)
 - Include 3-5 relevant interest tags per city
 
+INTEREST MAPPING RULES:
+- culture-history: cities with world-class museums, heritage sites, ancient ruins, and rich historical narratives
+- nature-outdoors: cities with access to national parks, scenic landscapes, wildlife reserves, and outdoor activities
+- beach-coastal: geography is primary — coastal cities, islands, or cities with significant beach access
+- food-culinary: cities with vibrant food scenes — street food culture, fine dining, markets, cooking traditions
+- arts-music-nightlife: cities with thriving arts scenes, live music venues, theatres, festivals, and nightlife districts
+- active-sport: prioritise cities with renowned cycling infrastructure, hiking access, golf, skiing, or sport tourism — e.g. Copenhagen, Innsbruck, Queenstown, Porto
+- shopping-markets: cities with famous markets, artisan crafts, boutique shopping districts
+- wellness-slow-travel: prioritise cities with thermal bath culture, yoga retreat infrastructure, low stress navigation, and restorative quality — e.g. Budapest, Chiang Mai, Lisbon, Bath
+
 TRAVEL COMPANIONS RULES:
 - Family trips: prioritise cities with child-friendly infrastructure, manageable logistics, and safe environments
 - Solo travellers: can handle complex, remote, or adventurous destinations
@@ -92,9 +103,13 @@ Respond with ONLY valid JSON in this exact format:
   ]
 }`;
 
+    const primaryLine = profile.primaryInterest
+      ? `\nPRIMARY INTEREST: ${profile.primaryInterest} — this is the dominant factor in city selection; other interests are secondary considerations.`
+      : '';
+
     const userPrompt = `Find 3 destination cities for this traveller:
 
-INTERESTS: ${topInterests.join(", ") || "varied interests"}
+INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
