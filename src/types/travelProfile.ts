@@ -1,12 +1,12 @@
 export interface InterestScores {
-  culture: number;
-  nature: number;
-  beach: number;
-  food: number;
-  nightlife: number;
-  shopping: number;
-  photography: number;
-  wellness: number;
+  'culture-history': number;
+  'nature-outdoors': number;
+  'beach-coastal': number;
+  'food-culinary': number;
+  'arts-music-nightlife': number;
+  'active-sport': number;
+  'shopping-markets': number;
+  'wellness-slow-travel': number;
 }
 
 export type TravelStyleTag =
@@ -19,9 +19,8 @@ export type TravelStyleTag =
   | 'relaxation-focused'
   | 'family-friendly'
   | 'nightlife-seeker'
-  | 'photography-enthusiast'
-  | 'wellness-oriented'
   | 'active-explorer'
+  | 'wellness-oriented'
   | 'slow-traveler';
 
 export type GroupType = 'solo' | 'couple' | 'family' | 'friends' | 'group';
@@ -29,35 +28,27 @@ export type GroupType = 'solo' | 'couple' | 'family' | 'friends' | 'group';
 export type NoveltyPreference = 'classics' | 'mix' | 'off-beaten-path' | 'surprise';
 
 export interface TravelProfile {
-  // Normalized interest scores (0-1)
   interestScores: InterestScores;
+  primaryInterest: string;
 
-  // Adventure intensity (0-1)
   adventureLevel: number;
   adventureTypes: string[];
 
-  // Travel constraints
   departureCity: string;
   travelMonth: string;
 
-  // Trip details
-  tripDuration: number; // actual days
+  tripDuration: number;
 
-  // Companion context
   travelCompanions: string;
   groupType: GroupType;
 
-  // Novelty
   noveltyPreference: NoveltyPreference;
   foodDepth: string;
 
-  // Inferred tags
   styleTags: TravelStyleTag[];
 
-  // Personalization summary
   summary: string;
 
-  // Completeness
   completenessScore: number;
   followUpQuestion: string | null;
 }
