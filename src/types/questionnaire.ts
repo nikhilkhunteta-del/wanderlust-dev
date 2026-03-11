@@ -1,5 +1,6 @@
 export interface TravelPreferences {
   interests: string[];
+  primaryInterest: string;
   adventureExperiences: string[];
   foodDepth: string;
   departureCity: string;
@@ -31,17 +32,22 @@ export interface QuestionConfig {
 
 // Adventure experience category mapping from Q1 interests
 const ADVENTURE_CATEGORY_MAP: Record<string, string[] | null> = {
-  nature: ['Water Adventures', 'Mountain Adventures', 'Nature & Wildlife', 'Sky Adventures'],
-  beach: ['Water Adventures'],
-  culture: ['Scenic & Cultural'],
-  food: null,
-  nightlife: null,
-  shopping: null,
-  photography: ['Scenic & Cultural', 'Nature & Wildlife'],
-  wellness: null,
+  'culture-history': ['Scenic & Cultural'],
+  'nature-outdoors': ['Water Adventures', 'Mountain Adventures', 'Nature & Wildlife', 'Sky Adventures'],
+  'beach-coastal': ['Water Adventures'],
+  'food-culinary': null,
+  'arts-music-nightlife': null,
+  'active-sport': ['Mountain Adventures', 'Water Adventures', 'Sky Adventures'],
+  'shopping-markets': null,
+  'wellness-slow-travel': null,
 };
 
 export function getRelevantAdventureCategories(q1Selections: string[]): string[] | null {
+  // Skip Q2 entirely if only shopping/wellness/arts selected
+  if (q1Selections.every(s => ['shopping-markets', 'wellness-slow-travel', 'arts-music-nightlife'].includes(s))) {
+    return null;
+  }
+
   const relevant = new Set<string>();
   for (const interest of q1Selections) {
     const cats = ADVENTURE_CATEGORY_MAP[interest];
@@ -51,8 +57,7 @@ export function getRelevantAdventureCategories(q1Selections: string[]): string[]
 }
 
 export function shouldShowFoodQuestion(q1Selections: string[]): boolean {
-  const categories = getRelevantAdventureCategories(q1Selections);
-  return categories === null && q1Selections.includes('food');
+  return q1Selections.length === 1 && q1Selections[0] === 'food-culinary';
 }
 
 // All adventure experience options
@@ -105,14 +110,14 @@ export const QUESTIONS: QuestionConfig[] = [
     subtitle: "We'll use this to shape places you'll truly love.",
     inputType: 'multi-select',
     options: [
-      { value: 'culture', label: 'Culture & History', icon: '🏛️' },
-      { value: 'nature', label: 'Nature & Wildlife', icon: '🌿' },
-      { value: 'beach', label: 'Beach & Relaxation', icon: '🏖️' },
-      { value: 'food', label: 'Food & Culinary', icon: '🍜' },
-      { value: 'nightlife', label: 'Nightlife & Entertainment', icon: '🎉' },
-      { value: 'shopping', label: 'Shopping & Markets', icon: '🛍️' },
-      { value: 'photography', label: 'Photography', icon: '📸' },
-      { value: 'wellness', label: 'Wellness & Spa', icon: '🧘' },
+      { value: 'culture-history', label: 'Culture & History', icon: '🏛', description: 'Museums, heritage, ancient sites' },
+      { value: 'nature-outdoors', label: 'Nature & Outdoors', icon: '🌿', description: 'Landscapes, parks, wildlife' },
+      { value: 'beach-coastal', label: 'Beach & Coastal', icon: '🏖', description: 'Coastlines, islands, ocean' },
+      { value: 'food-culinary', label: 'Food & Culinary', icon: '🍜', description: 'Markets, restaurants, local flavours' },
+      { value: 'arts-music-nightlife', label: 'Arts, Music & Nightlife', icon: '🎭', description: 'Live music, theatre, festivals, bars' },
+      { value: 'active-sport', label: 'Active & Sport', icon: '🚴', description: 'Cycling, hiking, golf, skiing' },
+      { value: 'shopping-markets', label: 'Shopping & Markets', icon: '🛍', description: 'Street markets, boutiques, crafts' },
+      { value: 'wellness-slow-travel', label: 'Wellness & Slow Travel', icon: '🧘', description: 'Spas, retreats, restorative pace' },
     ],
     defaultValue: [],
   },

@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 const initialPreferences: TravelPreferences = {
   interests: [],
+  primaryInterest: '',
   adventureExperiences: [],
   foodDepth: '',
   departureCity: '',
@@ -103,6 +104,8 @@ export const TravelQuestionnaire = () => {
               options={currentQuestion.options!}
               selected={value as string[]}
               onChange={updatePreference}
+              primaryInterest={preferences.primaryInterest}
+              onPrimaryChange={(val) => setPreferences(prev => ({ ...prev, primaryInterest: val }))}
             />
           );
         }
