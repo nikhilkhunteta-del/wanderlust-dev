@@ -21,7 +21,7 @@ const INTEREST_KEYS: (keyof InterestScores)[] = [
 ];
 
 export function normalizeInterestScores(interests: string[]): InterestScores {
-  const scores = Object.fromEntries(INTEREST_KEYS.map(k => [k, 0])) as InterestScores;
+  const scores = Object.fromEntries(INTEREST_KEYS.map(k => [k, 0])) as unknown as InterestScores;
   for (const interest of interests) {
     if (interest in scores) {
       scores[interest as keyof InterestScores] = 1.0;

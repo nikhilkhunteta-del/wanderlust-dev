@@ -25,7 +25,8 @@ function buildDefaultProfile(cityName: string): TravelProfile {
   const now = new Date();
   const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
   return {
-    interestScores: { culture: 0.5, nature: 0.3, beach: 0.3, food: 0.5, nightlife: 0.2, shopping: 0.2, photography: 0.3, wellness: 0.2 },
+    interestScores: { 'culture-history': 0.5, 'nature-outdoors': 0.3, 'beach-coastal': 0.3, 'food-culinary': 0.5, 'arts-music-nightlife': 0.2, 'active-sport': 0.2, 'shopping-markets': 0.2, 'wellness-slow-travel': 0.2 },
+    primaryInterest: '',
     adventureLevel: 0.3,
     adventureTypes: [],
     travelMonth: monthNames[now.getMonth()],

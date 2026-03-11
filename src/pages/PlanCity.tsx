@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 const initialPreferences: TravelPreferences = {
   interests: [],
+  primaryInterest: '',
   adventureExperiences: [],
   foodDepth: '',
   departureCity: "",
