@@ -178,15 +178,7 @@ export const QUESTIONS: QuestionConfig[] = [
     ],
     defaultValue: [],
   },
-  // Q2 (adventureExperiences) is inserted dynamically
-  {
-    id: 'departureCity',
-    questionText: 'Where will your journey begin?',
-    subtitle: 'This helps us find the best routes and travel times for you.',
-    inputType: 'text-input',
-    placeholder: 'e.g., Tokyo, Paris, New York...',
-    defaultValue: '',
-  },
+  // travelMonth is Q2, shown right after interests
   {
     id: 'travelMonth',
     questionText: 'When do you want to travel?',
@@ -207,6 +199,15 @@ export const QUESTIONS: QuestionConfig[] = [
       { value: 'dec', label: 'December', icon: '🎄' },
       { value: 'flexible', label: "I'm Flexible", icon: '✨' },
     ],
+    defaultValue: '',
+  },
+  // adventureExperiences is inserted dynamically after travelMonth
+  {
+    id: 'departureCity',
+    questionText: 'Where will your journey begin?',
+    subtitle: 'This helps us find the best routes and travel times for you.',
+    inputType: 'text-input',
+    placeholder: 'e.g., Tokyo, Paris, New York...',
     defaultValue: '',
   },
   {
@@ -274,7 +275,7 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
       options,
       defaultValue: [],
     };
-    baseQuestions.splice(1, 0, adventureQ);
+    baseQuestions.splice(2, 0, adventureQ);
   }
 
   return baseQuestions;
