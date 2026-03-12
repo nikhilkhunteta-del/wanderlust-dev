@@ -11,6 +11,7 @@ interface TravelProfile {
   primaryInterest?: string;
   adventureLevel: number;
   adventureTypes: string[];
+  bucketListExperiences?: string[];
   departureCity: string;
   travelMonth: string;
   tripDuration: number;
