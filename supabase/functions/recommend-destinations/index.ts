@@ -69,6 +69,9 @@ RULES:
 - For each city, provide a compelling rationale (max 40 words)
 - Include 3-5 relevant interest tags per city
 
+BUCKET LIST EXPERIENCES:
+If the user has selected specific bucket list experiences, these are trip-defining — prioritise cities where these experiences are genuinely world-class, not just available. A user selecting Northern Lights should get Iceland, Norway, or Finnish Lapland — not a city where it's theoretically possible on a good night. A user selecting Safari should get Kenya, Tanzania, or Botswana — not a zoo.
+
 INTEREST MAPPING RULES:
 - culture-history: cities with world-class museums, heritage sites, ancient ruins, and rich historical narratives
 - nature-outdoors: cities with access to national parks, scenic landscapes, wildlife reserves, and outdoor activities
