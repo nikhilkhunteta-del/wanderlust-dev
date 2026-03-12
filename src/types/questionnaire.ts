@@ -30,77 +30,134 @@ export interface QuestionConfig {
   grouped?: boolean;
 }
 
-// Adventure experience category mapping from Q1 interests
-const ADVENTURE_CATEGORY_MAP: Record<string, string[] | null> = {
-  'culture-history': ['Scenic & Cultural'],
-  'nature-outdoors': ['Water Adventures', 'Mountain Adventures', 'Nature & Wildlife', 'Sky Adventures'],
-  'beach-coastal': ['Water Adventures'],
-  'food-culinary': null,
-  'arts-music-nightlife': null,
-  'active-sport': ['Mountain Adventures', 'Water Adventures', 'Sky Adventures'],
-  'shopping-markets': null,
-  'wellness-slow-travel': null,
-};
+// Experience category definitions for Q2
+export interface ExperienceCategory {
+  id: string;
+  label: string;
+  icon: string;
+  triggeredBy: string[];
+  experiences: { value: string; label: string; icon: string }[];
+}
 
-export function getRelevantAdventureCategories(q1Selections: string[]): string[] | null {
-  // Skip Q2 entirely if only shopping/wellness/arts selected
-  if (q1Selections.every(s => ['shopping-markets', 'wellness-slow-travel', 'arts-music-nightlife'].includes(s))) {
-    return null;
-  }
+export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
+  {
+    id: 'water-ocean',
+    label: 'Water & Ocean',
+    icon: '🌊',
+    triggeredBy: ['beach-coastal', 'nature-outdoors', 'active-sport'],
+    experiences: [
+      { value: 'scuba-diving', label: 'Scuba Diving', icon: '🤿' },
+      { value: 'snorkelling', label: 'Snorkelling', icon: '🐠' },
+      { value: 'surfing', label: 'Surfing', icon: '🏄' },
+      { value: 'kayaking', label: 'Kayaking & Paddleboarding', icon: '🛶' },
+      { value: 'whale-watching', label: 'Whale Watching', icon: '🐋' },
+      { value: 'whale-sharks', label: 'Swimming with Whale Sharks', icon: '🦈' },
+      { value: 'river-rafting', label: 'River Rafting', icon: '🚣' },
+    ],
+  },
+  {
+    id: 'sky-heights',
+    label: 'Sky & Heights',
+    icon: '🪂',
+    triggeredBy: ['active-sport', 'nature-outdoors'],
+    experiences: [
+      { value: 'paragliding', label: 'Paragliding', icon: '🪂' },
+      { value: 'skydiving', label: 'Skydiving', icon: '🎯' },
+      { value: 'bungee-jumping', label: 'Bungee Jumping', icon: '⬇' },
+      { value: 'hot-air-balloon', label: 'Hot Air Balloon', icon: '🎈' },
+    ],
+  },
+  {
+    id: 'mountain-land',
+    label: 'Mountain & Land',
+    icon: '🏔',
+    triggeredBy: ['active-sport', 'nature-outdoors'],
+    experiences: [
+      { value: 'hiking-trekking', label: 'Hiking & Trekking', icon: '🥾' },
+      { value: 'skiing', label: 'Skiing & Snowboarding', icon: '⛷' },
+      { value: 'cycling-routes', label: 'Cycling Routes', icon: '🚴' },
+      { value: 'volcano-trekking', label: 'Volcano Trekking', icon: '🌋' },
+      { value: 'camping', label: 'Camping & Wild Stays', icon: '⛺' },
+    ],
+  },
+  {
+    id: 'wildlife-nature',
+    label: 'Wildlife & Nature',
+    icon: '🦁',
+    triggeredBy: ['nature-outdoors'],
+    experiences: [
+      { value: 'safari', label: 'Safari', icon: '🦁' },
+      { value: 'northern-lights', label: 'Northern Lights', icon: '🌌' },
+      { value: 'stargazing', label: 'Stargazing', icon: '⭐' },
+      { value: 'reindeer-sledging', label: 'Reindeer Sledging', icon: '🦌' },
+      { value: 'dog-sledding', label: 'Dog Sledding', icon: '🐕' },
+      { value: 'cave-exploration', label: 'Cave Exploration', icon: '🕳' },
+    ],
+  },
+  {
+    id: 'landscapes',
+    label: 'Landscapes & Journeys',
+    icon: '🏜',
+    triggeredBy: ['nature-outdoors', 'culture-history'],
+    experiences: [
+      { value: 'desert-experience', label: 'Desert Experience', icon: '🏜' },
+      { value: 'scenic-train', label: 'Scenic Train Journey', icon: '🚂' },
+    ],
+  },
+  {
+    id: 'culture-heritage',
+    label: 'Culture & Heritage',
+    icon: '🏛',
+    triggeredBy: ['culture-history'],
+    experiences: [
+      { value: 'unesco-sites', label: 'UNESCO Heritage Sites', icon: '🏛' },
+      { value: 'museums-galleries', label: 'Museums & Galleries', icon: '🖼' },
+      { value: 'cultural-performance', label: 'Cultural Performances', icon: '🎭' },
+      { value: 'ancient-ruins', label: 'Ancient Ruins & Archaeology', icon: '🗿' },
+    ],
+  },
+  {
+    id: 'food-drink',
+    label: 'Food & Drink',
+    icon: '🍜',
+    triggeredBy: ['food-culinary'],
+    experiences: [
+      { value: 'street-food-tours', label: 'Street Food Tours', icon: '🍢' },
+      { value: 'cooking-classes', label: 'Cooking Classes', icon: '👨‍🍳' },
+      { value: 'wine-vineyards', label: 'Wine & Vineyard Tours', icon: '🍷' },
+      { value: 'food-markets', label: 'Food Market Exploration', icon: '🥬' },
+    ],
+  },
+  {
+    id: 'wellness',
+    label: 'Wellness & Restoration',
+    icon: '🧘',
+    triggeredBy: ['wellness-slow-travel'],
+    experiences: [
+      { value: 'thermal-baths', label: 'Thermal Baths & Hot Springs', icon: '♨️' },
+      { value: 'yoga-retreats', label: 'Yoga & Meditation Retreats', icon: '🧘' },
+      { value: 'spa-hammam', label: 'Spa & Hammam', icon: '💆' },
+    ],
+  },
+];
 
-  const relevant = new Set<string>();
-  for (const interest of q1Selections) {
-    const cats = ADVENTURE_CATEGORY_MAP[interest];
-    if (cats) cats.forEach((c) => relevant.add(c));
-  }
-  return relevant.size > 0 ? Array.from(relevant) : null;
+/**
+ * Get relevant experience categories based on Q1 selections.
+ * Returns null if Q2 should be skipped entirely.
+ */
+export function getRelevantCategories(q1Selections: string[]): ExperienceCategory[] | null {
+  // Skip Q2 entirely if only shopping/arts-music-nightlife selected (no categories triggered)
+  const relevant = EXPERIENCE_CATEGORIES.filter((cat) =>
+    cat.triggeredBy.some((trigger) => q1Selections.includes(trigger))
+  );
+  return relevant.length > 0 ? relevant : null;
 }
 
 export function shouldShowFoodQuestion(q1Selections: string[]): boolean {
-  return q1Selections.length === 1 && q1Selections[0] === 'food-culinary';
+  // Food-only Q2 is now handled by the food-drink category in EXPERIENCE_CATEGORIES
+  // This is kept for backward compat but no longer used for standalone food question
+  return false;
 }
-
-// All adventure experience options
-export const ADVENTURE_OPTIONS: { value: string; label: string; icon?: string; group?: string }[] = [
-  { value: 'scuba-diving', label: 'Scuba Diving', icon: '🤿', group: 'Water Adventures' },
-  { value: 'snorkelling', label: 'Snorkelling', icon: '🐠', group: 'Water Adventures' },
-  { value: 'surfing', label: 'Surfing', icon: '🏄', group: 'Water Adventures' },
-  { value: 'kayaking', label: 'Kayaking', icon: '🛶', group: 'Water Adventures' },
-  { value: 'rafting', label: 'River Rafting', icon: '🌊', group: 'Water Adventures' },
-  { value: 'hiking', label: 'Hiking & Trekking', icon: '🥾', group: 'Mountain Adventures' },
-  { value: 'skiing', label: 'Skiing', icon: '⛷️', group: 'Mountain Adventures' },
-  { value: 'climbing', label: 'Rock Climbing', icon: '🧗', group: 'Mountain Adventures' },
-  { value: 'camping', label: 'Camping', icon: '🏕️', group: 'Mountain Adventures' },
-  { value: 'paragliding', label: 'Paragliding', icon: '🪂', group: 'Sky Adventures' },
-  { value: 'skydiving', label: 'Sky Diving', icon: '🪂', group: 'Sky Adventures' },
-  { value: 'bungee', label: 'Bungee Jumping', icon: '🤸', group: 'Sky Adventures' },
-  { value: 'hot-air-balloon', label: 'Hot Air Balloon', icon: '🎈', group: 'Sky Adventures' },
-  { value: 'safari', label: 'Safari & Wildlife', icon: '🦁', group: 'Nature & Wildlife' },
-  { value: 'northern-lights', label: 'Northern Lights', icon: '🌌', group: 'Nature & Wildlife' },
-  { value: 'desert', label: 'Desert Experience', icon: '🏜️', group: 'Nature & Wildlife' },
-  { value: 'reindeer-sledging', label: 'Reindeer Sledging', icon: '🦌', group: 'Nature & Wildlife' },
-  { value: 'scenic-train', label: 'Scenic Train Ride', icon: '🚂', group: 'Scenic & Cultural' },
-  { value: 'unesco', label: 'UNESCO Heritage Sites', icon: '🏛️', group: 'Scenic & Cultural' },
-  { value: 'museums', label: 'Museums', icon: '🖼️', group: 'Scenic & Cultural' },
-  { value: 'cycling', label: 'Cycling Tours', icon: '🚴', group: 'Scenic & Cultural' },
-  { value: 'all-inclusive', label: 'All Inclusive Resort', icon: '🏖️', group: 'Scenic & Cultural' },
-  { value: 'none', label: 'Keep it Relaxed', icon: '😌' },
-];
-
-export const FOOD_DEPTH_QUESTION: QuestionConfig = {
-  id: 'foodDepth',
-  questionText: 'What kind of food experiences?',
-  subtitle: "Let's match you with the perfect culinary destinations.",
-  inputType: 'single-select',
-  options: [
-    { value: 'street-food', label: 'Street food & markets', icon: '🥘' },
-    { value: 'cooking-classes', label: 'Cooking classes & workshops', icon: '👨‍🍳' },
-    { value: 'fine-dining', label: 'Fine dining & wine', icon: '🍷' },
-    { value: 'local-hidden', label: 'Local hidden spots', icon: '🗺️' },
-    { value: 'all-food', label: 'All of the above', icon: '🍽️' },
-  ],
-  defaultValue: '',
-};
 
 // Base questions (excluding dynamic Q2)
 export const QUESTIONS: QuestionConfig[] = [
@@ -121,7 +178,7 @@ export const QUESTIONS: QuestionConfig[] = [
     ],
     defaultValue: [],
   },
-  // Q2 (adventureExperiences or foodDepth) is inserted dynamically
+  // Q2 (adventureExperiences) is inserted dynamically
   {
     id: 'departureCity',
     questionText: 'Where will your journey begin?',
@@ -197,29 +254,27 @@ export const QUESTIONS: QuestionConfig[] = [
 
 /**
  * Build the dynamic question list based on Q1 selections.
- * Inserts adventure Q2, food Q2, or skips Q2 entirely.
+ * Inserts categorized Q2 or skips Q2 entirely.
  */
 export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
   const baseQuestions = [...QUESTIONS];
-  const categories = getRelevantAdventureCategories(interests);
-  const showFood = shouldShowFoodQuestion(interests);
+  const categories = getRelevantCategories(interests);
 
-  if (categories) {
-    const filteredOptions = ADVENTURE_OPTIONS.filter(
-      (opt) => !opt.group || categories.includes(opt.group)
+  if (categories && categories.length > 0) {
+    // Flatten all relevant experiences into options with group field
+    const options = categories.flatMap((cat) =>
+      cat.experiences.map((exp) => ({ ...exp, group: cat.id }))
     );
     const adventureQ: QuestionConfig = {
       id: 'adventureExperiences',
       questionText: 'Which experiences call to you?',
-      subtitle: "Pick the adventures that make your heart race - or none at all.",
+      subtitle: "Pick the adventures that make your heart race — or skip ahead.",
       inputType: 'multi-select',
       grouped: true,
-      options: filteredOptions,
+      options,
       defaultValue: [],
     };
     baseQuestions.splice(1, 0, adventureQ);
-  } else if (showFood) {
-    baseQuestions.splice(1, 0, FOOD_DEPTH_QUESTION);
   }
 
   return baseQuestions;

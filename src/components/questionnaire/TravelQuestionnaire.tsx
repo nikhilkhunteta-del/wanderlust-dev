@@ -93,6 +93,13 @@ export const TravelQuestionnaire = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
+  const handleSkipQ2 = () => {
+    // Skip Q2, clear adventure experiences, advance
+    setPreferences((prev) => ({ ...prev, adventureExperiences: [] }));
+    setDirection(1);
+    setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+  };
+
   const renderQuestion = () => {
     const value = preferences[currentQuestion.id];
 
@@ -115,6 +122,7 @@ export const TravelQuestionnaire = () => {
             selected={value as string[]}
             onChange={updatePreference}
             grouped={currentQuestion.grouped}
+            onSkip={currentQuestion.id === 'adventureExperiences' ? handleSkipQ2 : undefined}
           />
         );
       case 'single-select':
@@ -147,6 +155,9 @@ export const TravelQuestionnaire = () => {
         return null;
     }
   };
+
+  // For Q2 (adventureExperiences), allow proceeding even with empty selection
+  const canProceedQ2 = currentQuestion?.id === 'adventureExperiences';
 
   if (showTransition) {
     return (
@@ -206,10 +217,10 @@ export const TravelQuestionnaire = () => {
 
           <Button
             onClick={handleNext}
-            disabled={!canProceed()}
+            disabled={!canProceed() && !canProceedQ2}
             className={cn(
               'gap-2 px-8 py-6 text-lg transition-all',
-              canProceed()
+              (canProceed() || canProceedQ2)
                 ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
                 : 'bg-muted text-muted-foreground'
             )}
