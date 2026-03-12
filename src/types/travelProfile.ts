@@ -33,6 +33,7 @@ export interface TravelProfile {
 
   adventureLevel: number;
   adventureTypes: string[];
+  bucketListExperiences: string[];
 
   departureCity: string;
   travelMonth: string;

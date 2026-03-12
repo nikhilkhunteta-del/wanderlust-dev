@@ -29,6 +29,7 @@ function buildDefaultProfile(cityName: string): TravelProfile {
     primaryInterest: '',
     adventureLevel: 0.3,
     adventureTypes: [],
+    bucketListExperiences: [],
     travelMonth: monthNames[now.getMonth()],
     tripDuration: 7,
     departureCity: "",

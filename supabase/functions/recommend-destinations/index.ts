@@ -11,6 +11,7 @@ interface TravelProfile {
   primaryInterest?: string;
   adventureLevel: number;
   adventureTypes: string[];
+  bucketListExperiences?: string[];
   departureCity: string;
   travelMonth: string;
   tripDuration: number;
@@ -68,6 +69,9 @@ RULES:
 - For each city, provide a compelling rationale (max 40 words)
 - Include 3-5 relevant interest tags per city
 
+BUCKET LIST EXPERIENCES:
+If the user has selected specific bucket list experiences, these are trip-defining — prioritise cities where these experiences are genuinely world-class, not just available. A user selecting Northern Lights should get Iceland, Norway, or Finnish Lapland — not a city where it's theoretically possible on a good night. A user selecting Safari should get Kenya, Tanzania, or Botswana — not a zoo.
+
 INTEREST MAPPING RULES:
 - culture-history: cities with world-class museums, heritage sites, ancient ruins, and rich historical narratives
 - nature-outdoors: cities with access to national parks, scenic landscapes, wildlife reserves, and outdoor activities
@@ -107,9 +111,13 @@ Respond with ONLY valid JSON in this exact format:
       ? `\nPRIMARY INTEREST: ${profile.primaryInterest} — this is the dominant factor in city selection; other interests are secondary considerations.`
       : '';
 
+    const bucketList = profile.bucketListExperiences && profile.bucketListExperiences.length > 0
+      ? profile.bucketListExperiences.join(", ")
+      : null;
+
     const userPrompt = `Find 3 destination cities for this traveller:
 
-INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}
+INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
