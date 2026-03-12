@@ -275,7 +275,7 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
       options,
       defaultValue: [],
     };
-    baseQuestions.splice(1, 0, adventureQ);
+    baseQuestions.splice(2, 0, adventureQ);
   }
 
   return baseQuestions;
