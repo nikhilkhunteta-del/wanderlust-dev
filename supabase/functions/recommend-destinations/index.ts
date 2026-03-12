@@ -111,9 +111,13 @@ Respond with ONLY valid JSON in this exact format:
       ? `\nPRIMARY INTEREST: ${profile.primaryInterest} — this is the dominant factor in city selection; other interests are secondary considerations.`
       : '';
 
+    const bucketList = profile.bucketListExperiences && profile.bucketListExperiences.length > 0
+      ? profile.bucketListExperiences.join(", ")
+      : null;
+
     const userPrompt = `Find 3 destination cities for this traveller:
 
-INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}
+INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
