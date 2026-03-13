@@ -827,7 +827,7 @@ export const culturalMoments: CulturalMoment[] = [
   },
   {
     value: 'new-years-eve-sydney',
-    label: 'New Year's Eve',
+    label: "New Year's Eve",
     location: 'Sydney, Australia',
     city: 'Sydney',
     country: 'Australia',
