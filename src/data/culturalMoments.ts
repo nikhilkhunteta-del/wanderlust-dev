@@ -208,7 +208,7 @@ export const culturalMoments: CulturalMoment[] = [
   },
   {
     value: 'st-patricks-dublin',
-    label: 'St Patrick's Festival',
+    label: "St Patrick's Festival",
     location: 'Dublin, Ireland',
     city: 'Dublin',
     country: 'Ireland',
