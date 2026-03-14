@@ -12,13 +12,16 @@ import { SingleSelectQuestion } from './SingleSelectQuestion';
 import { MonthGridQuestion } from './MonthGridQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { TransitionCard } from './TransitionCard';
+import { CulturalMomentsQuestion } from './CulturalMomentsQuestion';
 import { TravelPreferences, buildDynamicQuestions } from '@/types/questionnaire';
+import { culturalMoments as allCulturalMoments } from '@/data/culturalMoments';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
 const initialPreferences: TravelPreferences = {
   interests: [],
   primaryInterest: '',
+  culturalMoments: [],
   adventureExperiences: [],
   foodDepth: '',
   departureCity: '',
