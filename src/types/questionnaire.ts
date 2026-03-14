@@ -294,4 +294,3 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
 
   return baseQuestions;
 }
-}
