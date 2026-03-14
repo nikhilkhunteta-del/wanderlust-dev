@@ -78,6 +78,8 @@ export const TravelQuestionnaire = () => {
   };
 
   const canProceed = () => {
+    // Cultural moments allows empty (user uses skip link instead)
+    if (currentQuestion.id === 'culturalMoments') return true;
     const value = preferences[currentQuestion.id];
     if (Array.isArray(value)) return value.length > 0;
     if (typeof value === 'string') return value !== '';
@@ -98,13 +100,13 @@ export const TravelQuestionnaire = () => {
       transitionTimer.current = setTimeout(() => {
         setShowTransition(false);
         setDirection(1);
-        setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+        setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
       }, 1500);
       return;
     }
 
     setDirection(1);
-    setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+    setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
   };
 
   const handleBack = () => {
@@ -112,11 +114,16 @@ export const TravelQuestionnaire = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
+  const handleSkipCulturalMoments = () => {
+    setPreferences((prev) => ({ ...prev, culturalMoments: [] }));
+    setDirection(1);
+    setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
+  };
+
   const handleSkipQ2 = () => {
-    // Skip Q2, clear adventure experiences, advance
     setPreferences((prev) => ({ ...prev, adventureExperiences: [] }));
     setDirection(1);
-    setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+    setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
   };
 
   const renderQuestion = () => {
