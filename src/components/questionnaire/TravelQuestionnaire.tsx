@@ -211,7 +211,7 @@ export const TravelQuestionnaire = () => {
       <Header />
 
       <div className="px-4 pb-8">
-        <ProgressIndicator currentStep={currentStep} totalSteps={questions.length} />
+        <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
       <main className="flex-1 flex items-center justify-center px-4 pb-8">
