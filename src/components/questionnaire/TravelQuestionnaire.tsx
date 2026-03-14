@@ -44,8 +44,24 @@ export const TravelQuestionnaire = () => {
     [preferences.interests]
   );
 
-  const currentQuestion = questions[currentStep];
-  const isLastStep = currentStep === questions.length - 1;
+  // Filter cultural moments by user's Q1 interests
+  const filteredMoments = useMemo(
+    () => allCulturalMoments.filter((m) =>
+      m.triggeredBy.some((t) => preferences.interests.includes(t))
+    ),
+    [preferences.interests]
+  );
+
+  // If no cultural moments match, remove that question from the list
+  const activeQuestions = useMemo(() => {
+    if (filteredMoments.length === 0) {
+      return questions.filter((q) => q.id !== 'culturalMoments');
+    }
+    return questions;
+  }, [questions, filteredMoments]);
+
+  const currentQuestion = activeQuestions[currentStep];
+  const isLastStep = currentStep === activeQuestions.length - 1;
   const isFirstStep = currentStep === 0;
 
   useEffect(() => {
