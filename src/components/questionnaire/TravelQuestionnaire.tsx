@@ -147,8 +147,10 @@ export const TravelQuestionnaire = () => {
             <CulturalMomentsQuestion
               moments={filteredMoments}
               selected={value as string[]}
+              travelMonth={preferences.travelMonth}
               onChange={updatePreference}
               onSkip={handleSkipCulturalMoments}
+              onMonthChange={(m) => setPreferences(prev => ({ ...prev, travelMonth: m }))}
             />
           );
         }
