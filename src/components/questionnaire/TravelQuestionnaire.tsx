@@ -142,6 +142,16 @@ export const TravelQuestionnaire = () => {
             />
           );
         }
+        if (currentQuestion.id === 'culturalMoments') {
+          return (
+            <CulturalMomentsQuestion
+              moments={filteredMoments}
+              selected={value as string[]}
+              onChange={updatePreference}
+              onSkip={handleSkipCulturalMoments}
+            />
+          );
+        }
         return (
           <MultiSelectQuestion
             options={currentQuestion.options!}
