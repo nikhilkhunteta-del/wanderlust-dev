@@ -1,6 +1,7 @@
 export interface TravelPreferences {
   interests: string[];
   primaryInterest: string;
+  culturalMoments: string[];
   adventureExperiences: string[];
   foodDepth: string;
   departureCity: string;
