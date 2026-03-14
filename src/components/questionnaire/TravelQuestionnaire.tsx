@@ -226,7 +226,7 @@ export const TravelQuestionnaire = () => {
           >
             <QuestionCard
               questionNumber={currentStep + 1}
-              totalQuestions={questions.length}
+              totalQuestions={activeQuestions.length}
               questionText={currentQuestion.questionText}
               subtitle={currentQuestion.subtitle}
             >
