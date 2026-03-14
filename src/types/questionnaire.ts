@@ -1,6 +1,7 @@
 export interface TravelPreferences {
   interests: string[];
   primaryInterest: string;
+  culturalMoments: string[];
   adventureExperiences: string[];
   foodDepth: string;
   departureCity: string;
@@ -255,14 +256,27 @@ export const QUESTIONS: QuestionConfig[] = [
 
 /**
  * Build the dynamic question list based on Q1 selections.
- * Inserts categorized Q2 or skips Q2 entirely.
+ * Inserts cultural moments Q3 and categorized adventure Q after that.
  */
 export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
   const baseQuestions = [...QUESTIONS];
-  const categories = getRelevantCategories(interests);
+  let insertIndex = 2; // after interests + travelMonth
 
+  // Insert cultural moments question (Q3) if any moments match
+  const culturalQ: QuestionConfig = {
+    id: 'culturalMoments',
+    questionText: "Are there moments you've always wanted to witness?",
+    subtitle: 'Once-in-a-lifetime events that could define your whole trip.',
+    inputType: 'multi-select',
+    options: [], // handled by custom renderer
+    defaultValue: [],
+  };
+  baseQuestions.splice(insertIndex, 0, culturalQ);
+  insertIndex++;
+
+  // Insert adventure experiences question if relevant categories exist
+  const categories = getRelevantCategories(interests);
   if (categories && categories.length > 0) {
-    // Flatten all relevant experiences into options with group field
     const options = categories.flatMap((cat) =>
       cat.experiences.map((exp) => ({ ...exp, group: cat.id }))
     );
@@ -275,7 +289,7 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
       options,
       defaultValue: [],
     };
-    baseQuestions.splice(2, 0, adventureQ);
+    baseQuestions.splice(insertIndex, 0, adventureQ);
   }
 
   return baseQuestions;

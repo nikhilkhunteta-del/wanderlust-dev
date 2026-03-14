@@ -12,13 +12,16 @@ import { SingleSelectQuestion } from './SingleSelectQuestion';
 import { MonthGridQuestion } from './MonthGridQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { TransitionCard } from './TransitionCard';
+import { CulturalMomentsQuestion } from './CulturalMomentsQuestion';
 import { TravelPreferences, buildDynamicQuestions } from '@/types/questionnaire';
+import { culturalMoments as allCulturalMoments } from '@/data/culturalMoments';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
 const initialPreferences: TravelPreferences = {
   interests: [],
   primaryInterest: '',
+  culturalMoments: [],
   adventureExperiences: [],
   foodDepth: '',
   departureCity: '',
@@ -41,8 +44,24 @@ export const TravelQuestionnaire = () => {
     [preferences.interests]
   );
 
-  const currentQuestion = questions[currentStep];
-  const isLastStep = currentStep === questions.length - 1;
+  // Filter cultural moments by user's Q1 interests
+  const filteredMoments = useMemo(
+    () => allCulturalMoments.filter((m) =>
+      m.triggeredBy.some((t) => preferences.interests.includes(t))
+    ),
+    [preferences.interests]
+  );
+
+  // If no cultural moments match, remove that question from the list
+  const activeQuestions = useMemo(() => {
+    if (filteredMoments.length === 0) {
+      return questions.filter((q) => q.id !== 'culturalMoments');
+    }
+    return questions;
+  }, [questions, filteredMoments]);
+
+  const currentQuestion = activeQuestions[currentStep];
+  const isLastStep = currentStep === activeQuestions.length - 1;
   const isFirstStep = currentStep === 0;
 
   useEffect(() => {
@@ -59,6 +78,8 @@ export const TravelQuestionnaire = () => {
   };
 
   const canProceed = () => {
+    // Cultural moments allows empty (user uses skip link instead)
+    if (currentQuestion.id === 'culturalMoments') return true;
     const value = preferences[currentQuestion.id];
     if (Array.isArray(value)) return value.length > 0;
     if (typeof value === 'string') return value !== '';
@@ -79,13 +100,13 @@ export const TravelQuestionnaire = () => {
       transitionTimer.current = setTimeout(() => {
         setShowTransition(false);
         setDirection(1);
-        setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+        setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
       }, 1500);
       return;
     }
 
     setDirection(1);
-    setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+    setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
   };
 
   const handleBack = () => {
@@ -93,11 +114,16 @@ export const TravelQuestionnaire = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
+  const handleSkipCulturalMoments = () => {
+    setPreferences((prev) => ({ ...prev, culturalMoments: [] }));
+    setDirection(1);
+    setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
+  };
+
   const handleSkipQ2 = () => {
-    // Skip Q2, clear adventure experiences, advance
     setPreferences((prev) => ({ ...prev, adventureExperiences: [] }));
     setDirection(1);
-    setCurrentStep((prev) => Math.min(prev + 1, questions.length - 1));
+    setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
   };
 
   const renderQuestion = () => {
@@ -113,6 +139,16 @@ export const TravelQuestionnaire = () => {
               onChange={updatePreference}
               primaryInterest={preferences.primaryInterest}
               onPrimaryChange={(val) => setPreferences(prev => ({ ...prev, primaryInterest: val }))}
+            />
+          );
+        }
+        if (currentQuestion.id === 'culturalMoments') {
+          return (
+            <CulturalMomentsQuestion
+              moments={filteredMoments}
+              selected={value as string[]}
+              onChange={updatePreference}
+              onSkip={handleSkipCulturalMoments}
             />
           );
         }
@@ -175,7 +211,7 @@ export const TravelQuestionnaire = () => {
       <Header />
 
       <div className="px-4 pb-8">
-        <ProgressIndicator currentStep={currentStep} totalSteps={questions.length} />
+        <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
       <main className="flex-1 flex items-center justify-center px-4 pb-8">
@@ -190,7 +226,7 @@ export const TravelQuestionnaire = () => {
           >
             <QuestionCard
               questionNumber={currentStep + 1}
-              totalQuestions={questions.length}
+              totalQuestions={activeQuestions.length}
               questionText={currentQuestion.questionText}
               subtitle={currentQuestion.subtitle}
             >
