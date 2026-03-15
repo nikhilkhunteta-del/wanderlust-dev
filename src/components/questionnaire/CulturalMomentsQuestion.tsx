@@ -33,7 +33,7 @@ export const CulturalMomentsQuestion = ({
   onMonthChange,
 }: CulturalMomentsQuestionProps) => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  const [showOutOfWindow, setShowOutOfWindow] = useState(false);
+  
   const [monthConflict, setMonthConflict] = useState<string | null>(null);
 
   const isFlexible = travelMonth === 'flexible';
