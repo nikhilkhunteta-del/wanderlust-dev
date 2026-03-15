@@ -123,13 +123,12 @@ export const CulturalMomentsQuestion = ({
           )}
 
           {/* Dark gradient overlay */}
-          <div
-            className={`absolute inset-0 ${
-              isOutOfWindowCard
-                ? 'bg-gradient-to-t from-black/70 via-black/40 to-black/20'
-                : 'bg-gradient-to-t from-black/70 via-black/20 to-transparent'
-            }`}
-          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+          {/* Additional flat overlay for out-of-window cards */}
+          {isOutOfWindowCard && (
+            <div className="absolute inset-0 bg-black/40" />
+          )}
 
           {/* Month badge top-right */}
           <span
