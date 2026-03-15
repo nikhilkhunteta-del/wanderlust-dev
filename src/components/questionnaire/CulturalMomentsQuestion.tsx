@@ -243,12 +243,15 @@ export const CulturalMomentsQuestion = ({
               {outOfWindow.map((m) => renderCard(m, true))}
             </div>
           ) : (
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory">
-              {outOfWindow.map((m) => (
-                <div key={m.value} className="flex-none w-[280px] snap-start">
-                  {renderCard(m, true)}
-                </div>
-              ))}
+            <div className="relative">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory pr-8">
+                {outOfWindow.map((m) => (
+                  <div key={m.value} className="flex-none w-[260px] snap-start">
+                    {renderCard(m, true)}
+                  </div>
+                ))}
+              </div>
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-card to-transparent" />
             </div>
           )}
         </div>
