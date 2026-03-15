@@ -131,8 +131,15 @@ Respond with ONLY valid JSON in this exact format:
 
 INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}${culturalMomentsList ? `\nCULTURAL MOMENTS: ${culturalMomentsList} — the traveller wants to witness these specific events or festivals. Strongly prefer cities where these take place.` : ''}
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
-ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
-ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
+ADVENTURE INTENSITY: ${(() => {
+  const high = ['skydiving', 'bungee jumping', 'volcano trekking', 'river rafting', 'surfing', 'paragliding'];
+  const low = ['scenic train', 'UNESCO sites', 'cycling tours', 'hot air balloon'];
+  const types = profile.adventureTypes || [];
+  const highCount = types.filter(t => high.some(h => t.toLowerCase().includes(h))).length;
+  const lowCount = types.filter(t => low.some(l => t.toLowerCase().includes(l))).length;
+  const intensity = highCount >= 2 ? 'high' : highCount >= 1 && highCount > lowCount ? 'medium' : 'low';
+  return `${intensity} based on selected experiences: ${types.length > 0 ? types.join(', ') : 'none'}`;
+})()}
 TRAVEL MONTH: ${!profile.travelMonth || profile.travelMonth === "flexible" ? "The user is flexible on timing — prioritise destinations with year-round appeal or that are exceptional in their peak season. Include the ideal travel month in each city's rationale." : profile.travelMonth}
 TRIP DURATION: ${profile.tripDuration} days
 TRAVEL COMPANIONS: ${profile.travelCompanions || "solo"}
