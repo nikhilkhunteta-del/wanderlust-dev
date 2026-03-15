@@ -116,9 +116,13 @@ Respond with ONLY valid JSON in this exact format:
       ? profile.bucketListExperiences.join(", ")
       : null;
 
+    const culturalMomentsList = profile.culturalMoments && profile.culturalMoments.length > 0
+      ? profile.culturalMoments.join(", ")
+      : null;
+
     const userPrompt = `Find 3 destination cities for this traveller:
 
-INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}
+INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}${culturalMomentsList ? `\nCULTURAL MOMENTS: ${culturalMomentsList} — the traveller wants to witness these specific events or festivals. Strongly prefer cities where these take place.` : ''}
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
