@@ -6,12 +6,14 @@ interface QuestionCardProps {
   questionText: string;
   subtitle?: string;
   children: ReactNode;
+  footer?: ReactNode;
 }
 
 export const QuestionCard = ({
   questionText,
   subtitle,
   children,
+  footer,
 }: QuestionCardProps) => {
   return (
     <div className="question-card animate-fade-in w-full max-w-2xl mx-auto">
@@ -28,6 +30,12 @@ export const QuestionCard = ({
         </div>
 
         <div className="pt-4">{children}</div>
+
+        {footer && (
+          <div className="pt-4 border-t border-border/30">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
