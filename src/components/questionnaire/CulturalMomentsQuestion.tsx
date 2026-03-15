@@ -220,9 +220,7 @@ export const CulturalMomentsQuestion = ({
             </p>
           )}
           {inWindow.length === 1 ? (
-            <div className="flex justify-center">
-              <div className="w-[280px]">{renderCard(inWindow[0], false)}</div>
-            </div>
+            <div className="w-full">{renderCard(inWindow[0], false)}</div>
           ) : inWindow.length === 2 ? (
             <div className="grid grid-cols-2 gap-3">
               {inWindow.map((m) => renderCard(m, false))}
