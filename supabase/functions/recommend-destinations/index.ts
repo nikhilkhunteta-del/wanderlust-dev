@@ -112,7 +112,7 @@ Respond with ONLY valid JSON in this exact format:
 }`;
 
     const primaryLine = profile.primaryInterest
-      ? `\nPRIMARY INTEREST: ${profile.primaryInterest} — this is the dominant factor in city selection; other interests are secondary considerations.`
+      ? `\nPRIMARY INTEREST (treat this as 3x the weight of any secondary interest — if two cities are otherwise equal, this signal must break the tie): ${profile.primaryInterest}`
       : '';
 
     const bucketList = profile.bucketListExperiences && profile.bucketListExperiences.length > 0
