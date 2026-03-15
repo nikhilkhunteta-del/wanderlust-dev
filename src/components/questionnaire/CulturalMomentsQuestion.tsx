@@ -230,7 +230,7 @@ export const CulturalMomentsQuestion = ({
               {moment.location}
             </p>
             {moment.description && (
-              <p className={`text-[11px] italic leading-snug line-clamp-2 ${isOutOfWindowCard ? 'text-white/50' : 'text-white/60'}`}>
+              <p className={`text-[11px] italic leading-snug line-clamp-2 break-words ${isOutOfWindowCard ? 'text-white/50' : 'text-white/60'}`}>
                 {moment.description}
               </p>
             )}
