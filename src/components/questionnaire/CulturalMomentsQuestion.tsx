@@ -154,11 +154,11 @@ export const CulturalMomentsQuestion = ({
           )}
 
           {/* Text at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
-            <p className={`text-sm font-semibold leading-tight ${isOutOfWindowCard ? 'text-white/80' : 'text-white'}`}>
+          <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+            <p className={`text-base font-semibold leading-tight ${isOutOfWindowCard ? 'text-white/80' : 'text-white'}`}>
               {moment.label}
             </p>
-            <p className={`text-[11px] mt-0.5 ${isOutOfWindowCard ? 'text-white/50' : 'text-white/70'}`}>
+            <p className={`text-xs mt-1 ${isOutOfWindowCard ? 'text-white/50' : 'text-white/70'}`}>
               {moment.location}
             </p>
           </div>
