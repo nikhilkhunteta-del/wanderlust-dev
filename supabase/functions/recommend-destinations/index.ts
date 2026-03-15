@@ -88,6 +88,7 @@ TRAVEL COMPANIONS RULES:
 - Solo travellers: can handle complex, remote, or adventurous destinations
 - Couples: weight towards cities with romantic character, walkability, and quality dining
 - Groups/friends: prioritise cities with variety, nightlife options, and social experiences
+- If travelCompanions is 'family' and the user has selected a cultural moment or bucket list experience that is inappropriate or impractical for children (e.g. Running of the Bulls, Burning Man, bungee jumping), include the destination but add an honest note in the rationale flagging the tension — do not silently omit the recommendation or the concern.
 
 DISCOVERY STYLE RULES:
 - classics: recommend globally recognised cities excellent for stated interests — no obscure choices
