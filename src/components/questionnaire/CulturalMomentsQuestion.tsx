@@ -289,21 +289,13 @@ export const CulturalMomentsQuestion = ({
               In your travel window
             </p>
           )}
-          {inWindow.length === 1 ? (
-            <div className="w-full">{renderCard(inWindow[0], false)}</div>
-          ) : inWindow.length === 2 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {inWindow.map((m) => renderCard(m, false))}
-            </div>
-          ) : (
-            <ScrollableRow>
-              {inWindow.map((m) => (
-                <div key={m.value} className="flex-none w-[260px] snap-start">
-                  {renderCard(m, false)}
-                </div>
-              ))}
-            </ScrollableRow>
-          )}
+          <ScrollableRow>
+            {inWindow.map((m) => (
+              <div key={m.value} className="flex-none w-full snap-start">
+                {renderCard(m, false)}
+              </div>
+            ))}
+          </ScrollableRow>
         </div>
       )}
 
