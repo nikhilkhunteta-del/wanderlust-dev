@@ -231,52 +231,51 @@ export const TravelQuestionnaire = () => {
               totalQuestions={activeQuestions.length}
               questionText={currentQuestion.questionText}
               subtitle={currentQuestion.subtitle}
+              footer={
+                <div className="flex items-center justify-center gap-4 pt-2">
+                  <Button
+                    variant="ghost"
+                    onClick={handleBack}
+                    disabled={isFirstStep}
+                    className={cn(
+                      'gap-2 text-muted-foreground hover:text-foreground',
+                      isFirstStep && 'invisible'
+                    )}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Back
+                  </Button>
+
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed() && !canProceedQ2}
+                    className={cn(
+                      'gap-2 px-8 py-6 text-lg transition-all',
+                      (canProceed() || canProceedQ2)
+                        ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
+                        : 'bg-muted text-muted-foreground'
+                    )}
+                  >
+                    {isLastStep ? (
+                      <>
+                        Design my journey
+                        <Sparkles className="w-5 h-5" />
+                      </>
+                    ) : (
+                      <>
+                        Continue
+                        <ChevronRight className="w-5 h-5" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              }
             >
               {renderQuestion()}
             </QuestionCard>
           </motion.div>
         </AnimatePresence>
       </main>
-
-      <footer className="py-6 px-4 border-t border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            disabled={isFirstStep}
-            className={cn(
-              'gap-2 text-muted-foreground hover:text-foreground',
-              isFirstStep && 'invisible'
-            )}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Back
-          </Button>
-
-          <Button
-            onClick={handleNext}
-            disabled={!canProceed() && !canProceedQ2}
-            className={cn(
-              'gap-2 px-8 py-6 text-lg transition-all',
-              (canProceed() || canProceedQ2)
-                ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
-                : 'bg-muted text-muted-foreground'
-            )}
-          >
-            {isLastStep ? (
-              <>
-                Design my journey
-                <Sparkles className="w-5 h-5" />
-              </>
-            ) : (
-              <>
-                Continue
-                <ChevronRight className="w-5 h-5" />
-              </>
-            )}
-          </Button>
-        </div>
-      </footer>
     </div>
   );
 };
