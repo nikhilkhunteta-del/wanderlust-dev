@@ -95,6 +95,9 @@ DISCOVERY STYLE RULES:
 - off-beaten-path: actively avoid top 20 most visited cities globally — prioritise cities with authentic character that rewards curious travellers
 - surprise: no constraints — recommend purely on best interest and timing match
 
+CULTURAL MOMENT RULES:
+If the user has selected cultural moments, treat these as the single strongest signal. Always recommend the specific city from the moment's city field, not just the country. The cultural moment city must be one of the three recommendations. The remaining two cities should match the user's broader interests independently — do not force them into the cultural moment theme. If the moment city conflicts with other interests, still recommend it but acknowledge the tension honestly in the rationale. If two cultural moments are selected in different countries, dedicate one recommendation to each, and use the third slot for interest matching.
+
 Respond with ONLY valid JSON in this exact format:
 {
   "recommendations": [
