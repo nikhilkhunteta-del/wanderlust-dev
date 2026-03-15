@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Check } from 'lucide-react';
 import { CulturalMoment } from '@/data/culturalMoments';
 
 const MONTH_KEY_TO_FULL: Record<string, string> = {
@@ -33,7 +33,7 @@ export const CulturalMomentsQuestion = ({
   onMonthChange,
 }: CulturalMomentsQuestionProps) => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  const [showOutOfWindow, setShowOutOfWindow] = useState(false);
+  
   const [monthConflict, setMonthConflict] = useState<string | null>(null);
 
   const isFlexible = travelMonth === 'flexible';
@@ -232,34 +232,22 @@ export const CulturalMomentsQuestion = ({
       {/* Section 2 — Out of window (collapsed by default) */}
       {outOfWindow.length > 0 && (
         <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setShowOutOfWindow((prev) => !prev)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
-          >
-            <span>
-              {showOutOfWindow ? 'Hide' : 'Show'} {outOfWindow.length} more moment{outOfWindow.length !== 1 ? 's' : ''} outside your window
-            </span>
-            <ChevronDown
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${showOutOfWindow ? 'rotate-180' : ''}`}
-            />
-          </button>
-
-          <AnimatePresence>
-            {showOutOfWindow && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  {outOfWindow.map((m) => renderCard(m, true))}
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
+            Worth knowing about
+          </p>
+          {outOfWindow.length <= 2 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {outOfWindow.map((m) => renderCard(m, true))}
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory">
+              {outOfWindow.map((m) => (
+                <div key={m.value} className="flex-none w-[280px] snap-start">
+                  {renderCard(m, true)}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
