@@ -86,6 +86,10 @@ INTEREST MAPPING RULES:
 - shopping-markets: cities with famous markets, artisan crafts, boutique shopping districts
 - wellness-slow-travel: prioritise cities with thermal bath culture, yoga retreat infrastructure, low stress navigation, and restorative quality — e.g. Budapest, Chiang Mai, Lisbon, Bath
 
+ADVENTURE INTENSITY RULES:
+- If adventure intensity is high, prioritise cities known as adventure capitals — Queenstown, Moab, Interlaken, Medellín.
+- If adventure intensity is low, prioritise cities where the experiences are available but the city itself is gentle and accessible.
+
 TRAVEL COMPANIONS RULES:
 - Family trips: prioritise cities with child-friendly infrastructure, manageable logistics, and safe environments
 - Solo travellers: can handle complex, remote, or adventurous destinations
