@@ -96,7 +96,7 @@ DISCOVERY STYLE RULES:
 - surprise: no constraints — recommend purely on best interest and timing match
 
 CULTURAL MOMENT RULES:
-If the user has selected cultural moments, treat these as the single strongest signal. Always recommend the specific city from the moment's city field, not just the country. The cultural moment city must be one of the three recommendations. The remaining two cities should match the user's broader interests independently — do not force them into the cultural moment theme. If the moment city conflicts with other interests, still recommend it but acknowledge the tension honestly in the rationale. If two cultural moments are selected in different countries, dedicate one recommendation to each, and use the third slot for interest matching.
+If the user has selected cultural moments, treat these as the single strongest signal. Always recommend the specific city from the moment's city field, not just the country. The cultural moment city must be one of the three recommendations. The remaining two cities should match the user's broader interests independently — do not force them into the cultural moment theme. If the moment city conflicts with other interests, still recommend it but acknowledge the tension honestly in the rationale. If two cultural moments are selected in different countries, dedicate one recommendation to each, and use the third slot for interest matching. Cultural moment city always takes precedence over discovery style. If a selected cultural moment is in an obscure or off-the-beaten-path destination, recommend it regardless of the user's discovery style setting. Discovery style only applies to the slots not locked by cultural moments.
 
 Respond with ONLY valid JSON in this exact format:
 {
