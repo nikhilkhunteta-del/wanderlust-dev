@@ -311,19 +311,13 @@ export const CulturalMomentsQuestion = ({
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
             Worth knowing about
           </p>
-          {outOfWindow.length <= 2 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {outOfWindow.map((m) => renderCard(m, true))}
-            </div>
-          ) : (
-            <ScrollableRow>
-              {outOfWindow.map((m) => (
-                <div key={m.value} className="flex-none w-[260px] snap-start">
-                  {renderCard(m, true)}
-                </div>
-              ))}
-            </ScrollableRow>
-          )}
+          <ScrollableRow>
+            {outOfWindow.map((m) => (
+              <div key={m.value} className="flex-none w-full snap-start">
+                {renderCard(m, true)}
+              </div>
+            ))}
+          </ScrollableRow>
         </div>
       )}
 
