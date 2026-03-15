@@ -109,6 +109,9 @@ If the user has selected cultural moments, treat these as the single strongest s
 CULTURAL MOMENT COMPENSATION RULE:
 When one or more slots are locked by cultural moments that conflict with the user's other interests, the remaining unlocked city slots must over-deliver on those unmet signals. For example: if the locked city is landlocked but the user wants beaches, ensure at least one of the remaining cities is a beach destination. Do not spread the compromise across all three cities — compensate fully in the free slots.
 
+RESPONSE PROCESS:
+Process your response in two internal steps: first, select the 3 cities based purely on signal matching without considering how easy they are to write about. Second, write the rationale for each. Do not let the ease of writing a compelling rationale influence which city you select.
+
 Respond with ONLY valid JSON in this exact format:
 {
   "recommendations": [
