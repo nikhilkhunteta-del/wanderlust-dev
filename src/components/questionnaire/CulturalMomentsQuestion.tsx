@@ -107,7 +107,7 @@ export const CulturalMomentsQuestion = ({
               ? 'ring-2 ring-primary shadow-lg shadow-primary/20'
               : 'ring-1 ring-border/50 hover:ring-border'
           }`}
-          style={{ height: 180 }}
+          style={{ height: 320 }}
         >
           {/* Image */}
           {!hasError ? (
@@ -122,12 +122,12 @@ export const CulturalMomentsQuestion = ({
             <div className="absolute inset-0 bg-muted" />
           )}
 
-          {/* Dark gradient overlay — stronger for out-of-window */}
+          {/* Dark gradient overlay */}
           <div
             className={`absolute inset-0 ${
               isOutOfWindowCard
-                ? 'bg-gradient-to-t from-black/80 via-black/50 to-black/40'
-                : 'bg-gradient-to-t from-black/80 via-black/30 to-transparent'
+                ? 'bg-gradient-to-t from-black/70 via-black/40 to-black/20'
+                : 'bg-gradient-to-t from-black/70 via-black/20 to-transparent'
             }`}
           />
 
