@@ -113,6 +113,7 @@ export function buildTravelProfile(preferences: TravelPreferences): TravelProfil
     adventureLevel,
     adventureTypes: preferences.adventureExperiences.filter((exp) => exp !== 'none'),
     bucketListExperiences: preferences.adventureExperiences.filter((exp) => exp !== 'none'),
+    culturalMoments: preferences.culturalMoments || [],
     departureCity: preferences.departureCity,
     travelMonth: preferences.travelMonth,
     tripDuration,
