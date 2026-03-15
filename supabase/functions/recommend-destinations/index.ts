@@ -129,7 +129,7 @@ INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucke
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE TYPES: ${profile.adventureTypes.length > 0 ? profile.adventureTypes.join(", ") : "relaxed activities"}
 ADVENTURE LEVEL: ${profile.adventureLevel > 0.5 ? "high" : profile.adventureLevel > 0.25 ? "moderate" : "low"}
-TRAVEL MONTH: ${profile.travelMonth || "flexible"}
+TRAVEL MONTH: ${!profile.travelMonth || profile.travelMonth === "flexible" ? "The user is flexible on timing — prioritise destinations with year-round appeal or that are exceptional in their peak season. Include the ideal travel month in each city's rationale." : profile.travelMonth}
 TRIP DURATION: ${profile.tripDuration} days
 TRAVEL COMPANIONS: ${profile.travelCompanions || "solo"}
 DISCOVERY STYLE: ${noveltyDesc}
