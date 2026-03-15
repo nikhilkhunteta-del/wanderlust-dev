@@ -51,9 +51,11 @@ export const InterestGridQuestion = ({
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground text-center">
-        Select up to {maxSelections}
-      </p>
+      <div className="flex justify-center">
+        <span className="inline-flex items-center px-3.5 py-1 rounded-full border border-border/60 text-[13px] font-medium text-muted-foreground">
+          Select up to {maxSelections}
+        </span>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-[700px] mx-auto">
         {options.map((option) => {
           const isSelected = selected.includes(option.value);
