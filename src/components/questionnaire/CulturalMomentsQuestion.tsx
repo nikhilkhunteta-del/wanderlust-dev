@@ -122,8 +122,8 @@ export const CulturalMomentsQuestion = ({
             <div className="absolute inset-0 bg-muted" />
           )}
 
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {/* Bottom gradient overlay — tall enough for text content */}
+          <div className="absolute inset-x-0 bottom-0 h-[140px] bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
 
           {/* Additional flat overlay for out-of-window cards */}
           {isOutOfWindowCard && (
