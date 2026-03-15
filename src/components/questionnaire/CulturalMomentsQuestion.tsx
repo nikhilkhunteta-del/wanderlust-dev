@@ -154,13 +154,23 @@ export const CulturalMomentsQuestion = ({
           )}
 
           {/* Text at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+          <div className="absolute bottom-0 left-0 right-0 p-4 text-left space-y-1">
             <p className={`text-base font-semibold leading-tight ${isOutOfWindowCard ? 'text-white/80' : 'text-white'}`}>
               {moment.label}
             </p>
-            <p className={`text-xs mt-1 ${isOutOfWindowCard ? 'text-white/50' : 'text-white/70'}`}>
+            <p className={`text-xs ${isOutOfWindowCard ? 'text-white/50' : 'text-white/70'}`}>
               {moment.location}
             </p>
+            {moment.description && (
+              <p className={`text-[11px] italic leading-snug line-clamp-2 ${isOutOfWindowCard ? 'text-white/50' : 'text-white/60'}`}>
+                {moment.description}
+              </p>
+            )}
+            {moment.dateNote && (
+              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-medium backdrop-blur-sm">
+                {moment.dateNote}
+              </span>
+            )}
           </div>
         </motion.button>
 
