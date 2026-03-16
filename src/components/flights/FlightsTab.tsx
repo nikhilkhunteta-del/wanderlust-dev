@@ -285,13 +285,13 @@ export const FlightsTab = ({
 
       <div className="page-container pt-10">
         {/* Section 2: Price Feasibility Card */}
-        <PriceFeasibilityCard data={data} sym={sym} />
+        <PriceFeasibilityCard data={data} sym={sym} monthName={monthName} />
 
         {/* Gateway Route Options — shown when gateway city exists */}
         {data.gatewayAirport && (
           <>
             <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
-            <GatewayRouteOptions data={data} sym={sym} />
+            <GatewayRouteOptions data={data} sym={sym} monthName={monthName} />
           </>
         )}
 
