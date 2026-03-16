@@ -6,7 +6,6 @@ import { useCityHighlights, useHealthData } from "@/hooks/useCityData";
 import { useTabPrefetch } from "@/hooks/useTabPrefetch";
 import { Header } from "@/components/shared/Header";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
-import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
 import { SeasonalTab } from "@/components/seasonal/SeasonalTab";
 import { WeatherTab } from "@/components/weather/WeatherTab";
 import { OnTheGroundTab } from "@/components/ground/OnTheGroundTab";
@@ -15,6 +14,7 @@ import { FlightsTab } from "@/components/flights/FlightsTab";
 import { StaysTab } from "@/components/stays/StaysTab";
 import { WordOnStreetTab } from "@/components/street/WordOnStreetTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight } from "lucide-react";
 
 interface LocationState {
   city: CityRecommendation;
@@ -204,12 +204,6 @@ const CityDetail = () => {
                 🎉 Events
               </TabsTrigger>
               <TabsTrigger
-                value="itinerary"
-                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
-              >
-                🗓️ Itinerary
-              </TabsTrigger>
-              <TabsTrigger
                 value="flights"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
@@ -259,9 +253,8 @@ const CityDetail = () => {
           />
         </TabsContent>
 
-        <TabsContent value="itinerary" className="mt-0">
-          <ItineraryTab city={city} profile={profile} highlights={highlights ?? null} onSwitchTab={handleTabChange} />
-        </TabsContent>
+
+
 
         <TabsContent value="seasonal" className="mt-0">
           <SeasonalTab
@@ -330,6 +323,23 @@ const CityDetail = () => {
           />
         </TabsContent>
       </Tabs>
+
+      {/* Sticky itinerary CTA */}
+      <div className="sticky bottom-0 z-20 bg-background/95 backdrop-blur-sm border-t border-border/50 py-3">
+        <div className="page-container">
+          <button
+            onClick={() =>
+              navigate(`/itinerary/${encodeURIComponent(city.city)}`, {
+                state: { city, profile, highlights: highlights ?? null },
+              })
+            }
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-semibold gradient-sunset text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30"
+          >
+            Plan my {city.city} trip
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

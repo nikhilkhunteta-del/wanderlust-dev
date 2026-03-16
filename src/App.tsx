@@ -10,6 +10,7 @@ import CityDetail from "./pages/CityDetail";
 import Compare from "./pages/Compare";
 import NotFound from "./pages/NotFound";
 import PlanCity from "./pages/PlanCity";
+import ItineraryBuilder from "./pages/ItineraryBuilder";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/plan" element={<PlanCity />} />
           <Route path="/results" element={<Results />} />
           <Route path="/city/:cityName" element={<CityDetail />} />
+          <Route path="/itinerary/:cityName" element={<ItineraryBuilder />} />
           <Route path="/compare" element={<Compare />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
