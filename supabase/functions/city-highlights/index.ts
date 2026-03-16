@@ -36,6 +36,7 @@ interface CityHighlights {
   perfectDayNarrative: string;
   featuredExperienceIndex: number;
   experienceThemes: { themeLabel: string; experienceIndices: number[] }[];
+  tensionNote?: string;
 }
 
 serve(async (req) => {

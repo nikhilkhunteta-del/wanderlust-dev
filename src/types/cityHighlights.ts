@@ -17,6 +17,7 @@ export interface CityHighlights {
   insiderMissed?: string;
   featuredExperienceIndex?: number;
   experienceThemes?: ExperienceTheme[];
+  tensionNote?: string;
 }
 
 export interface ExperienceTheme {
