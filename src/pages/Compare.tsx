@@ -221,6 +221,61 @@ const Compare = () => {
                   onWeightChanged={handleWeightChanged}
                 />
               </div>
+              {/* Help me decide */}
+              <div className="flex flex-col items-center gap-4 pt-2">
+                {!helpDecisions && (
+                  <Button
+                    onClick={handleHelpDecide}
+                    disabled={isLoadingHelp}
+                    className="gap-2 gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25"
+                  >
+                    {isLoadingHelp ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Thinking…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Help me decide
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                <AnimatePresence>
+                  {helpDecisions && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-full max-w-2xl space-y-3"
+                    >
+                      {helpDecisions.map((d, i) => {
+                        const cityIndex = cities.findIndex(
+                          (c) => c.city.toLowerCase() === d.city.toLowerCase()
+                        );
+                        const color = CITY_COLORS[cityIndex >= 0 ? cityIndex : i];
+                        return (
+                          <div
+                            key={d.city}
+                            className="flex gap-3 items-start p-4 rounded-xl bg-card border border-border/50"
+                          >
+                            <div
+                              className="w-1 self-stretch rounded-full flex-shrink-0"
+                              style={{ backgroundColor: color }}
+                            />
+                            <div>
+                              <span className="text-sm font-semibold text-foreground">{d.city}:</span>{' '}
+                              <span className="text-sm text-muted-foreground">{d.reason}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </section>
 
             {/* 5. Comparison Table */}
