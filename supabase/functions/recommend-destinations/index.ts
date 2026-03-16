@@ -69,7 +69,7 @@ RULES:
 - DO NOT consider budget, hotel prices, or flight prices in your selection
 - Match cities based on: interests, adventure preferences, travel month weather suitability, trip duration, and travel companions
 - Ensure the three cities are meaningfully distinct in experience style
-- For each city, provide a compelling rationale (max 40 words)
+- For each city, provide a compelling rationale (max 50 words). Begin each rationale with a direct address referencing the user's stated interests or cultural moments, e.g. "You told us you wanted [primaryInterest] and a chance to witness [culturalMoment] — here's why this city delivers both." or "For a [companions] trip built around [interest], [city] is..." Make the opening personal, then explain the match.
 - Include 3-5 relevant interest tags per city
 
 FLIGHT TIME FILTER (apply as a hard filter before any other signal matching):
