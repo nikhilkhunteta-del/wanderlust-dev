@@ -53,7 +53,7 @@ const Results = () => {
   };
 
   useEffect(() => {
-    fetchRecommendations();
+    fetchRecommendations([]);
   }, []);
 
   // Prefetch images for recommended cities
