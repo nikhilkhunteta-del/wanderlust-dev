@@ -30,6 +30,20 @@ const Results = () => {
   const profile = location.state?.profile as TravelProfile | undefined;
   const previousCities = (location.state?.previousCities as string[]) || [];
 
+  const saveRecommendedCities = async (newCities: string[]) => {
+    const email = localStorage.getItem("travelquest_email");
+    if (!email) return;
+    try {
+      const merged = [...new Set([...previousCities, ...newCities])];
+      await supabase
+        .from("saved_travel_profiles" as any)
+        .update({ previous_cities: merged, updated_at: new Date().toISOString() } as any)
+        .eq("email", email);
+    } catch (err) {
+      console.error("Failed to save recommended cities:", err);
+    }
+  };
+
   const fetchRecommendations = async (excluded: string[] = []) => {
     if (!profile) {
       setError("No travel profile found. Please complete the questionnaire first.");
