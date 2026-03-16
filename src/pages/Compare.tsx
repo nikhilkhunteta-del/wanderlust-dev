@@ -29,6 +29,8 @@ const Compare = () => {
   const navigate = useNavigate();
   const state = location.state as CompareState | undefined;
   const [spiderPulse, setSpiderPulse] = useState(false);
+  const [helpDecisions, setHelpDecisions] = useState<{ city: string; reason: string }[] | null>(null);
+  const [isLoadingHelp, setIsLoadingHelp] = useState(false);
 
   useEffect(() => {
     if (!state?.cities || !state?.profile) {
