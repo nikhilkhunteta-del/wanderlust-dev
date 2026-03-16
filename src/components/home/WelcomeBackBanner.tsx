@@ -40,7 +40,9 @@ export const WelcomeBackBanner = () => {
           return;
         }
 
-        setProfileData((data as any).profile_json as SavedProfileData);
+        const profileJson = (data as any).profile_json as SavedProfileData;
+        const prevCities = ((data as any).previous_cities as string[]) || [];
+        setProfileData({ ...profileJson, previousCities: prevCities });
       } catch {
         // silently fail
       } finally {
