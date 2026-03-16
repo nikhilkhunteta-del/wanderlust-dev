@@ -173,12 +173,17 @@ export const TravelQuestionnaire = () => {
             />
           );
         }
+        const variant = currentQuestion.id === 'travelCompanions'
+          ? 'card-grid'
+          : currentQuestion.id === 'tripDuration'
+            ? 'journey-scale'
+            : 'default';
         return (
           <SingleSelectQuestion
             options={currentQuestion.options!}
             selected={value as string}
             onChange={updatePreference}
-            variant={currentQuestion.id === 'travelCompanions' ? 'card-grid' : 'default'}
+            variant={variant}
           />
         );
       case 'text-input':
