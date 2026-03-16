@@ -13,7 +13,7 @@ interface SingleSelectQuestionProps {
   options: Option[];
   selected: string;
   onChange: (value: string) => void;
-  variant?: 'default' | 'card-grid';
+  variant?: 'default' | 'card-grid' | 'journey-scale';
 }
 
 export const SingleSelectQuestion = ({
