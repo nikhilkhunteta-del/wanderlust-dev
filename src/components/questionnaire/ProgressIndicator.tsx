@@ -15,7 +15,7 @@ export const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicator
         />
       </div>
       <span className="text-xs text-muted-foreground/70 font-body tracking-wide">
-        {totalSteps} quick questions · Takes about 1 minute
+        A few quick questions · Takes about 1 minute
       </span>
     </div>
   );
