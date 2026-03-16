@@ -51,6 +51,16 @@ export const DestinationCard = ({ recommendation, onExplore, departureCity }: De
 
       {/* Content */}
       <div className="p-6 flex flex-col flex-1">
+        {/* Best months chip */}
+        {recommendation.bestMonths && (
+          <div className="flex mb-3">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium dark:bg-emerald-950/40 dark:text-emerald-400">
+              <Calendar className="w-3 h-3" />
+              Best visited: {recommendation.bestMonths}
+            </span>
+          </div>
+        )}
+
         {/* Rationale */}
         <p className="text-foreground/80 text-base leading-relaxed mb-4 flex-1">
           {recommendation.rationale}
