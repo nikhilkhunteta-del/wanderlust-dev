@@ -18,6 +18,8 @@ import { culturalMoments as allCulturalMoments } from '@/data/culturalMoments';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
+const STORAGE_KEY = 'travelquest_session';
+
 const initialPreferences: TravelPreferences = {
   interests: [],
   primaryInterest: '',
@@ -31,6 +33,38 @@ const initialPreferences: TravelPreferences = {
   noveltyPreference: '',
 };
 
+interface SavedSession {
+  step: number;
+  preferences: TravelPreferences;
+  savedAt: number;
+}
+
+const loadSession = (): SavedSession | null => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw) as SavedSession;
+    // Expire after 24 hours
+    if (Date.now() - session.savedAt > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    // Only resume if they answered at least one question
+    if (session.step === 0) return null;
+    return session;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+};
+
+const saveSession = (step: number, preferences: TravelPreferences) => {
+  const session: SavedSession = { step, preferences, savedAt: Date.now() };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+};
+
+const clearSession = () => localStorage.removeItem(STORAGE_KEY);
+
 export const TravelQuestionnaire = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -38,7 +72,41 @@ export const TravelQuestionnaire = () => {
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
   const [showTransition, setShowTransition] = useState(false);
   const [transitionMessage, setTransitionMessage] = useState<string | undefined>(undefined);
+  const [showResumePrompt, setShowResumePrompt] = useState<SavedSession | null>(null);
+  const [initialized, setInitialized] = useState(false);
   const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Check for saved session on mount
+  useEffect(() => {
+    const saved = loadSession();
+    if (saved) {
+      setShowResumePrompt(saved);
+    } else {
+      setInitialized(true);
+    }
+  }, []);
+
+  const handleResume = () => {
+    if (showResumePrompt) {
+      setPreferences(showResumePrompt.preferences);
+      setCurrentStep(showResumePrompt.step);
+      setShowResumePrompt(null);
+      setInitialized(true);
+    }
+  };
+
+  const handleStartFresh = () => {
+    clearSession();
+    setShowResumePrompt(null);
+    setInitialized(true);
+  };
+
+  // Save progress after each step change
+  useEffect(() => {
+    if (initialized) {
+      saveSession(currentStep, preferences);
+    }
+  }, [currentStep, preferences, initialized]);
 
   const questions = useMemo(
     () => buildDynamicQuestions(preferences.interests),
