@@ -231,6 +231,42 @@ export const TravelQuestionnaire = () => {
   const renderQuestion = () => {
     const value = preferences[currentQuestion.id];
 
+    // Combined month + duration step
+    if (currentQuestion.id === 'whenAndHowLong') {
+      const monthOptions = [
+        { value: 'jan', label: 'January', icon: '❄️' },
+        { value: 'feb', label: 'February', icon: '💕' },
+        { value: 'mar', label: 'March', icon: '🌱' },
+        { value: 'apr', label: 'April', icon: '🌸' },
+        { value: 'may', label: 'May', icon: '☀️' },
+        { value: 'jun', label: 'June', icon: '🌻' },
+        { value: 'jul', label: 'July', icon: '🏖️' },
+        { value: 'aug', label: 'August', icon: '🌅' },
+        { value: 'sep', label: 'September', icon: '🍂' },
+        { value: 'oct', label: 'October', icon: '🍁' },
+        { value: 'nov', label: 'November', icon: '🌧️' },
+        { value: 'dec', label: 'December', icon: '🎄' },
+        { value: 'flexible', label: "I'm Flexible", icon: '✨' },
+      ];
+      const durationOptions = [
+        { value: '3', label: 'Weekend', icon: '🌙', description: '2–3 days' },
+        { value: '5', label: 'Short break', icon: '☀️', description: '4–5 days' },
+        { value: '7', label: 'One week', icon: '✈️', description: '7 days' },
+        { value: '14', label: 'Two weeks', icon: '🗺️', description: '14 days' },
+        { value: '21', label: 'Extended trip', icon: '🌍', description: '21+ days' },
+      ];
+      return (
+        <WhenAndHowLongQuestion
+          monthOptions={monthOptions}
+          durationOptions={durationOptions}
+          selectedMonth={preferences.travelMonth}
+          selectedDuration={preferences.tripDuration}
+          onMonthChange={(m) => setPreferences(prev => ({ ...prev, travelMonth: m }))}
+          onDurationChange={(d) => setPreferences(prev => ({ ...prev, tripDuration: d }))}
+        />
+      );
+    }
+
     switch (currentQuestion.inputType) {
       case 'multi-select':
         if (currentQuestion.id === 'interests') {
@@ -265,21 +301,10 @@ export const TravelQuestionnaire = () => {
             onSkip={currentQuestion.id === 'adventureExperiences' ? handleSkipQ2 : undefined}
           />
         );
-      case 'single-select':
-        if (currentQuestion.id === 'travelMonth') {
-          return (
-            <MonthGridQuestion
-              options={currentQuestion.options!}
-              selected={value as string}
-              onChange={updatePreference}
-            />
-          );
-        }
+      case 'single-select': {
         const variant = currentQuestion.id === 'travelCompanions'
           ? 'card-grid'
-          : currentQuestion.id === 'tripDuration'
-            ? 'journey-scale'
-            : 'default';
+          : 'default';
         return (
           <SingleSelectQuestion
             options={currentQuestion.options!}
@@ -288,6 +313,7 @@ export const TravelQuestionnaire = () => {
             variant={variant}
           />
         );
+      }
       case 'text-input':
         return (
           <TextInputQuestion
