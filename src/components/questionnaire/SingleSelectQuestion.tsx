@@ -111,7 +111,7 @@ export const SingleSelectQuestion = ({
   return (
     <div className={cn(
       'flex flex-wrap justify-center gap-3',
-      hasDescriptions && 'flex-col items-center max-w-md mx-auto'
+      hasDescriptions && 'flex-col items-center max-w-lg mx-auto'
     )}>
       {options.map((option) => {
         const isSelected = selected === option.value;

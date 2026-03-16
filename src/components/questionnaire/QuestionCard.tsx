@@ -23,7 +23,7 @@ export const QuestionCard = ({
             {questionText}
           </h2>
           {subtitle && (
-            <p className="text-sm md:text-base text-muted-foreground font-body max-w-md mx-auto leading-relaxed">
+            <p className="text-sm md:text-base text-muted-foreground font-body max-w-lg mx-auto leading-relaxed">
               {subtitle}
             </p>
           )}

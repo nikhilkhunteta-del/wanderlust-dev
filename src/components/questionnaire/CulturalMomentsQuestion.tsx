@@ -280,7 +280,7 @@ export const CulturalMomentsQuestion = ({
   };
 
   return (
-    <div className="space-y-5 max-w-[600px] mx-auto">
+    <div className="space-y-5 max-w-3xl mx-auto">
       {/* Section 1 — In your travel window */}
       {inWindow.length > 0 && (
         <div className="space-y-2">
