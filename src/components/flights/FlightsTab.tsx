@@ -660,7 +660,7 @@ function PriceFeasibilityCard({ data, sym, monthName }: { data: FlightInsightsDa
 }
 
 // === Gateway Route Options ===
-function GatewayRouteOptions({ data, sym }: { data: FlightInsightsData; sym: string }) {
+function GatewayRouteOptions({ data, sym, monthName }: { data: FlightInsightsData; sym: string; monthName: string }) {
   const gw = data.gatewayAirport;
   if (!gw) return null;
 
