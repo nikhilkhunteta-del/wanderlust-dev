@@ -336,7 +336,7 @@ export const TravelQuestionnaire = () => {
     return (
       <div className="min-h-screen flex flex-col gradient-warm">
         <Header />
-        <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
+        <main className="flex-1 flex items-center justify-center px-6 md:px-20 pb-8">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
