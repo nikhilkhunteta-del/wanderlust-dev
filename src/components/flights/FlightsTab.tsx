@@ -328,6 +328,13 @@ export const FlightsTab = ({
 
       {/* Section 6: Book Your Flights CTA — dark warm background */}
       <BookFlightsCTA data={data} monthName={monthName} travelMonth={travelMonth} />
+
+      {/* Prices update daily note */}
+      <div className="page-container py-4">
+        <p className="text-center text-sm italic text-muted-foreground">
+          Prices update daily — final fares may vary at the time of booking.
+        </p>
+      </div>
     </div>
   );
 };
