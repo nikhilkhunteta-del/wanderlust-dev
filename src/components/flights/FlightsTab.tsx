@@ -176,6 +176,12 @@ function formatDisplayDate(dateString: string): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function buildGoogleFlightsUrl(originCity: string, destCity: string, monthName: string): string {
+  const year = new Date().getFullYear();
+  const q = `flights from ${originCity} to ${destCity} ${monthName} ${year}`.replace(/\s+/g, "+");
+  return `https://www.google.com/travel/flights?q=${q}`;
+}
+
 export const FlightsTab = ({
   departureCity,
   destinationCity,
@@ -279,13 +285,13 @@ export const FlightsTab = ({
 
       <div className="page-container pt-10">
         {/* Section 2: Price Feasibility Card */}
-        <PriceFeasibilityCard data={data} sym={sym} />
+        <PriceFeasibilityCard data={data} sym={sym} monthName={monthName} />
 
         {/* Gateway Route Options — shown when gateway city exists */}
         {data.gatewayAirport && (
           <>
             <div className="my-10 h-px w-full" style={{ background: "#E7E5E4" }} />
-            <GatewayRouteOptions data={data} sym={sym} />
+            <GatewayRouteOptions data={data} sym={sym} monthName={monthName} />
           </>
         )}
 
@@ -322,6 +328,13 @@ export const FlightsTab = ({
 
       {/* Section 6: Book Your Flights CTA — dark warm background */}
       <BookFlightsCTA data={data} monthName={monthName} travelMonth={travelMonth} />
+
+      {/* Prices update daily note */}
+      <div className="page-container py-4">
+        <p className="text-center text-sm italic text-muted-foreground">
+          Prices update daily — final fares may vary at the time of booking.
+        </p>
+      </div>
     </div>
   );
 };
@@ -534,7 +547,7 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
 }
 
 // === Section 2: Price Feasibility Card ===
-function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: string }) {
+function PriceFeasibilityCard({ data, sym, monthName }: { data: FlightInsightsData; sym: string; monthName: string }) {
   const pricing = data.pricing;
   const synthesis = data.synthesis;
   const showCheapestNote =
@@ -624,8 +637,22 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
         </div>
       </div>
 
+      {/* Book button */}
+      <div className="mt-6">
+        <a
+          href={buildGoogleFlightsUrl(data.route.origin.city, data.route.destination.city, monthName)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+          style={{ background: "#EA580C", color: "#FFFFFF" }}
+        >
+          Book →
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      </div>
+
       {/* Disclaimer */}
-      <p className="mt-6 text-[11px] text-muted-foreground/70">
+      <p className="mt-4 text-[11px] text-muted-foreground/70">
         Indicative pricing from live market data. Actual fares vary by booking date and availability.
       </p>
     </div>
@@ -633,7 +660,7 @@ function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: st
 }
 
 // === Gateway Route Options ===
-function GatewayRouteOptions({ data, sym }: { data: FlightInsightsData; sym: string }) {
+function GatewayRouteOptions({ data, sym, monthName }: { data: FlightInsightsData; sym: string; monthName: string }) {
   const gw = data.gatewayAirport;
   if (!gw) return null;
 
@@ -686,6 +713,16 @@ function GatewayRouteOptions({ data, sym }: { data: FlightInsightsData; sym: str
             </span>
           </div>
           <div className="flex-1" />
+          <a
+            href={buildGoogleFlightsUrl(data.route.origin.city, data.route.destination.city, monthName)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity self-start"
+            style={{ background: "#EA580C", color: "#FFFFFF" }}
+          >
+            Book →
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
 
         {/* Card B — Fly via gateway */}
@@ -727,6 +764,16 @@ function GatewayRouteOptions({ data, sym }: { data: FlightInsightsData; sym: str
             {gw.note}
           </p>
           <div className="flex-1" />
+          <a
+            href={buildGoogleFlightsUrl(data.route.origin.city, gw.city, monthName)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity self-start"
+            style={{ background: "#EA580C", color: "#FFFFFF" }}
+          >
+            Book →
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
       </div>
 
