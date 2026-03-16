@@ -29,6 +29,7 @@ interface CityRecommendation {
   rationale: string;
   tags: string[];
   imageQuery: string;
+  estimatedFlightHours: number;
 }
 
 serve(async (req) => {
