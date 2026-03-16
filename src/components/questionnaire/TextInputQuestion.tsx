@@ -187,7 +187,7 @@ export const TextInputQuestion = ({
           </button>
         </p>
       ) : (
-        <div className="flex flex-col items-center gap-3 mt-3">
+        <div className="flex flex-col items-center mt-3">
           {enableGeolocation && (
             <button
               type="button"
@@ -203,9 +203,6 @@ export const TextInputQuestion = ({
               {detecting ? 'Detecting…' : 'Detect my location'}
             </button>
           )}
-          <p className="text-sm text-muted-foreground text-center">
-            Start typing to see suggestions, or enter any city
-          </p>
         </div>
       )}
     </div>
