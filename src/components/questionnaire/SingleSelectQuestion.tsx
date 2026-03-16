@@ -25,8 +25,9 @@ export const SingleSelectQuestion = ({
   if (variant === 'card-grid') {
     return (
       <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
-        {options.map((option) => {
+        {options.map((option, index) => {
           const isSelected = selected === option.value;
+          const isLastOdd = options.length % 2 !== 0 && index === options.length - 1;
           return (
             <motion.button
               key={option.value}
@@ -36,6 +37,7 @@ export const SingleSelectQuestion = ({
               className={cn(
                 'relative flex flex-col items-center justify-center text-center rounded-xl px-3 py-4 cursor-pointer transition-all duration-200',
                 'min-h-[80px]',
+                isLastOdd && 'col-span-2',
                 isSelected
                   ? 'ring-2 ring-primary bg-primary/10 shadow-md shadow-primary/10'
                   : 'ring-1 ring-border/50 bg-card/50 hover:ring-border hover:bg-card/80'
