@@ -145,6 +145,15 @@
 }
 
 @layer components {
+  .page-container {
+    @apply w-full px-4 md:px-6;
+  }
+
+  @media (min-width: 1400px) {
+    .page-container {
+      @apply max-w-[1200px] mx-auto;
+    }
+  }
   .option-chip {
     @apply px-4 py-2.5 rounded-full border-2 border-border bg-card text-foreground 
            font-medium transition-all duration-150 ease-out cursor-pointer select-none
