@@ -40,7 +40,7 @@ export const WhenAndHowLongQuestion = ({
   const insight = selectedMonth ? MONTH_INSIGHTS[selectedMonth] : null;
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* Month grid */}
       <div
         className="grid grid-cols-3 md:grid-cols-4 gap-2"

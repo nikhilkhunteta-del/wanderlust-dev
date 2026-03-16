@@ -40,7 +40,7 @@ export const MonthGridQuestion = ({
   const insight = selected ? MONTH_INSIGHTS[selected] : null;
 
   return (
-    <div className="space-y-5 max-w-2xl mx-auto">
+    <div className="space-y-5 w-full">
       {/* Month grid — 4 columns on md, 3 on small */}
       <div
         className="grid grid-cols-3 md:grid-cols-4 gap-2"

@@ -336,7 +336,7 @@ export const TravelQuestionnaire = () => {
     return (
       <div className="min-h-screen flex flex-col gradient-warm">
         <Header />
-        <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
+        <main className="flex-1 flex items-center justify-center px-6 md:px-20 pb-8">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -378,7 +378,7 @@ export const TravelQuestionnaire = () => {
     return (
       <div className="min-h-screen flex flex-col gradient-warm">
         <Header />
-        <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
+        <main className="flex-1 flex items-center justify-center px-6 md:px-20 pb-8">
           <TransitionCard interests={preferences.interests} message={transitionMessage} />
         </main>
       </div>
@@ -389,11 +389,11 @@ export const TravelQuestionnaire = () => {
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
 
-      <div className="px-6 md:px-16 pb-8">
+      <div className="px-6 md:px-20 pb-4">
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
-      <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 md:px-20 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={`${currentStep}-${currentQuestion.id}`}
@@ -402,6 +402,7 @@ export const TravelQuestionnaire = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: direction > 0 ? -12 : 12 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="w-full"
           >
             <QuestionCard
               questionNumber={currentStep + 1}
