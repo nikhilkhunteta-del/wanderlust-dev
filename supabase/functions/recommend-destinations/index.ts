@@ -190,6 +190,7 @@ Remember: Return exactly 3 cities from different countries, matched by interests
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
+          response_format: { type: "json_object" },
         }),
       });
 
