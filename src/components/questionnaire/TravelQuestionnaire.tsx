@@ -222,7 +222,7 @@ export const TravelQuestionnaire = () => {
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
-      <main className="flex-1 flex items-center justify-center px-4 pb-8">
+      <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={`${currentStep}-${currentQuestion.id}`}

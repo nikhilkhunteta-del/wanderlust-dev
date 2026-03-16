@@ -16,7 +16,7 @@ export const QuestionCard = ({
   footer,
 }: QuestionCardProps) => {
   return (
-    <div className="question-card animate-fade-in w-full max-w-2xl mx-auto">
+    <div className="question-card animate-fade-in w-full">
       <div className="space-y-6">
         <div className="text-center space-y-3">
           <h2 className="text-2xl md:text-3xl font-display font-semibold text-foreground">

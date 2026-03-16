@@ -156,8 +156,8 @@
   }
 
   .question-card {
-    @apply bg-card rounded-2xl p-8 border border-border/50;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    @apply p-0 border-0 bg-transparent rounded-none;
+    box-shadow: none;
   }
 
   .progress-step {
