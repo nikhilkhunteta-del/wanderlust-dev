@@ -86,7 +86,7 @@ const Results = () => {
     <div className="min-h-screen gradient-warm">
       <Header rightContent="Your Destinations" />
 
-      <main className="max-w-6xl mx-auto px-4 py-12">
+      <main className="page-container py-12">
         {/* Intro Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4">

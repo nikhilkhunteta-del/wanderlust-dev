@@ -112,7 +112,7 @@ const Compare = () => {
         </button>
       } />
 
-      <main className="max-w-5xl mx-auto px-4 py-10 space-y-10">
+      <main className="page-container py-10 space-y-10">
         {/* 1. Header */}
         <section className="text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-display font-semibold text-foreground">

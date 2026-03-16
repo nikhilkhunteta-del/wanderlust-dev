@@ -289,7 +289,7 @@ const PlanCity = () => {
       </main>
 
       <footer className="py-6 px-4 border-t border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="page-container flex items-center justify-between">
           <Button
             variant="ghost"
             onClick={handleBack}
