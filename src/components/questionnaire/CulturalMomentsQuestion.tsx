@@ -103,7 +103,6 @@ export const CulturalMomentsQuestion = ({
               : 'border-border/50 hover:border-border hover:shadow-md bg-card'
           }`}
         >
-        >
           {/* Image top half */}
           <div className="relative w-full aspect-[16/10] overflow-hidden">
             {!hasError ? (
