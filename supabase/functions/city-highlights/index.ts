@@ -36,6 +36,7 @@ interface CityHighlights {
   perfectDayNarrative: string;
   featuredExperienceIndex: number;
   experienceThemes: { themeLabel: string; experienceIndices: number[] }[];
+  tensionNote?: string;
 }
 
 serve(async (req) => {
@@ -91,7 +92,8 @@ Respond with ONLY valid JSON in this exact format:
     { "themeLabel": "For your love of culture", "experienceIndices": [0, 2] }
   ],
   "vibeTags": ["3-5 short tags specific enough to only make sense for THIS city — capture contrasts and textures that someone who has visited would nod at, e.g. 'Mughal grandeur meets bazaar chaos', 'auto-rickshaw roulette', 'spice-cloud alleyways'. NEVER use generic descriptors like 'cultural immersion', 'historical depth', 'relaxed pace'."],
-  "heroImageQuery": "descriptive search term for the city's most iconic scenic view"
+  "heroImageQuery": "descriptive search term for the city's most iconic scenic view",
+  "tensionNote": "(OPTIONAL — only include if there is a genuine tension between the traveller's profile and this destination. For example: a family trip to a city known for intense nightlife, or a cultural moment that involves physical risk. One honest sentence flagging the tension and offering practical guidance. Omit this field entirely if no tension exists.)"
 }`;
 
     const hasChildren = requestData.groupType === 'family' || (requestData.travelCompanions || '').toLowerCase().includes('child');
