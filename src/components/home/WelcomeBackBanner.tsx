@@ -11,6 +11,7 @@ interface SavedProfileData {
   primaryInterest?: string;
   travelCompanions?: string;
   noveltyPreference?: string;
+  previousCities?: string[];
 }
 
 export const WelcomeBackBanner = () => {
