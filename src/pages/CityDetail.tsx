@@ -6,7 +6,6 @@ import { useCityHighlights, useHealthData } from "@/hooks/useCityData";
 import { useTabPrefetch } from "@/hooks/useTabPrefetch";
 import { Header } from "@/components/shared/Header";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
-import { ItineraryTab } from "@/components/itinerary/ItineraryTab";
 import { SeasonalTab } from "@/components/seasonal/SeasonalTab";
 import { WeatherTab } from "@/components/weather/WeatherTab";
 import { OnTheGroundTab } from "@/components/ground/OnTheGroundTab";
@@ -15,6 +14,7 @@ import { FlightsTab } from "@/components/flights/FlightsTab";
 import { StaysTab } from "@/components/stays/StaysTab";
 import { WordOnStreetTab } from "@/components/street/WordOnStreetTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight } from "lucide-react";
 
 interface LocationState {
   city: CityRecommendation;
