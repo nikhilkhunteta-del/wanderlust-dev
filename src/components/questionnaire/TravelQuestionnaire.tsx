@@ -238,42 +238,67 @@ export const TravelQuestionnaire = () => {
               questionText={currentQuestion.questionText}
               subtitle={currentQuestion.subtitle}
               footer={
-                <div className="flex items-center justify-center gap-4 pt-2">
-                  <Button
-                    variant="ghost"
-                    onClick={handleBack}
-                    disabled={isFirstStep}
-                    className={cn(
-                      'gap-2 text-muted-foreground hover:text-foreground',
-                      isFirstStep && 'invisible'
-                    )}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Back
-                  </Button>
-
-                  <Button
-                    onClick={handleNext}
-                    disabled={!canProceed() && !canProceedQ2}
-                    className={cn(
-                      'gap-2 px-8 py-6 text-lg transition-all',
-                      (canProceed() || canProceedQ2)
-                        ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
-                        : 'bg-muted text-muted-foreground'
-                    )}
-                  >
-                    {isLastStep ? (
-                      <>
+                <div className={cn(
+                  'flex items-center pt-2',
+                  isLastStep && canProceed() ? 'flex-col gap-3' : 'justify-center gap-4'
+                )}>
+                  {isLastStep && canProceed() ? (
+                    <>
+                      <Button
+                        onClick={handleNext}
+                        className="w-full h-[52px] gap-3 text-lg gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25 transition-all"
+                      >
                         Design my journey
-                        <Sparkles className="w-5 h-5" />
-                      </>
-                    ) : (
-                      <>
-                        Continue
-                        <ChevronRight className="w-5 h-5" />
-                      </>
-                    )}
-                  </Button>
+                        <Sparkles className="w-5 h-5 animate-[shimmer_2s_ease-in-out_infinite]" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={handleBack}
+                        className="gap-2 text-muted-foreground hover:text-foreground"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        onClick={handleBack}
+                        disabled={isFirstStep}
+                        className={cn(
+                          'gap-2 text-muted-foreground hover:text-foreground',
+                          isFirstStep && 'invisible'
+                        )}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                      </Button>
+
+                      <Button
+                        onClick={handleNext}
+                        disabled={!canProceed() && !canProceedQ2}
+                        className={cn(
+                          'gap-2 px-8 py-6 text-lg transition-all',
+                          (canProceed() || canProceedQ2)
+                            ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
+                            : 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {isLastStep ? (
+                          <>
+                            Design my journey
+                            <Sparkles className="w-5 h-5" />
+                          </>
+                        ) : (
+                          <>
+                            Continue
+                            <ChevronRight className="w-5 h-5" />
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  )}
                 </div>
               }
             >
