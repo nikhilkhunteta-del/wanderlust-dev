@@ -178,6 +178,7 @@ export const TravelQuestionnaire = () => {
             options={currentQuestion.options!}
             selected={value as string}
             onChange={updatePreference}
+            variant={currentQuestion.id === 'travelCompanions' ? 'card-grid' : 'default'}
           />
         );
       case 'text-input':
