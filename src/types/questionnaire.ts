@@ -9,6 +9,8 @@ export interface TravelPreferences {
   travelCompanions: string;
   tripDuration: string;
   noveltyPreference: string;
+  // Virtual key for combined step — not stored, just used for question routing
+  whenAndHowLong?: string;
 }
 
 export interface QuestionConfig {
