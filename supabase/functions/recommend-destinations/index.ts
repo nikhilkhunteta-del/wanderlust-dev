@@ -30,6 +30,7 @@ interface CityRecommendation {
   tags: string[];
   imageQuery: string;
   estimatedFlightHours: number;
+  bestMonths?: string;
 }
 
 serve(async (req) => {
