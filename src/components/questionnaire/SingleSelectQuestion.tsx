@@ -24,7 +24,7 @@ export const SingleSelectQuestion = ({
 }: SingleSelectQuestionProps) => {
   if (variant === 'journey-scale') {
     return (
-      <div className="grid grid-cols-5 gap-2 w-full max-w-2xl mx-auto max-[640px]:grid-cols-2">
+      <div className="grid grid-cols-5 gap-2 w-full max-w-3xl mx-auto max-[640px]:grid-cols-2">
         {options.map((option, index) => {
           const isSelected = selected === option.value;
           const isLastOdd = options.length % 2 !== 0 && index === options.length - 1;
