@@ -18,10 +18,12 @@ const Results = () => {
   const [recommendations, setRecommendations] = useState<CityRecommendation[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [excludedCities, setExcludedCities] = useState<string[]>([]);
+  const [replacingCity, setReplacingCity] = useState<string | null>(null);
 
   const profile = location.state?.profile as TravelProfile | undefined;
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = async (excluded: string[] = []) => {
     if (!profile) {
       setError("No travel profile found. Please complete the questionnaire first.");
       setIsLoading(false);
@@ -32,14 +34,22 @@ const Results = () => {
     setError(null);
 
     try {
-      const results = await getDestinationRecommendations(profile);
+      const results = await getDestinationRecommendations(profile, excluded.length > 0 ? excluded : undefined);
       setRecommendations(results);
     } catch (err) {
       console.error("Failed to fetch recommendations:", err);
       setError(err instanceof Error ? err.message : "Failed to get recommendations");
     } finally {
       setIsLoading(false);
+      setReplacingCity(null);
     }
+  };
+
+  const handleBeenHere = async (cityName: string) => {
+    const newExcluded = [...excludedCities, cityName];
+    setExcludedCities(newExcluded);
+    setReplacingCity(cityName);
+    await fetchRecommendations(newExcluded);
   };
 
   useEffect(() => {
