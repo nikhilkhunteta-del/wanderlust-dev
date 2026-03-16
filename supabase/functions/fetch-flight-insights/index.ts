@@ -635,7 +635,8 @@ serve(async (req) => {
       );
     }
 
-    const originKey = originCity.toLowerCase().trim();
+    // Strip country suffix (e.g. "London, UK" → "london") before airport lookup
+    const originKey = originCity.toLowerCase().trim().replace(/,.*$/, '').trim();
     const originAirports = CITY_AIRPORTS[originKey];
     if (!originAirports) {
       return new Response(
