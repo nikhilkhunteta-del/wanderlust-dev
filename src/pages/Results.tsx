@@ -9,8 +9,11 @@ import { ResultsLoading } from "@/components/results/ResultsLoading";
 import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, RefreshCw, ArrowRight, Sparkles, Check } from "lucide-react";
 import { usePrefetchCityImages } from "@/hooks/useImagePack";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const Results = () => {
   const location = useLocation();
