@@ -425,7 +425,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: direction > 0 ? -12 : 12 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="w-full"
+            className="w-full max-w-none"
           >
             <QuestionCard
               questionNumber={currentStep + 1}
