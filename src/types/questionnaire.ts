@@ -214,7 +214,7 @@ export const QUESTIONS: QuestionConfig[] = [
   {
     id: 'travelCompanions',
     questionText: "Who's joining you?",
-    subtitle: 'Your travel companions shape the kind of experience we recommend.',
+    subtitle: 'Your companions shape every recommendation we make.',
     inputType: 'single-select',
     options: [
       { value: 'solo', label: 'Solo Adventure', icon: '🎒', description: 'Just you, total freedom' },
