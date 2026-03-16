@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import { CityHighlights } from "@/types/cityHighlights";
 import { HighlightsHero } from "./HighlightsHero";
 import { PersonalMatchSection } from "./PersonalMatchSection";
