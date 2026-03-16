@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { CulturalMoment } from '@/data/culturalMoments';
 
 const MONTH_KEY_TO_FULL: Record<string, string> = {
@@ -13,77 +13,6 @@ const MONTH_FULL_TO_LABEL: Record<string, string> = {
   january: 'January', february: 'February', march: 'March', april: 'April',
   may: 'May', june: 'June', july: 'July', august: 'August',
   september: 'September', october: 'October', november: 'November', december: 'December',
-};
-
-const ScrollableRow = ({ children }: { children: React.ReactNode }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  const checkScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-  }, []);
-
-  useEffect(() => {
-    checkScroll();
-    const el = scrollRef.current;
-    if (!el) return;
-    el.addEventListener('scroll', checkScroll, { passive: true });
-    const ro = new ResizeObserver(checkScroll);
-    ro.observe(el);
-    return () => { el.removeEventListener('scroll', checkScroll); ro.disconnect(); };
-  }, [checkScroll, children]);
-
-  const scroll = (dir: number) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' });
-  };
-
-  return (
-    <div className="relative group">
-      <div
-        ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin snap-x snap-mandatory pr-8"
-      >
-        {children}
-      </div>
-
-      {/* Right fade */}
-      {canScrollRight && (
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-card to-transparent" />
-      )}
-      {/* Left fade */}
-      {canScrollLeft && (
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-card to-transparent" />
-      )}
-
-      {/* Left arrow */}
-      {canScrollLeft && (
-        <button
-          type="button"
-          onClick={() => scroll(-1)}
-          className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-      )}
-
-      {/* Right arrow */}
-      {canScrollRight && (
-        <button
-          type="button"
-          onClick={() => scroll(1)}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      )}
-    </div>
-  );
 };
 
 interface CulturalMomentsQuestionProps {
@@ -104,7 +33,6 @@ export const CulturalMomentsQuestion = ({
   onMonthChange,
 }: CulturalMomentsQuestionProps) => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  
   const [monthConflict, setMonthConflict] = useState<string | null>(null);
 
   const isFlexible = travelMonth === 'flexible';
@@ -124,21 +52,17 @@ export const CulturalMomentsQuestion = ({
       if (monthConflict === value) setMonthConflict(null);
       return;
     }
-
     if (selected.length >= 2) return;
 
     if (isOutOfWindow) {
-      // Show conflict prompt instead of immediately selecting
       setMonthConflict(value);
       onChange([...selected, value]);
       return;
     }
-
     onChange([...selected, value]);
   };
 
   const handleConfirmMonthChange = (moment: CulturalMoment) => {
-    // Find the first month of this moment and convert to short key
     const momentFullMonth = moment.months[0];
     const shortKey = Object.entries(MONTH_KEY_TO_FULL).find(
       ([, full]) => full === momentFullMonth
@@ -173,71 +97,64 @@ export const CulturalMomentsQuestion = ({
           type="button"
           onClick={() => toggleMoment(moment.value, isOutOfWindowCard)}
           whileTap={{ scale: 0.97 }}
-          className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+          className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-card border ${
             isSelected
-              ? 'ring-2 ring-primary shadow-lg shadow-primary/20'
-              : 'ring-1 ring-border/50 hover:ring-border'
+              ? 'ring-2 ring-primary shadow-lg shadow-primary/20 border-primary'
+              : 'border-border/50 hover:border-border hover:shadow-md'
           }`}
-          style={{ height: 320 }}
+          style={isOutOfWindowCard ? { opacity: 0.6 } : undefined}
         >
-          {/* Image */}
-          {!hasError ? (
-            <img
-              src={moment.image.url}
-              alt={moment.label}
-              className="absolute inset-0 w-full h-full object-cover"
-              loading="lazy"
-              onError={() => handleImageError(moment.value)}
-            />
-          ) : (
-            <div className="absolute inset-0 bg-muted" />
-          )}
+          {/* Image top half */}
+          <div className="relative w-full aspect-[16/10] overflow-hidden">
+            {!hasError ? (
+              <img
+                src={moment.image.url}
+                alt={moment.label}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+                onError={() => handleImageError(moment.value)}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-muted" />
+            )}
 
-          {/* Bottom gradient overlay — tall enough for text content */}
-          <div className="absolute inset-x-0 bottom-0 h-[140px] bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+            {/* Selected checkmark */}
+            {isSelected && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md"
+              >
+                <Check className="w-4 h-4 text-primary-foreground" />
+              </motion.div>
+            )}
+          </div>
 
-          {/* Additional flat overlay for out-of-window cards */}
-          {isOutOfWindowCard && (
-            <div className="absolute inset-0 bg-black/40" />
-          )}
-
-          {/* Month badge top-right */}
-          <span
-            className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-[11px] font-medium backdrop-blur-sm ${
-              isOutOfWindowCard
-                ? 'bg-black/50 text-white/60'
-                : 'bg-emerald-600/80 text-white'
-            }`}
-          >
-            {formatMonth(moment.months)}
-          </span>
-
-          {/* Selected checkmark overlay */}
-          {isSelected && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="absolute top-2 left-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center"
-            >
-              <Check className="w-3.5 h-3.5 text-primary-foreground" />
-            </motion.div>
-          )}
-
-          {/* Text at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-left space-y-1">
-            <p className={`text-base font-semibold leading-tight ${isOutOfWindowCard ? 'text-white/80' : 'text-white'}`}>
-              {moment.label}
-            </p>
-            <p className={`text-xs ${isOutOfWindowCard ? 'text-white/50' : 'text-white/70'}`}>
-              {moment.location}
-            </p>
+          {/* Text bottom half */}
+          <div className="p-3.5 space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-semibold leading-tight text-foreground">
+                {moment.label}
+              </p>
+              {/* Month badge chip */}
+              <span
+                className={`flex-none px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                  isOutOfWindowCard
+                    ? 'bg-muted text-muted-foreground'
+                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                }`}
+              >
+                {formatMonth(moment.months)}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">{moment.location}</p>
             {moment.description && (
-              <p className={`text-[11px] italic leading-snug line-clamp-2 break-words ${isOutOfWindowCard ? 'text-white/50' : 'text-white/60'}`}>
+              <p className="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">
                 {moment.description}
               </p>
             )}
             {moment.dateNote && (
-              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-medium backdrop-blur-sm">
+              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-medium">
                 {moment.dateNote}
               </span>
             )}
@@ -281,6 +198,9 @@ export const CulturalMomentsQuestion = ({
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
+      {/* Instruction */}
+      <p className="text-xs text-muted-foreground text-center">Select up to 2</p>
+
       {/* Section 1 — In your travel window */}
       {inWindow.length > 0 && (
         <div className="space-y-2">
@@ -289,36 +209,30 @@ export const CulturalMomentsQuestion = ({
               In your travel window
             </p>
           )}
-          <ScrollableRow>
-            {inWindow.map((m) => (
-              <div key={m.value} className="flex-none w-full snap-start">
-                {renderCard(m, false)}
-              </div>
-            ))}
-          </ScrollableRow>
+          <div className="max-h-[500px] overflow-y-auto scrollbar-thin pr-1">
+            <div className="grid grid-cols-2 gap-3">
+              {inWindow.map((m) => renderCard(m, false))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Section 2 — Out of window (collapsed by default) */}
+      {/* Section 2 — Out of window */}
       {outOfWindow.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
             Worth knowing about
           </p>
-          <ScrollableRow>
-            {outOfWindow.map((m) => (
-              <div key={m.value} className="flex-none w-full snap-start">
-                {renderCard(m, true)}
-              </div>
-            ))}
-          </ScrollableRow>
+          <div className="grid grid-cols-2 gap-3">
+            {outOfWindow.map((m) => renderCard(m, true))}
+          </div>
         </div>
       )}
 
-      {/* Empty state — all moments are out of window and none in window */}
+      {/* Empty state */}
       {inWindow.length === 0 && outOfWindow.length > 0 && (
         <p className="text-sm text-muted-foreground text-center py-4">
-          No cultural moments match your travel month — expand below to explore other options.
+          No cultural moments match your travel month — explore other options below.
         </p>
       )}
 
