@@ -13,6 +13,7 @@ import { OnTheGroundTab } from "@/components/ground/OnTheGroundTab";
 import { HealthNoticesTab } from "@/components/health/HealthNoticesTab";
 import { FlightsTab } from "@/components/flights/FlightsTab";
 import { StaysTab } from "@/components/stays/StaysTab";
+import { WordOnStreetTab } from "@/components/street/WordOnStreetTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LocationState {
