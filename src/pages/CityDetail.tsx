@@ -318,6 +318,10 @@ const CityDetail = () => {
           />
         </TabsContent>
 
+        <TabsContent value="street" className="mt-0">
+          <WordOnStreetTab city={city.city} country={city.country} />
+        </TabsContent>
+
         <TabsContent value="health" className="mt-0">
           <HealthNoticesTab
             city={city.city}
