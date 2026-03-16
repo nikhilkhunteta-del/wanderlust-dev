@@ -24,7 +24,7 @@ export const SingleSelectQuestion = ({
 }: SingleSelectQuestionProps) => {
   if (variant === 'journey-scale') {
     return (
-      <div className="grid grid-cols-5 gap-2 w-full max-w-2xl mx-auto max-[640px]:grid-cols-2">
+      <div className="grid grid-cols-5 gap-2 w-full max-w-3xl mx-auto max-[640px]:grid-cols-2">
         {options.map((option, index) => {
           const isSelected = selected === option.value;
           const isLastOdd = options.length % 2 !== 0 && index === options.length - 1;
@@ -66,7 +66,7 @@ export const SingleSelectQuestion = ({
 
   if (variant === 'card-grid') {
     return (
-      <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
+      <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto">
         {options.map((option, index) => {
           const isSelected = selected === option.value;
           const isLastOdd = options.length % 2 !== 0 && index === options.length - 1;
@@ -111,7 +111,7 @@ export const SingleSelectQuestion = ({
   return (
     <div className={cn(
       'flex flex-wrap justify-center gap-3',
-      hasDescriptions && 'flex-col items-center max-w-md mx-auto'
+      hasDescriptions && 'flex-col items-center max-w-lg mx-auto'
     )}>
       {options.map((option) => {
         const isSelected = selected === option.value;
