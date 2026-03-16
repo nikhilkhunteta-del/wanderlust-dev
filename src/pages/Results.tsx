@@ -10,7 +10,7 @@ import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, RefreshCw, ArrowRight, Sparkles, Check } from "lucide-react";
+import { ArrowLeft, RefreshCw, ArrowRight, Sparkles, Check, Plane, ExternalLink } from "lucide-react";
 import { usePrefetchCityImages } from "@/hooks/useImagePack";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -158,6 +158,22 @@ const Results = () => {
             </div>
           ))}
         </div>
+
+        {/* Quick flights nudge */}
+        {profile?.departureCity && recommendations.length > 0 && (
+          <div className="text-center mb-12">
+            <a
+              href={`https://www.google.com/travel/flights?q=${encodeURIComponent(`flights from ${profile.departureCity} to ${recommendations[0].city} ${profile.travelMonth || ''}`.trim()).replace(/%20/g, '+')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+            >
+              <Plane className="w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+              <span>See flights from {profile.departureCity} to {recommendations[0].city}</span>
+              <ExternalLink className="w-3 h-3 opacity-50" />
+            </a>
+          </div>
+        )}
 
         {/* Save Travel Profile */}
         {profile && !isSaved && (
