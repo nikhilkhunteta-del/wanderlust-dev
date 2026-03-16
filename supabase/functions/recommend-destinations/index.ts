@@ -149,6 +149,10 @@ BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" fi
       ? `\nEXCLUDED CITIES: ${excludedCities.map(c => `User has already visited ${c} — exclude it`).join('. ')}. Do NOT recommend any of these cities.`
       : '';
 
+    const previousCitiesLine = previouslyRecommendedCities && previouslyRecommendedCities.length > 0
+      ? `\nPREVIOUSLY RECOMMENDED: The user has previously been recommended ${previouslyRecommendedCities.join(', ')}. Prioritise recommending cities they have not seen before while still matching their interests. Only re-recommend a previously seen city if it is genuinely the best match and no comparable alternative exists.`
+      : '';
+
     const userPrompt = `Find 3 destination cities for this traveller:
 
 INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}${culturalMomentsList ? `\nCULTURAL MOMENTS: ${culturalMomentsList} — the traveller wants to witness these specific events or festivals. Strongly prefer cities where these take place.` : ''}
