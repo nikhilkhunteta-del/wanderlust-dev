@@ -272,12 +272,12 @@ export const FlightsTab = ({
     <div className="pb-16">
       {/* Section 1: Route Header — warm gradient hero */}
       <div style={{ background: "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)" }} className="py-12">
-        <div className="max-w-4xl mx-auto px-4 md:px-6">
+        <div className="page-container">
           <RouteHeader data={data} sym={sym} />
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-10">
+      <div className="page-container pt-10">
         {/* Section 2: Price Feasibility Card */}
         <PriceFeasibilityCard data={data} sym={sym} />
 
@@ -1170,7 +1170,7 @@ function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsights
 
   return (
     <div className="mt-12" style={{ background: "#1C1917" }}>
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-12">
+      <div className="page-container py-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           {/* Left side */}
           <div>

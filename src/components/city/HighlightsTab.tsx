@@ -76,7 +76,7 @@ export const HighlightsTab = ({
       />
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 space-y-0">
+      <div className="page-container py-12 space-y-0">
         {/* 1. Personal match reasons */}
         <PersonalMatchSection
           city={city}

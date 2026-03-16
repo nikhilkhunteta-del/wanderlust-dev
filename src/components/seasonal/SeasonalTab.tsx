@@ -106,7 +106,7 @@ export const SeasonalTab = ({
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 pt-7 pb-12">
+    <div className="page-container pt-7 pb-12">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between gap-3 mb-4">
