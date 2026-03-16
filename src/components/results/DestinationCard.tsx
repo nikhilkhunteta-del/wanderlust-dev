@@ -63,7 +63,7 @@ export const DestinationCard = ({ recommendation, onExplore, departureCity }: De
 
         {/* Rationale */}
         <p className="text-foreground/80 text-base leading-relaxed mb-4 flex-1">
-          {recommendation.rationale}
+          {stripMarkdown(recommendation.rationale)}
         </p>
 
         {/* Tags */}
