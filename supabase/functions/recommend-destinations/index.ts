@@ -169,7 +169,7 @@ DISCOVERY STYLE: ${noveltyDesc}
 STYLE TAGS (inferred travel personality traits e.g. "cultural-explorer", "thrill-seeker", "slow-traveller", "foodie", "beach-lover" — use to fine-tune city vibe matching): ${profile.styleTags.length > 0 ? profile.styleTags.join(", ") : "none inferred"}
 
 IMPORTANT: For "off-beaten-path" or "surprise" discovery styles, prioritise cities with lower mainstream tourist footfall over world-famous hotspots.
-Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and discovery preference.`;
+Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and discovery preference.${excludedLine}`;
 
     console.log("Sending prompt to AI gateway...");
 
