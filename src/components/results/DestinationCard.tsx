@@ -4,6 +4,23 @@ import { ArrowRight, Plane, Calendar } from "lucide-react";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
 import { stripMarkdown } from "@/lib/stripMarkdown";
 
+const TAG_LABELS: Record<string, string> = {
+  'culture-history': 'Culture & History',
+  'nature-outdoors': 'Nature & Outdoors',
+  'beach-coastal': 'Beach & Coastal',
+  'food-culinary': 'Food & Culinary',
+  'arts-music-nightlife': 'Arts, Music & Nightlife',
+  'active-sport': 'Active & Sport',
+  'shopping-markets': 'Shopping & Markets',
+  'wellness-slow-travel': 'Wellness & Slow Travel',
+};
+
+const humanizeTag = (tag: string): string => {
+  const lower = tag.toLowerCase();
+  if (TAG_LABELS[lower]) return TAG_LABELS[lower];
+  return tag.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+};
+
 interface DestinationCardProps {
   recommendation: CityRecommendation;
   onExplore: () => void;
