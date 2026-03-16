@@ -37,6 +37,7 @@ export const TravelQuestionnaire = () => {
   const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
   const [showTransition, setShowTransition] = useState(false);
+  const [transitionMessage, setTransitionMessage] = useState<string | undefined>(undefined);
   const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const questions = useMemo(
@@ -96,6 +97,7 @@ export const TravelQuestionnaire = () => {
 
     // Show transition after Q1 (interests)
     if (currentStep === 0) {
+      setTransitionMessage(undefined);
       setShowTransition(true);
       transitionTimer.current = setTimeout(() => {
         setShowTransition(false);
@@ -103,6 +105,32 @@ export const TravelQuestionnaire = () => {
         setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
       }, 1500);
       return;
+    }
+
+    // Show transition after cultural moments if user selected one
+    if (currentQuestion.id === 'culturalMoments' && preferences.culturalMoments.length > 0) {
+      const selectedMoment = allCulturalMoments.find(
+        (m) => m.value === preferences.culturalMoments[0]
+      );
+      if (selectedMoment) {
+        const MONTH_LABELS: Record<string, string> = {
+          jan: 'January', feb: 'February', mar: 'March', apr: 'April',
+          may: 'May', jun: 'June', jul: 'July', aug: 'August',
+          sep: 'September', oct: 'October', nov: 'November', dec: 'December',
+          flexible: 'your chosen month',
+        };
+        const monthLabel = MONTH_LABELS[preferences.travelMonth] || preferences.travelMonth;
+        setTransitionMessage(
+          `You want to witness ${selectedMoment.label} in ${monthLabel}. We'll make sure one of your cities delivers that.`
+        );
+        setShowTransition(true);
+        transitionTimer.current = setTimeout(() => {
+          setShowTransition(false);
+          setDirection(1);
+          setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
+        }, 1500);
+        return;
+      }
     }
 
     setDirection(1);
@@ -208,7 +236,7 @@ export const TravelQuestionnaire = () => {
       <div className="min-h-screen flex flex-col gradient-warm">
         <Header />
         <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
-          <TransitionCard interests={preferences.interests} />
+          <TransitionCard interests={preferences.interests} message={transitionMessage} />
         </main>
       </div>
     );

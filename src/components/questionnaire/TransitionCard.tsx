@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 
 interface TransitionCardProps {
-  interests: string[];
+  interests?: string[];
+  message?: string;
 }
 
 const INTEREST_LABELS: Record<string, string> = {
@@ -16,13 +17,13 @@ const INTEREST_LABELS: Record<string, string> = {
   'wellness-slow-travel': 'Wellness & Slow Travel',
 };
 
-export const TransitionCard = ({ interests }: TransitionCardProps) => {
-  const labels = interests.slice(0, 2).map((i) => INTEREST_LABELS[i] || i);
-
-  const message =
-    labels.length === 1
+export const TransitionCard = ({ interests, message }: TransitionCardProps) => {
+  const displayMessage = message ?? (() => {
+    const labels = (interests || []).slice(0, 2).map((i) => INTEREST_LABELS[i] || i);
+    return labels.length === 1
       ? `A ${labels[0].toLowerCase()} lover — we have some perfect matches in mind.`
       : `${labels[0]} and ${labels[1]} — we know exactly where to take you.`;
+  })();
 
   return (
     <motion.div
@@ -39,7 +40,7 @@ export const TransitionCard = ({ interests }: TransitionCardProps) => {
         <Sparkles className="w-10 h-10 text-primary mx-auto" />
       </motion.div>
       <p className="text-2xl md:text-3xl font-display font-semibold text-foreground leading-relaxed">
-        {message}
+        {displayMessage}
       </p>
     </motion.div>
   );
