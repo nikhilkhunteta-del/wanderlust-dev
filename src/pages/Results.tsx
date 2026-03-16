@@ -170,6 +170,7 @@ const Results = () => {
                     );
                   if (error) throw error;
                   setIsSaved(true);
+                  localStorage.setItem("travelquest_email", saveEmail.trim().toLowerCase());
                   toast({ title: "Done — we'll remember you next time." });
                 } catch (err) {
                   console.error("Failed to save profile:", err);
