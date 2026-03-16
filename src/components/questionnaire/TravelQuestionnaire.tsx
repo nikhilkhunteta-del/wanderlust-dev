@@ -412,11 +412,11 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
 
-      <div className="px-6 md:px-20 pb-4">
+      <div className="px-6 md:px-12 pb-4">
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 md:px-20 pb-8">
+      <main className="flex-1 flex flex-col justify-center px-6 md:px-12 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={`${currentStep}-${currentQuestion.id}`}
@@ -425,7 +425,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: direction > 0 ? -12 : 12 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="w-full"
+            className="w-full max-w-none"
           >
             <QuestionCard
               questionNumber={currentStep + 1}

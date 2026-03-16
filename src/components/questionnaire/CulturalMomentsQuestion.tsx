@@ -197,7 +197,7 @@ export const CulturalMomentsQuestion = ({
   };
 
   return (
-    <div className="space-y-5 max-w-3xl mx-auto">
+    <div className="space-y-5 w-full">
       {/* Instruction */}
       <p className="text-xs text-muted-foreground text-center">Select up to 2</p>
 
