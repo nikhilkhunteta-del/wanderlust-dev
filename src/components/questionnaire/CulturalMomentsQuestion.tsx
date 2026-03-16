@@ -217,16 +217,20 @@ export const CulturalMomentsQuestion = ({
         </div>
       )}
 
-      {/* Section 2 — Out of window */}
+      {/* Divider + Section 2 — Outside travel window */}
       {outOfWindow.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-            Worth knowing about
-          </p>
+        <>
+          <div className="relative flex items-center py-2">
+            <div className="flex-1 h-px bg-border" />
+            <span className="px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+              Outside your travel window
+            </span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {outOfWindow.map((m) => renderCard(m, true))}
           </div>
-        </div>
+        </>
       )}
 
       {/* Empty state */}
