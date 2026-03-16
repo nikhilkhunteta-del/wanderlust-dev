@@ -14,8 +14,10 @@ import { WeightSliders } from "@/components/compare/WeightSliders";
 import { ComparisonTable } from "@/components/compare/ComparisonTable";
 import { WhyNotSection } from "@/components/compare/WhyNotSection";
 import { MultiCityCTA } from "@/components/compare/MultiCityCTA";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CompareState {
   cities: CityRecommendation[];
