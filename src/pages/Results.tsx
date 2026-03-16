@@ -28,6 +28,7 @@ const Results = () => {
   const [isSaved, setIsSaved] = useState(false);
 
   const profile = location.state?.profile as TravelProfile | undefined;
+  const previousCities = (location.state?.previousCities as string[]) || [];
 
   const fetchRecommendations = async (excluded: string[] = []) => {
     if (!profile) {
