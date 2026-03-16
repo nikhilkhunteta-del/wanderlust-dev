@@ -105,12 +105,9 @@ const Results = () => {
               {buildProfileSummary(profile)}
             </p>
           )}
-          <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4">
+          <h1 className="text-4xl md:text-5xl font-display font-semibold">
             Your Perfect Destinations
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            {profile?.summary || "Based on your preferences, we've curated three destinations that match your travel style."}
-          </p>
         </div>
 
         {/* Destination Cards Grid */}
