@@ -26,6 +26,7 @@ const App = () => (
           <Route path="/plan" element={<PlanCity />} />
           <Route path="/results" element={<Results />} />
           <Route path="/city/:cityName" element={<CityDetail />} />
+          <Route path="/itinerary/:cityName" element={<ItineraryBuilder />} />
           <Route path="/compare" element={<Compare />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
