@@ -10,6 +10,7 @@ import { InterestGridQuestion } from './InterestGridQuestion';
 import { MultiSelectQuestion } from './MultiSelectQuestion';
 import { SingleSelectQuestion } from './SingleSelectQuestion';
 import { MonthGridQuestion } from './MonthGridQuestion';
+import { WhenAndHowLongQuestion } from './WhenAndHowLongQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { TransitionCard } from './TransitionCard';
 import { CulturalMomentsQuestion } from './CulturalMomentsQuestion';
