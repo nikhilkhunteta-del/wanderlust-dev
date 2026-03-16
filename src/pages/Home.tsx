@@ -26,6 +26,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background relative">
       <WelcomeBackBanner />
+      <HeroSection
         onStartExploring={handleStartExploring}
         onPlanCity={handlePlanCity}
         onHowItWorks={handleHowItWorks}
