@@ -4,6 +4,7 @@ export interface CityRecommendation {
   rationale: string;
   tags: string[];
   imageQuery: string;
+  estimatedFlightHours?: number;
 }
 
 export interface RecommendationsResponse {
