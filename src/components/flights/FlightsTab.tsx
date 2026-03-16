@@ -713,6 +713,16 @@ function GatewayRouteOptions({ data, sym, monthName }: { data: FlightInsightsDat
             </span>
           </div>
           <div className="flex-1" />
+          <a
+            href={buildGoogleFlightsUrl(data.route.origin.city, data.route.destination.city, monthName)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity self-start"
+            style={{ background: "#EA580C", color: "#FFFFFF" }}
+          >
+            Book →
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
         </div>
 
         {/* Card B — Fly via gateway */}
