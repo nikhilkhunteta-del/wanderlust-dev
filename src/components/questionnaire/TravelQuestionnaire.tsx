@@ -416,7 +416,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 md:px-20 pb-8">
+      <main className="flex-1 flex flex-col justify-center px-6 md:px-12 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={`${currentStep}-${currentQuestion.id}`}
