@@ -190,6 +190,7 @@ Remember: Return exactly 3 cities from different countries, matched by interests
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
+          response_format: { type: "json_object" },
         }),
       });
 
@@ -224,12 +225,32 @@ Remember: Return exactly 3 cities from different countries, matched by interests
       throw new Error("No content in AI response");
     }
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("Could not parse JSON from AI response");
-    }
+    // Robust JSON extraction
+    let parsed: { recommendations: CityRecommendation[] };
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      // Try extracting JSON object from mixed content
+      let cleaned = content
+        .replace(/```json\s*/gi, "")
+        .replace(/```\s*/g, "")
+        .trim();
 
-    const parsed = JSON.parse(jsonMatch[0]) as { recommendations: CityRecommendation[] };
+      const jsonStart = cleaned.indexOf("{");
+      const jsonEnd = cleaned.lastIndexOf("}");
+
+      if (jsonStart === -1 || jsonEnd === -1) {
+        console.error("No JSON found in AI response:", content.substring(0, 500));
+        throw new Error("Could not parse JSON from AI response");
+      }
+
+      cleaned = cleaned.substring(jsonStart, jsonEnd + 1)
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*]/g, "]")
+        .replace(/[\x00-\x1F\x7F]/g, "");
+
+      parsed = JSON.parse(cleaned);
+    }
 
     if (!parsed.recommendations || parsed.recommendations.length !== 3) {
       throw new Error("AI did not return exactly 3 recommendations");
