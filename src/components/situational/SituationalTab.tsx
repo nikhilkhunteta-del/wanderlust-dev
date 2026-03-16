@@ -53,7 +53,7 @@ export const SituationalTab = ({ city, country, travelMonth }: SituationalTabPro
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-10">
+    <div className="page-container py-10">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between gap-3 mb-2">
