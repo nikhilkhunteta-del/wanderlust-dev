@@ -30,6 +30,7 @@ interface CityRecommendation {
   tags: string[];
   imageQuery: string;
   estimatedFlightHours: number;
+  bestMonths?: string;
 }
 
 serve(async (req) => {
@@ -122,12 +123,15 @@ Respond with ONLY valid JSON in this exact format:
       "rationale": "One compelling sentence explaining why this city matches the traveller's preferences (max 40 words).",
       "tags": ["tag1", "tag2", "tag3"],
       "imageQuery": "descriptive search term for a beautiful photo of this city's most iconic view",
-      "estimatedFlightHours": 3.5
+      "estimatedFlightHours": 3.5,
+      "bestMonths": "Mar–May"
     }
   ]
 }
 
-ESTIMATED FLIGHT HOURS: For each city, estimate the typical one-way flight duration in hours (as a decimal, e.g. 3.5 for 3h 30m) from the user's departure city. Include layover time for indirect routes. Use your knowledge of typical commercial flight routes.`;
+ESTIMATED FLIGHT HOURS: For each city, estimate the typical one-way flight duration in hours (as a decimal, e.g. 3.5 for 3h 30m) from the user's departure city. Include layover time for indirect routes. Use your knowledge of typical commercial flight routes.
+
+BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" field with the ideal 2-3 month window for visiting (e.g. "Mar–May", "Sep–Nov", "Jun–Aug"). Use abbreviated month names with an en-dash. If the user specified a month, omit this field.`;
 
     const primaryLine = profile.primaryInterest
       ? `\nPRIMARY INTEREST (treat this as 3x the weight of any secondary interest — if two cities are otherwise equal, this signal must break the tie): ${profile.primaryInterest}`
