@@ -110,6 +110,7 @@ const Results = () => {
               key={`${rec.city}-${rec.country}`}
               recommendation={rec}
               onExplore={() => handleExploreCity(rec)}
+              departureCity={profile?.departureCity}
             />
           ))}
         </div>
