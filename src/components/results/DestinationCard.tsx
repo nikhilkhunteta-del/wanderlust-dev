@@ -72,9 +72,9 @@ export const DestinationCard = ({ recommendation, onExplore, departureCity }: De
           {recommendation.tags.map((tag) => (
             <span
               key={tag}
-              className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium capitalize"
+              className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
             >
-              {tag}
+              {humanizeTag(tag)}
             </span>
           ))}
         </div>
