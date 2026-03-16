@@ -348,7 +348,7 @@ export const ItineraryTab = ({ city, profile, highlights, onSwitchTab }: Itinera
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 relative">
+    <div className="page-container py-8 relative">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

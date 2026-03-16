@@ -47,7 +47,7 @@ export const OnTheGroundTab = ({ city, country, travelMonth, showCompactHealth }
   if (!data) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 space-y-8">
+    <div className="page-container py-8 space-y-8">
       {/* Section 1 — Verdict (expanded master synthesis) */}
       <VerdictBar verdict={data.verdict} level={data.verdictLevel} />
 

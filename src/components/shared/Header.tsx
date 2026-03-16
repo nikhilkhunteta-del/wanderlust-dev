@@ -22,7 +22,7 @@ export const Header = ({ rightContent, variant = "default" }: HeaderProps) => {
         variant === "transparent" && "bg-transparent absolute w-full"
       )}
     >
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <div className="page-container flex items-center justify-between">
         <button
           onClick={() => navigate("/")}
           className={cn(

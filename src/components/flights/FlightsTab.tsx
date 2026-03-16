@@ -277,7 +277,7 @@ export const FlightsTab = ({
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-10">
+      <div className="page-container pt-10">
         {/* Section 2: Price Feasibility Card */}
         <PriceFeasibilityCard data={data} sym={sym} />
 

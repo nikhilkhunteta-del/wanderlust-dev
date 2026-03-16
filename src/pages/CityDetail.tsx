@@ -182,7 +182,7 @@ const CityDetail = () => {
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="sticky top-[65px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
-          <div className="max-w-6xl mx-auto px-4 overflow-x-auto">
+          <div className="page-container overflow-x-auto">
             <TabsList className="h-12 bg-transparent gap-0 p-0 w-max">
               <TabsTrigger
                 value="highlights"

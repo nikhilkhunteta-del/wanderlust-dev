@@ -52,7 +52,7 @@ export const HealthNoticesTab = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 space-y-10">
+    <div className="page-container py-10 space-y-10">
       {/* High risk banner */}
       {healthData.healthRiskLevel === "high" && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">

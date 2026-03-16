@@ -52,7 +52,7 @@ export const WeatherTab = ({ city, country, travelMonth, onSwitchTab }: WeatherT
   if (!weather) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-10">
+    <div className="page-container py-8 space-y-10">
       {/* Header row: Verdict + controls */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-end gap-3">

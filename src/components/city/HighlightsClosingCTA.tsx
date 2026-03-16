@@ -17,7 +17,7 @@ export const HighlightsClosingCTA = ({ city, travelMonth, onSwitchTab, allCities
 
   return (
     <section style={{ background: '#1C1917', padding: '48px 0' }}>
-      <div className="max-w-6xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="page-container flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         {/* Left */}
         <div>
           <h2 className="font-display font-semibold" style={{ fontSize: '20px', color: '#FFFFFF' }}>
