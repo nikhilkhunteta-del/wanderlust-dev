@@ -9,6 +9,8 @@ export interface TravelPreferences {
   travelCompanions: string;
   tripDuration: string;
   noveltyPreference: string;
+  // Virtual key for combined step — not stored, just used for question routing
+  whenAndHowLong?: string;
 }
 
 export interface QuestionConfig {
@@ -179,30 +181,16 @@ export const QUESTIONS: QuestionConfig[] = [
     ],
     defaultValue: [],
   },
-  // travelMonth is Q2, shown right after interests
+  // Combined month + duration step
   {
-    id: 'travelMonth',
-    questionText: 'When do you want to travel?',
-    subtitle: "Timing shapes everything - weather, crowds, and hidden gems.",
+    id: 'whenAndHowLong' as keyof TravelPreferences,
+    questionText: 'When and how long?',
+    subtitle: 'Timing and length shape everything we recommend.',
     inputType: 'single-select',
-    options: [
-      { value: 'jan', label: 'January', icon: '❄️' },
-      { value: 'feb', label: 'February', icon: '💕' },
-      { value: 'mar', label: 'March', icon: '🌱' },
-      { value: 'apr', label: 'April', icon: '🌸' },
-      { value: 'may', label: 'May', icon: '☀️' },
-      { value: 'jun', label: 'June', icon: '🌻' },
-      { value: 'jul', label: 'July', icon: '🏖️' },
-      { value: 'aug', label: 'August', icon: '🌅' },
-      { value: 'sep', label: 'September', icon: '🍂' },
-      { value: 'oct', label: 'October', icon: '🍁' },
-      { value: 'nov', label: 'November', icon: '🌧️' },
-      { value: 'dec', label: 'December', icon: '🎄' },
-      { value: 'flexible', label: "I'm Flexible", icon: '✨' },
-    ],
+    options: [], // handled by custom renderer
     defaultValue: '',
   },
-  // adventureExperiences is inserted dynamically after travelMonth
+  // adventureExperiences is inserted dynamically after whenAndHowLong
   {
     id: 'departureCity',
     questionText: 'Where will your journey begin?',
@@ -222,20 +210,6 @@ export const QUESTIONS: QuestionConfig[] = [
       { value: 'family', label: 'Family Trip', icon: '👨‍👩‍👧‍👦', description: 'Kids in tow, family-friendly picks' },
       { value: 'friends', label: 'Friends Trip', icon: '👯', description: 'Small group, shared adventures' },
       { value: 'group', label: 'Group Travel', icon: '🚌', description: 'Larger group, 6+ people' },
-    ],
-    defaultValue: '',
-  },
-  {
-    id: 'tripDuration',
-    questionText: 'How long is your ideal trip?',
-    subtitle: "Whether it's a weekend or a month, we'll plan every day beautifully.",
-    inputType: 'single-select',
-    options: [
-      { value: '3', label: 'Weekend', icon: '🌙', description: '2–3 days' },
-      { value: '5', label: 'Short break', icon: '☀️', description: '4–5 days' },
-      { value: '7', label: 'One week', icon: '✈️', description: '7 days' },
-      { value: '14', label: 'Two weeks', icon: '🗺️', description: '14 days' },
-      { value: '21', label: 'Extended trip', icon: '🌍', description: '21+ days' },
     ],
     defaultValue: '',
   },
