@@ -412,7 +412,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
 
-      <div className="px-6 md:px-20 pb-4">
+      <div className="px-6 md:px-12 pb-4">
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
