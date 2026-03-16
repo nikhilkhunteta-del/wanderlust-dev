@@ -207,7 +207,7 @@ export const TravelQuestionnaire = () => {
     return (
       <div className="min-h-screen flex flex-col gradient-warm">
         <Header />
-        <main className="flex-1 flex items-center justify-center px-4 pb-8">
+        <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
           <TransitionCard interests={preferences.interests} />
         </main>
       </div>
@@ -218,11 +218,11 @@ export const TravelQuestionnaire = () => {
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
 
-      <div className="px-4 pb-8">
+      <div className="px-6 md:px-16 pb-8">
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
-      <main className="flex-1 flex items-center justify-center px-4 pb-8">
+      <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={`${currentStep}-${currentQuestion.id}`}
