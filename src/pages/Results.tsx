@@ -84,7 +84,7 @@ const Results = () => {
     return (
       <ResultsError
         message={error}
-        onRetry={profile ? fetchRecommendations : handleStartOver}
+        onRetry={profile ? () => fetchRecommendations(excludedCities) : handleStartOver}
       />
     );
   }
