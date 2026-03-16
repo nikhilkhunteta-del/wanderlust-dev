@@ -300,6 +300,49 @@ export const TravelQuestionnaire = () => {
   // For Q2 (adventureExperiences), allow proceeding even with empty selection
   const canProceedQ2 = currentQuestion?.id === 'adventureExperiences';
 
+  // Resume prompt
+  if (showResumePrompt) {
+    return (
+      <div className="min-h-screen flex flex-col gradient-warm">
+        <Header />
+        <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="text-center space-y-6 max-w-md"
+          >
+            <Sparkles className="w-10 h-10 text-primary mx-auto" />
+            <h2 className="text-2xl md:text-3xl font-display font-semibold text-foreground">
+              Welcome back
+            </h2>
+            <p className="text-muted-foreground">
+              You were partway through your travel questionnaire. Pick up where you left off?
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button
+                onClick={handleResume}
+                className="gap-2 px-6 py-5 text-base gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25"
+              >
+                Continue where I left off
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleStartFresh}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Start fresh
+              </Button>
+            </div>
+          </motion.div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!initialized) return null;
+
   if (showTransition) {
     return (
       <div className="min-h-screen flex flex-col gradient-warm">
