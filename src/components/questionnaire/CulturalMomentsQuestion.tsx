@@ -97,12 +97,11 @@ export const CulturalMomentsQuestion = ({
           type="button"
           onClick={() => toggleMoment(moment.value, isOutOfWindowCard)}
           whileTap={{ scale: 0.97 }}
-          className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-card border ${
+          className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary border ${
             isSelected
-              ? 'ring-2 ring-primary shadow-lg shadow-primary/20 border-primary'
-              : 'border-border/50 hover:border-border hover:shadow-md'
+              ? 'ring-2 ring-primary shadow-lg shadow-primary/20 border-primary bg-card'
+              : 'border-border/50 hover:border-border hover:shadow-md bg-card'
           }`}
-          style={isOutOfWindowCard ? { opacity: 0.6 } : undefined}
         >
           {/* Image top half */}
           <div className="relative w-full aspect-[16/10] overflow-hidden">
@@ -131,7 +130,7 @@ export const CulturalMomentsQuestion = ({
           </div>
 
           {/* Text bottom half */}
-          <div className="p-3.5 space-y-1.5">
+          <div className="p-3.5 space-y-1.5" style={isOutOfWindowCard ? { backgroundColor: '#F5F5F0' } : undefined}>
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-semibold leading-tight text-foreground">
                 {moment.label}
