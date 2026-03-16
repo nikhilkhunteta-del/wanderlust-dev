@@ -130,7 +130,7 @@ export const CulturalMomentsQuestion = ({
           </div>
 
           {/* Text bottom half */}
-          <div className="p-3.5 space-y-1.5">
+          <div className="p-3.5 space-y-1.5" style={isOutOfWindowCard ? { backgroundColor: '#F5F5F0' } : undefined}>
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-semibold leading-tight text-foreground">
                 {moment.label}
