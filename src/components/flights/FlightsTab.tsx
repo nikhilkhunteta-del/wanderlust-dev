@@ -637,8 +637,22 @@ function PriceFeasibilityCard({ data, sym, monthName }: { data: FlightInsightsDa
         </div>
       </div>
 
+      {/* Book button */}
+      <div className="mt-6">
+        <a
+          href={buildGoogleFlightsUrl(data.route.origin.city, data.route.destination.city, monthName)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+          style={{ background: "#EA580C", color: "#FFFFFF" }}
+        >
+          Book →
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      </div>
+
       {/* Disclaimer */}
-      <p className="mt-6 text-[11px] text-muted-foreground/70">
+      <p className="mt-4 text-[11px] text-muted-foreground/70">
         Indicative pricing from live market data. Actual fares vary by booking date and availability.
       </p>
     </div>
