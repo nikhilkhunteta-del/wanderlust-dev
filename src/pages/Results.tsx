@@ -4,6 +4,7 @@ import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { getDestinationRecommendations } from "@/lib/recommendations";
 import { Header } from "@/components/shared/Header";
+import { buildProfileSummary } from "@/lib/profileSummary";
 import { ResultsLoading } from "@/components/results/ResultsLoading";
 import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
@@ -89,6 +90,11 @@ const Results = () => {
       <main className="page-container py-12">
         {/* Intro Section */}
         <div className="text-center mb-12">
+          {profile && (
+            <p className="text-base md:text-lg text-muted-foreground italic mb-6 max-w-2xl mx-auto leading-relaxed">
+              {buildProfileSummary(profile)}
+            </p>
+          )}
           <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4">
             Your Perfect Destinations
           </h1>
