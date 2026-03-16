@@ -31,7 +31,7 @@ export const WelcomeBackBanner = () => {
       try {
         const { data, error } = await supabase
           .from("saved_travel_profiles" as any)
-          .select("profile_json")
+          .select("profile_json, previous_cities")
           .eq("email", email)
           .maybeSingle();
 
