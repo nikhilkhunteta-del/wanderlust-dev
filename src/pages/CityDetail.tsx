@@ -189,56 +189,56 @@ const CityDetail = () => {
                 value="highlights"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Why This City
+                ✨ Why Go
               </TabsTrigger>
               <TabsTrigger
                 value="weather"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                How It Feels
+                🌤️ Weather
               </TabsTrigger>
               <TabsTrigger
                 value="seasonal"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                While You're There
+                🎉 Events
               </TabsTrigger>
               <TabsTrigger
                 value="itinerary"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Your Days
+                🗓️ Itinerary
               </TabsTrigger>
               <TabsTrigger
                 value="flights"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Getting There
+                ✈️ Flights
               </TabsTrigger>
               <TabsTrigger
                 value="stays"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Your Base
+                🏨 Hotels
               </TabsTrigger>
               <TabsTrigger
                 value="ground"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Before You Go
+                📋 Essentials
               </TabsTrigger>
               <TabsTrigger
                 value="street"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
               >
-                Word on the Street
+                💬 Buzz
               </TabsTrigger>
               {showHealthTab && (
                 <TabsTrigger
                   value="health"
                   className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
                 >
-                  Stay Well
+                  🩺 Health
                 </TabsTrigger>
               )}
             </TabsList>
