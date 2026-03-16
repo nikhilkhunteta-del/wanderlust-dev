@@ -160,7 +160,7 @@ const Results = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={fetchRecommendations}
+            onClick={() => fetchRecommendations(excludedCities)}
             className="gap-2"
           >
             <RefreshCw className="w-4 h-4" />
