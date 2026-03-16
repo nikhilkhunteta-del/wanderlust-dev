@@ -176,6 +176,12 @@ function formatDisplayDate(dateString: string): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function buildGoogleFlightsUrl(originCity: string, destCity: string, monthName: string): string {
+  const year = new Date().getFullYear();
+  const q = `flights from ${originCity} to ${destCity} ${monthName} ${year}`.replace(/\s+/g, "+");
+  return `https://www.google.com/travel/flights?q=${q}`;
+}
+
 export const FlightsTab = ({
   departureCity,
   destinationCity,
