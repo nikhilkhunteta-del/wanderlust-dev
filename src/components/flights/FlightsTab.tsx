@@ -547,7 +547,7 @@ function RouteHeader({ data, sym }: { data: FlightInsightsData; sym: string }) {
 }
 
 // === Section 2: Price Feasibility Card ===
-function PriceFeasibilityCard({ data, sym }: { data: FlightInsightsData; sym: string }) {
+function PriceFeasibilityCard({ data, sym, monthName }: { data: FlightInsightsData; sym: string; monthName: string }) {
   const pricing = data.pricing;
   const synthesis = data.synthesis;
   const showCheapestNote =
