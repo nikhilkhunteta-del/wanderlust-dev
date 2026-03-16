@@ -140,6 +140,30 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_travel_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          profile_json: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          profile_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          profile_json?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seasonal_cache: {
         Row: {
           city: string
