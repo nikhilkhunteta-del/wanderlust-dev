@@ -227,6 +227,12 @@ const CityDetail = () => {
               >
                 Before You Go
               </TabsTrigger>
+              <TabsTrigger
+                value="street"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
+              >
+                Word on the Street
+              </TabsTrigger>
               {showHealthTab && (
                 <TabsTrigger
                   value="health"
