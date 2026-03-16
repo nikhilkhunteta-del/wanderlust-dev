@@ -218,7 +218,7 @@ export const TravelQuestionnaire = () => {
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
 
-      <div className="px-4 pb-8">
+      <div className="px-6 md:px-16 pb-8">
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
