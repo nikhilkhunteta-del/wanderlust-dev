@@ -5,6 +5,7 @@ import { ValuePropositions } from "@/components/home/ValuePropositions";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { PreviewSection } from "@/components/home/PreviewSection";
 import { FooterReassurance } from "@/components/home/FooterReassurance";
+import { WelcomeBackBanner } from "@/components/home/WelcomeBackBanner";
 
 const Home = () => {
   const navigate = useNavigate();
