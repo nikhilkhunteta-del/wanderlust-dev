@@ -39,7 +39,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, excludedCities } = (await req.json()) as { profile: TravelProfile; excludedCities?: string[] };
+    const { profile, excludedCities, previouslyRecommendedCities } = (await req.json()) as { profile: TravelProfile; excludedCities?: string[]; previouslyRecommendedCities?: string[] };
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
