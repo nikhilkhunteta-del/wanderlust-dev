@@ -18,10 +18,12 @@ const Results = () => {
   const [recommendations, setRecommendations] = useState<CityRecommendation[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [excludedCities, setExcludedCities] = useState<string[]>([]);
+  const [replacingCity, setReplacingCity] = useState<string | null>(null);
 
   const profile = location.state?.profile as TravelProfile | undefined;
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = async (excluded: string[] = []) => {
     if (!profile) {
       setError("No travel profile found. Please complete the questionnaire first.");
       setIsLoading(false);
@@ -32,18 +34,26 @@ const Results = () => {
     setError(null);
 
     try {
-      const results = await getDestinationRecommendations(profile);
+      const results = await getDestinationRecommendations(profile, excluded.length > 0 ? excluded : undefined);
       setRecommendations(results);
     } catch (err) {
       console.error("Failed to fetch recommendations:", err);
       setError(err instanceof Error ? err.message : "Failed to get recommendations");
     } finally {
       setIsLoading(false);
+      setReplacingCity(null);
     }
   };
 
+  const handleBeenHere = async (cityName: string) => {
+    const newExcluded = [...excludedCities, cityName];
+    setExcludedCities(newExcluded);
+    setReplacingCity(cityName);
+    await fetchRecommendations(newExcluded);
+  };
+
   useEffect(() => {
-    fetchRecommendations();
+    fetchRecommendations([]);
   }, []);
 
   // Prefetch images for recommended cities
@@ -74,7 +84,7 @@ const Results = () => {
     return (
       <ResultsError
         message={error}
-        onRetry={profile ? fetchRecommendations : handleStartOver}
+        onRetry={profile ? () => fetchRecommendations(excludedCities) : handleStartOver}
       />
     );
   }
@@ -106,12 +116,21 @@ const Results = () => {
         {/* Destination Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {recommendations.map((rec) => (
-            <DestinationCard
-              key={`${rec.city}-${rec.country}`}
-              recommendation={rec}
-              onExplore={() => handleExploreCity(rec)}
-              departureCity={profile?.departureCity}
-            />
+            <div key={`${rec.city}-${rec.country}`} className="flex flex-col">
+              <DestinationCard
+                recommendation={rec}
+                onExplore={() => handleExploreCity(rec)}
+                departureCity={profile?.departureCity}
+              />
+              <button
+                type="button"
+                onClick={() => handleBeenHere(rec.city)}
+                disabled={replacingCity !== null}
+                className="mt-2 self-center text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                {replacingCity === rec.city ? 'Finding a replacement…' : 'Been here? Replace →'}
+              </button>
+            </div>
           ))}
         </div>
 
@@ -141,7 +160,7 @@ const Results = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={fetchRecommendations}
+            onClick={() => fetchRecommendations(excludedCities)}
             className="gap-2"
           >
             <RefreshCw className="w-4 h-4" />
