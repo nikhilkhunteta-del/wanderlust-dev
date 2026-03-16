@@ -1170,7 +1170,7 @@ function BookFlightsCTA({ data, monthName, travelMonth }: { data: FlightInsights
 
   return (
     <div className="mt-12" style={{ background: "#1C1917" }}>
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-12">
+      <div className="page-container py-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           {/* Left side */}
           <div>
