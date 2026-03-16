@@ -37,6 +37,7 @@ export const TravelQuestionnaire = () => {
   const [direction, setDirection] = useState(1);
   const [preferences, setPreferences] = useState<TravelPreferences>(initialPreferences);
   const [showTransition, setShowTransition] = useState(false);
+  const [transitionMessage, setTransitionMessage] = useState<string | undefined>(undefined);
   const transitionTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const questions = useMemo(
