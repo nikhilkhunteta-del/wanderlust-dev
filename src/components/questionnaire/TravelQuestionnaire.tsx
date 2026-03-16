@@ -68,9 +68,10 @@ const clearSession = () => localStorage.removeItem(STORAGE_KEY);
 
 interface TravelQuestionnaireProps {
   savedPreferences?: Partial<TravelPreferences>;
+  previousCities?: string[];
 }
 
-export const TravelQuestionnaire = ({ savedPreferences }: TravelQuestionnaireProps) => {
+export const TravelQuestionnaire = ({ savedPreferences, previousCities }: TravelQuestionnaireProps) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
