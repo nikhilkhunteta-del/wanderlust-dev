@@ -4,6 +4,7 @@ import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
 import { getDestinationRecommendations } from "@/lib/recommendations";
 import { Header } from "@/components/shared/Header";
+import { buildProfileSummary } from "@/lib/profileSummary";
 import { ResultsLoading } from "@/components/results/ResultsLoading";
 import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
