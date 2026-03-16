@@ -28,6 +28,21 @@ const Results = () => {
   const [isSaved, setIsSaved] = useState(false);
 
   const profile = location.state?.profile as TravelProfile | undefined;
+  const previousCities = (location.state?.previousCities as string[]) || [];
+
+  const saveRecommendedCities = async (newCities: string[]) => {
+    const email = localStorage.getItem("travelquest_email");
+    if (!email) return;
+    try {
+      const merged = [...new Set([...previousCities, ...newCities])];
+      await supabase
+        .from("saved_travel_profiles" as any)
+        .update({ previous_cities: merged, updated_at: new Date().toISOString() } as any)
+        .eq("email", email);
+    } catch (err) {
+      console.error("Failed to save recommended cities:", err);
+    }
+  };
 
   const fetchRecommendations = async (excluded: string[] = []) => {
     if (!profile) {
@@ -40,8 +55,15 @@ const Results = () => {
     setError(null);
 
     try {
-      const results = await getDestinationRecommendations(profile, excluded.length > 0 ? excluded : undefined);
+      const results = await getDestinationRecommendations(
+        profile,
+        excluded.length > 0 ? excluded : undefined,
+        previousCities.length > 0 ? previousCities : undefined
+      );
       setRecommendations(results);
+
+      // Save recommended cities to user's profile
+      saveRecommendedCities(results.map(r => r.city));
     } catch (err) {
       console.error("Failed to fetch recommendations:", err);
       setError(err instanceof Error ? err.message : "Failed to get recommendations");

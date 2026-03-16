@@ -4,12 +4,13 @@ import { CityRecommendation, RecommendationsResponse } from "@/types/recommendat
 
 export async function getDestinationRecommendations(
   profile: TravelProfile,
-  excludedCities?: string[]
+  excludedCities?: string[],
+  previouslyRecommendedCities?: string[]
 ): Promise<CityRecommendation[]> {
   const { data, error } = await supabase.functions.invoke<RecommendationsResponse>(
     "recommend-destinations",
     {
-      body: { profile, excludedCities },
+      body: { profile, excludedCities, previouslyRecommendedCities },
     }
   );
 

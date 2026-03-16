@@ -145,6 +145,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          previous_cities: Json
           profile_json: Json
           updated_at: string
         }
@@ -152,6 +153,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          previous_cities?: Json
           profile_json?: Json
           updated_at?: string
         }
@@ -159,6 +161,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          previous_cities?: Json
           profile_json?: Json
           updated_at?: string
         }

@@ -11,6 +11,7 @@ interface SavedProfileData {
   primaryInterest?: string;
   travelCompanions?: string;
   noveltyPreference?: string;
+  previousCities?: string[];
 }
 
 export const WelcomeBackBanner = () => {
@@ -30,7 +31,7 @@ export const WelcomeBackBanner = () => {
       try {
         const { data, error } = await supabase
           .from("saved_travel_profiles" as any)
-          .select("profile_json")
+          .select("profile_json, previous_cities")
           .eq("email", email)
           .maybeSingle();
 
@@ -39,7 +40,9 @@ export const WelcomeBackBanner = () => {
           return;
         }
 
-        setProfileData((data as any).profile_json as SavedProfileData);
+        const profileJson = (data as any).profile_json as SavedProfileData;
+        const prevCities = ((data as any).previous_cities as string[]) || [];
+        setProfileData({ ...profileJson, previousCities: prevCities });
       } catch {
         // silently fail
       } finally {
@@ -65,7 +68,7 @@ export const WelcomeBackBanner = () => {
       noveltyPreference: profileData.noveltyPreference || "",
     };
 
-    navigate("/questionnaire", { state: { savedPreferences } });
+    navigate("/questionnaire", { state: { savedPreferences, previousCities: profileData.previousCities || [] } });
   };
 
   const handleStartFresh = () => {

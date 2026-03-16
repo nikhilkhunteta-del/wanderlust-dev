@@ -39,7 +39,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, excludedCities } = (await req.json()) as { profile: TravelProfile; excludedCities?: string[] };
+    const { profile, excludedCities, previouslyRecommendedCities } = (await req.json()) as { profile: TravelProfile; excludedCities?: string[]; previouslyRecommendedCities?: string[] };
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -149,6 +149,10 @@ BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" fi
       ? `\nEXCLUDED CITIES: ${excludedCities.map(c => `User has already visited ${c} — exclude it`).join('. ')}. Do NOT recommend any of these cities.`
       : '';
 
+    const previousCitiesLine = previouslyRecommendedCities && previouslyRecommendedCities.length > 0
+      ? `\nPREVIOUSLY RECOMMENDED: The user has previously been recommended ${previouslyRecommendedCities.join(', ')}. Prioritise recommending cities they have not seen before while still matching their interests. Only re-recommend a previously seen city if it is genuinely the best match and no comparable alternative exists.`
+      : '';
+
     const userPrompt = `Find 3 destination cities for this traveller:
 
 INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}${culturalMomentsList ? `\nCULTURAL MOMENTS: ${culturalMomentsList} — the traveller wants to witness these specific events or festivals. Strongly prefer cities where these take place.` : ''}
@@ -169,7 +173,7 @@ DISCOVERY STYLE: ${noveltyDesc}
 STYLE TAGS (inferred travel personality traits e.g. "cultural-explorer", "thrill-seeker", "slow-traveller", "foodie", "beach-lover" — use to fine-tune city vibe matching): ${profile.styleTags.length > 0 ? profile.styleTags.join(", ") : "none inferred"}
 
 IMPORTANT: For "off-beaten-path" or "surprise" discovery styles, prioritise cities with lower mainstream tourist footfall over world-famous hotspots.
-Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and discovery preference.${excludedLine}`;
+Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and discovery preference.${excludedLine}${previousCitiesLine}`;
 
     console.log("Sending prompt to AI gateway...");
 
