@@ -23,6 +23,9 @@ const Results = () => {
   const [error, setError] = useState<string | null>(null);
   const [excludedCities, setExcludedCities] = useState<string[]>([]);
   const [replacingCity, setReplacingCity] = useState<string | null>(null);
+  const [saveEmail, setSaveEmail] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   const profile = location.state?.profile as TravelProfile | undefined;
 
