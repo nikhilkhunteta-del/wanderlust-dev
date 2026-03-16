@@ -14,8 +14,10 @@ import { WeightSliders } from "@/components/compare/WeightSliders";
 import { ComparisonTable } from "@/components/compare/ComparisonTable";
 import { WhyNotSection } from "@/components/compare/WhyNotSection";
 import { MultiCityCTA } from "@/components/compare/MultiCityCTA";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CompareState {
   cities: CityRecommendation[];
@@ -27,6 +29,8 @@ const Compare = () => {
   const navigate = useNavigate();
   const state = location.state as CompareState | undefined;
   const [spiderPulse, setSpiderPulse] = useState(false);
+  const [helpDecisions, setHelpDecisions] = useState<{ city: string; reason: string }[] | null>(null);
+  const [isLoadingHelp, setIsLoadingHelp] = useState(false);
 
   useEffect(() => {
     if (!state?.cities || !state?.profile) {
@@ -53,6 +57,33 @@ const Compare = () => {
     setSpiderPulse(true);
     setTimeout(() => setSpiderPulse(false), 300);
   }, []);
+
+  const handleHelpDecide = async () => {
+    if (!ranked.length || isLoadingHelp) return;
+    setIsLoadingHelp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("compare-cities", {
+        body: {
+          ranked: ranked.map((r) => ({
+            city: r.city.city,
+            score: r.weightedTotal,
+            personalMatch: r.personalMatch.score,
+            weatherFit: r.weatherFit.score,
+            gettingThere: r.gettingThere.score,
+            safety: r.safety.score,
+          })),
+          profile,
+          mode: "help-decide",
+        },
+      });
+      if (error) throw error;
+      setHelpDecisions(data?.decisions || null);
+    } catch (err) {
+      console.error("Help me decide error:", err);
+    } finally {
+      setIsLoadingHelp(false);
+    }
+  };
 
   // Fetch AI verdict once all data is loaded
   const { data: verdict, isLoading: isLoadingVerdict } = useQuery({
@@ -189,6 +220,61 @@ const Compare = () => {
                   originalCities={cities}
                   onWeightChanged={handleWeightChanged}
                 />
+              </div>
+              {/* Help me decide */}
+              <div className="flex flex-col items-center gap-4 pt-2">
+                {!helpDecisions && (
+                  <Button
+                    onClick={handleHelpDecide}
+                    disabled={isLoadingHelp}
+                    className="gap-2 gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25"
+                  >
+                    {isLoadingHelp ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Thinking…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Help me decide
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                <AnimatePresence>
+                  {helpDecisions && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-full max-w-2xl space-y-3"
+                    >
+                      {helpDecisions.map((d, i) => {
+                        const cityIndex = cities.findIndex(
+                          (c) => c.city.toLowerCase() === d.city.toLowerCase()
+                        );
+                        const color = CITY_COLORS[cityIndex >= 0 ? cityIndex : i];
+                        return (
+                          <div
+                            key={d.city}
+                            className="flex gap-3 items-start p-4 rounded-xl bg-card border border-border/50"
+                          >
+                            <div
+                              className="w-1 self-stretch rounded-full flex-shrink-0"
+                              style={{ backgroundColor: color }}
+                            />
+                            <div>
+                              <span className="text-sm font-semibold text-foreground">{d.city}:</span>{' '}
+                              <span className="text-sm text-muted-foreground">{d.reason}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </section>
 
