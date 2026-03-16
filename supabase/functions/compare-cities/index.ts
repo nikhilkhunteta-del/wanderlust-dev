@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { ranked, profile } = await req.json();
+    const { ranked, profile, mode } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -23,9 +23,7 @@ serve(async (req) => {
       .slice(0, 3)
       .map(([k]: any) => k);
 
-    const prompt = `You are a travel comparison analyst producing a verdict comparing three cities for a specific traveller.
-
-Traveller context:
+    const travellerContext = `Traveller context:
 - Travel month: ${profile.travelMonth}
 - Top 3 interests: ${topInterests.join(", ")}
 - Travel party: ${profile.travelCompanions || profile.groupType || "solo"}
@@ -35,7 +33,30 @@ Traveller context:
 Rankings (best to worst) with actual numeric scores:
 1. ${ranked[0].city} (weighted total: ${ranked[0].score.toFixed(1)}) — personalMatch: ${ranked[0].personalMatch}, weather: ${ranked[0].weatherFit}, gettingThere: ${ranked[0].gettingThere}, safety: ${ranked[0].safety}
 2. ${ranked[1].city} (weighted total: ${ranked[1].score.toFixed(1)}) — personalMatch: ${ranked[1].personalMatch}, weather: ${ranked[1].weatherFit}, gettingThere: ${ranked[1].gettingThere}, safety: ${ranked[1].safety}
-3. ${ranked[2].city} (weighted total: ${ranked[2].score.toFixed(1)}) — personalMatch: ${ranked[2].personalMatch}, weather: ${ranked[2].weatherFit}, gettingThere: ${ranked[2].gettingThere}, safety: ${ranked[2].safety}
+3. ${ranked[2].city} (weighted total: ${ranked[2].score.toFixed(1)}) — personalMatch: ${ranked[2].personalMatch}, weather: ${ranked[2].weatherFit}, gettingThere: ${ranked[2].gettingThere}, safety: ${ranked[2].safety}`;
+
+    let prompt: string;
+    let systemMsg: string;
+
+    if (mode === "help-decide") {
+      systemMsg = "You are a decisive travel advisor. Return ONLY valid JSON. Be specific and personal.";
+      prompt = `${travellerContext}
+
+For each of the three cities, write ONE compelling sentence explaining the single strongest reason to choose that city OVER the other two for THIS specific traveller. Be concrete — reference the traveller's interests, month, or party type. Each sentence should make the reader think "that's the one."
+
+Return ONLY valid JSON:
+{
+  "decisions": [
+    {"city": "${ranked[0].city}", "reason": "One sentence — the single strongest reason to choose this city over the other two."},
+    {"city": "${ranked[1].city}", "reason": "One sentence — the single strongest reason to choose this city over the other two."},
+    {"city": "${ranked[2].city}", "reason": "One sentence — the single strongest reason to choose this city over the other two."}
+  ]
+}`;
+    } else {
+      systemMsg = "You are a travel comparison analyst. Return ONLY valid JSON. Be specific and quantified — never vague.";
+      prompt = `You are a travel comparison analyst producing a verdict comparing three cities for a specific traveller.
+
+${travellerContext}
 
 SCORING RULES YOU MUST FOLLOW:
 
@@ -57,6 +78,7 @@ Return ONLY valid JSON:
     {"city": "${ranked[2].city}", "reason": "One specific sentence explaining the dimensional gap vs the winner. Reference actual scores. Only use 'lower/weaker' for gaps >= 1.5 points."}
   ]
 }`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -67,7 +89,7 @@ Return ONLY valid JSON:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are a travel comparison analyst. Return ONLY valid JSON. Be specific and quantified — never vague." },
+          { role: "system", content: systemMsg },
           { role: "user", content: prompt },
         ],
         temperature: 0.4,
@@ -77,6 +99,16 @@ Return ONLY valid JSON:
     if (!response.ok) {
       const err = await response.text();
       console.error("AI error:", response.status, err);
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       throw new Error(`AI error: ${response.status}`);
     }
 
