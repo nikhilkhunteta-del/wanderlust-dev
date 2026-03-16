@@ -378,7 +378,7 @@ export const TravelQuestionnaire = () => {
     return (
       <div className="min-h-screen flex flex-col gradient-warm">
         <Header />
-        <main className="flex-1 flex items-center justify-center px-6 md:px-16 pb-8">
+        <main className="flex-1 flex items-center justify-center px-6 md:px-20 pb-8">
           <TransitionCard interests={preferences.interests} message={transitionMessage} />
         </main>
       </div>
