@@ -10,6 +10,7 @@ import CityDetail from "./pages/CityDetail";
 import Compare from "./pages/Compare";
 import NotFound from "./pages/NotFound";
 import PlanCity from "./pages/PlanCity";
+import ItineraryBuilder from "./pages/ItineraryBuilder";
 
 const queryClient = new QueryClient();
 

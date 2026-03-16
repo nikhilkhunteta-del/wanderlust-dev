@@ -323,6 +323,23 @@ const CityDetail = () => {
           />
         </TabsContent>
       </Tabs>
+
+      {/* Sticky itinerary CTA */}
+      <div className="sticky bottom-0 z-20 bg-background/95 backdrop-blur-sm border-t border-border/50 py-3">
+        <div className="page-container">
+          <button
+            onClick={() =>
+              navigate(`/itinerary/${encodeURIComponent(city.city)}`, {
+                state: { city, profile, highlights: highlights ?? null },
+              })
+            }
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-semibold gradient-sunset text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30"
+          >
+            Plan my {city.city} trip
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
