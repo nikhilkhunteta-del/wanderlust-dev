@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
@@ -52,6 +52,20 @@ const CityDetail = () => {
   const navigate = useNavigate();
   const { cityName } = useParams<{ cityName: string }>();
   const [activeTab, setActiveTab] = useState("highlights");
+  const [pastHero, setPastHero] = useState(false);
+  const heroSentinel = useRef<HTMLDivElement>(null);
+
+  // Track when user scrolls past the hero area
+  useEffect(() => {
+    const el = heroSentinel.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setPastHero(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const state = location.state as LocationState | undefined;
 
@@ -179,10 +193,29 @@ const CityDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Invisible sentinel – once it scrolls out of view, pastHero = true */}
+      <div ref={heroSentinel} className="h-0" />
       <Header rightContent={`${city.city}, ${city.country}`} />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="sticky top-[65px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
+          {/* Book this trip bar – visible when past hero and NOT on flights/stays tabs */}
+          {pastHero && activeTab !== "flights" && activeTab !== "stays" && (
+            <div className="border-b border-border/30 bg-background/90 backdrop-blur-sm">
+              <div className="page-container flex items-center justify-between py-2.5">
+                <span className="text-sm font-semibold text-foreground truncate mr-4">
+                  {city.city}, {city.country}
+                </span>
+                <button
+                  onClick={() => handleTabChange("flights")}
+                  className="shrink-0 px-5 py-2 rounded-full text-sm font-semibold gradient-sunset text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-1.5"
+                >
+                  Book this trip
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
           <div className="page-container overflow-x-auto">
             <TabsList className="h-12 bg-transparent gap-0 p-0 w-max">
               <TabsTrigger
