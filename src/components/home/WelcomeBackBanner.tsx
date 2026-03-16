@@ -68,7 +68,7 @@ export const WelcomeBackBanner = () => {
       noveltyPreference: profileData.noveltyPreference || "",
     };
 
-    navigate("/questionnaire", { state: { savedPreferences } });
+    navigate("/questionnaire", { state: { savedPreferences, previousCities: profileData.previousCities || [] } });
   };
 
   const handleStartFresh = () => {
