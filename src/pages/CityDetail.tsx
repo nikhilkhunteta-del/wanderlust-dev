@@ -13,6 +13,7 @@ import { OnTheGroundTab } from "@/components/ground/OnTheGroundTab";
 import { HealthNoticesTab } from "@/components/health/HealthNoticesTab";
 import { FlightsTab } from "@/components/flights/FlightsTab";
 import { StaysTab } from "@/components/stays/StaysTab";
+import { WordOnStreetTab } from "@/components/street/WordOnStreetTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LocationState {
@@ -226,6 +227,12 @@ const CityDetail = () => {
               >
                 Before You Go
               </TabsTrigger>
+              <TabsTrigger
+                value="street"
+                className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
+              >
+                Word on the Street
+              </TabsTrigger>
               {showHealthTab && (
                 <TabsTrigger
                   value="health"
@@ -309,6 +316,10 @@ const CityDetail = () => {
             travelMonth={profile.travelMonth}
             showCompactHealth={!showHealthTab}
           />
+        </TabsContent>
+
+        <TabsContent value="street" className="mt-0">
+          <WordOnStreetTab city={city.city} country={city.country} />
         </TabsContent>
 
         <TabsContent value="health" className="mt-0">

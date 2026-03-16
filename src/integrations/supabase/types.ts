@@ -257,6 +257,33 @@ export type Database = {
         }
         Relationships: []
       }
+      street_sentiment_cache: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          data_json: Json
+          fetched_at: string
+          id: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          data_json?: Json
+          fetched_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
