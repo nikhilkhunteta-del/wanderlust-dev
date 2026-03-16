@@ -66,7 +66,11 @@ const saveSession = (step: number, preferences: TravelPreferences) => {
 
 const clearSession = () => localStorage.removeItem(STORAGE_KEY);
 
-export const TravelQuestionnaire = () => {
+interface TravelQuestionnaireProps {
+  savedPreferences?: Partial<TravelPreferences>;
+}
+
+export const TravelQuestionnaire = ({ savedPreferences }: TravelQuestionnaireProps) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -79,6 +83,24 @@ export const TravelQuestionnaire = () => {
 
   // Check for saved session on mount
   useEffect(() => {
+    // If we received saved preferences from a returning user, pre-fill and skip to Q2
+    if (savedPreferences) {
+      const merged: TravelPreferences = {
+        ...initialPreferences,
+        interests: savedPreferences.interests || [],
+        primaryInterest: savedPreferences.primaryInterest || '',
+        travelCompanions: savedPreferences.travelCompanions || '',
+        noveltyPreference: savedPreferences.noveltyPreference || '',
+      };
+      setPreferences(merged);
+      // We need questions built from interests to find Q2 index
+      const qs = buildDynamicQuestions(merged.interests);
+      const q2Index = qs.findIndex(q => q.id === 'whenAndHowLong');
+      setCurrentStep(q2Index >= 0 ? q2Index : 1);
+      setInitialized(true);
+      return;
+    }
+
     const saved = loadSession();
     if (saved) {
       setShowResumePrompt(saved);
