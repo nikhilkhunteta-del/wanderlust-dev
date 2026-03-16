@@ -41,8 +41,15 @@ const Results = () => {
     setError(null);
 
     try {
-      const results = await getDestinationRecommendations(profile, excluded.length > 0 ? excluded : undefined);
+      const results = await getDestinationRecommendations(
+        profile,
+        excluded.length > 0 ? excluded : undefined,
+        previousCities.length > 0 ? previousCities : undefined
+      );
       setRecommendations(results);
+
+      // Save recommended cities to user's profile
+      saveRecommendedCities(results.map(r => r.city));
     } catch (err) {
       console.error("Failed to fetch recommendations:", err);
       setError(err instanceof Error ? err.message : "Failed to get recommendations");
