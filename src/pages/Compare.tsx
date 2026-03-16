@@ -58,6 +58,33 @@ const Compare = () => {
     setTimeout(() => setSpiderPulse(false), 300);
   }, []);
 
+  const handleHelpDecide = async () => {
+    if (!ranked.length || isLoadingHelp) return;
+    setIsLoadingHelp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("compare-cities", {
+        body: {
+          ranked: ranked.map((r) => ({
+            city: r.city.city,
+            score: r.weightedTotal,
+            personalMatch: r.personalMatch.score,
+            weatherFit: r.weatherFit.score,
+            gettingThere: r.gettingThere.score,
+            safety: r.safety.score,
+          })),
+          profile,
+          mode: "help-decide",
+        },
+      });
+      if (error) throw error;
+      setHelpDecisions(data?.decisions || null);
+    } catch (err) {
+      console.error("Help me decide error:", err);
+    } finally {
+      setIsLoadingHelp(false);
+    }
+  };
+
   // Fetch AI verdict once all data is loaded
   const { data: verdict, isLoading: isLoadingVerdict } = useQuery({
     queryKey: ["compare-verdict", ranked.map((r) => r.city.city).join(","), ranked.map((r) => r.weightedTotal.toFixed(1)).join(",")],
