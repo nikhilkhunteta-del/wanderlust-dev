@@ -116,12 +116,21 @@ const Results = () => {
         {/* Destination Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {recommendations.map((rec) => (
-            <DestinationCard
-              key={`${rec.city}-${rec.country}`}
-              recommendation={rec}
-              onExplore={() => handleExploreCity(rec)}
-              departureCity={profile?.departureCity}
-            />
+            <div key={`${rec.city}-${rec.country}`} className="flex flex-col">
+              <DestinationCard
+                recommendation={rec}
+                onExplore={() => handleExploreCity(rec)}
+                departureCity={profile?.departureCity}
+              />
+              <button
+                type="button"
+                onClick={() => handleBeenHere(rec.city)}
+                disabled={replacingCity !== null}
+                className="mt-2 self-center text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                {replacingCity === rec.city ? 'Finding a replacement…' : 'Been here? Replace →'}
+              </button>
+            </div>
           ))}
         </div>
 
