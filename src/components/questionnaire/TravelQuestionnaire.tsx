@@ -159,6 +159,7 @@ export const TravelQuestionnaire = () => {
     if (isLastStep) {
       const profile = buildTravelProfile(preferences);
       console.log('Travel Profile:', profile);
+      clearSession();
       navigate('/results', { state: { profile } });
       return;
     }
