@@ -188,7 +188,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
       const profile = buildTravelProfile(preferences);
       console.log('Travel Profile:', profile);
       clearSession();
-      navigate('/results', { state: { profile } });
+      navigate('/results', { state: { profile, previousCities: previousCities || [] } });
       return;
     }
 
