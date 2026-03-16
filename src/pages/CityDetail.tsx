@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
