@@ -1,6 +1,6 @@
 import { CityRecommendation } from "@/types/recommendations";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Plane } from "lucide-react";
+import { ArrowRight, Plane, Calendar } from "lucide-react";
 import { ResolvedImage } from "@/components/shared/ResolvedImage";
 
 interface DestinationCardProps {
