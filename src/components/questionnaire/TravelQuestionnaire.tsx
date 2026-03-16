@@ -150,6 +150,10 @@ export const TravelQuestionnaire = () => {
   const canProceed = () => {
     // Cultural moments allows empty (user uses skip link instead)
     if (currentQuestion.id === 'culturalMoments') return true;
+    // Combined month + duration step: both must be selected
+    if (currentQuestion.id === 'whenAndHowLong') {
+      return preferences.travelMonth !== '' && preferences.tripDuration !== '';
+    }
     const value = preferences[currentQuestion.id];
     if (Array.isArray(value)) return value.length > 0;
     if (typeof value === 'string') return value !== '';
