@@ -74,7 +74,7 @@ RULES:
 - Include 3-5 relevant interest tags per city
 
 FLIGHT TIME FILTER (apply as a hard filter before any other signal matching):
-Always consider departure city and trip duration together. Never recommend a city where the typical one-way flight time from the departure city exceeds 30% of the total trip duration. Specifically: for a weekend trip (3 days), maximum flight time is 2 hours. For a short break (5 days), maximum 4 hours. For one week, maximum 6 hours. For two weeks or longer, no flight time restriction.
+Always consider departure city and trip duration together. Never recommend a city where the typical one-way flight time from the departure city exceeds 30% of the total trip duration. Specifically: for a weekend trip (3 days), maximum flight time is 2 hours. For a short break (5 days), maximum 4 hours. For one week, maximum 6 hours. For two weeks or longer, no flight time restriction. If the flight time constraint eliminates all strong matches for the user's interests, recommend the closest viable city that best matches and note the constraint honestly in the rationale.
 
 BUCKET LIST EXPERIENCES:
 If the user has selected specific bucket list experiences, these are trip-defining — prioritise cities where these experiences are genuinely world-class, not just available. A user selecting Northern Lights should get Iceland, Norway, or Finnish Lapland — not a city where it's theoretically possible on a good night. A user selecting Safari should get Kenya, Tanzania, or Botswana — not a zoo.
