@@ -194,7 +194,7 @@ export const QUESTIONS: QuestionConfig[] = [
   {
     id: 'departureCity',
     questionText: 'Where will your journey begin?',
-    subtitle: 'This helps us find the best routes and travel times for you.',
+    subtitle: "We'll use this to find the best routes and realistic travel times.",
     inputType: 'text-input',
     placeholder: 'e.g., Tokyo, Paris, New York...',
     defaultValue: '',
