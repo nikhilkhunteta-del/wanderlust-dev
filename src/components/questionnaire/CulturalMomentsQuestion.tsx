@@ -210,7 +210,11 @@ export const CulturalMomentsQuestion = ({
           )}
           <div className="max-h-[500px] overflow-y-auto scrollbar-thin pr-1">
             <div className="grid grid-cols-2 gap-3">
-              {inWindow.map((m) => renderCard(m, false))}
+              {inWindow.map((m, i) => (
+                <div key={m.id} className={inWindow.length % 2 !== 0 && i === inWindow.length - 1 ? 'col-span-2' : ''}>
+                  {renderCard(m, false)}
+                </div>
+              ))}
             </div>
           </div>
         </div>
