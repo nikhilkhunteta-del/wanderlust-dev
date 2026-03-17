@@ -56,7 +56,7 @@ export const InterestGridQuestion = ({
           Select up to {maxSelections}
         </span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-[860px] mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
         {options.map((option) => {
           const isSelected = selected.includes(option.value);
           return (
