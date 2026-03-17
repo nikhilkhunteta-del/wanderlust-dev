@@ -127,7 +127,7 @@ const Results = () => {
 
       <main className="py-12">
         {/* Intro Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 px-6 md:px-12">
           {profile && (
             <p className="text-base md:text-lg text-muted-foreground italic mb-6 max-w-2xl mx-auto leading-relaxed">
               {buildProfileSummary(profile)}
