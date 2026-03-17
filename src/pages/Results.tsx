@@ -139,7 +139,7 @@ const Results = () => {
         </div>
 
         {/* Destination Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 -mx-[calc(theme(spacing.6)-48px)] md:-mx-0" style={{ maxWidth: 'none' }}>
           {recommendations.map((rec) => (
             <div key={`${rec.city}-${rec.country}`} className="flex flex-col">
               <DestinationCard
