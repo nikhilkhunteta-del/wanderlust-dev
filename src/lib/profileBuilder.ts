@@ -115,6 +115,12 @@ export function buildTravelProfile(preferences: TravelPreferences): TravelProfil
     adventureTypes: preferences.adventureExperiences.filter((exp) => exp !== 'none'),
     bucketListExperiences: preferences.adventureExperiences.filter((exp) => exp !== 'none'),
     culturalMoments: preferences.culturalMoments || [],
+    culturalMomentDetails: (preferences.culturalMoments || []).map(val => {
+      const moment = allCulturalMoments.find(m => m.value === val);
+      return moment
+        ? { value: val, label: moment.label, city: moment.city, country: moment.country }
+        : { value: val, label: val, city: '', country: '' };
+    }),
     departureCity: preferences.departureCity,
     travelMonth: preferences.travelMonth,
     tripDuration,
