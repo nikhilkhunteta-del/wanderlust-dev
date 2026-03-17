@@ -456,25 +456,12 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
                       </Button>
                     </>
                   ) : (
-                    <>
-                      <Button
-                        variant="ghost"
-                        onClick={handleBack}
-                        disabled={isFirstStep}
-                        className={cn(
-                          'gap-2 text-muted-foreground hover:text-foreground',
-                          isFirstStep && 'invisible'
-                        )}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Back
-                      </Button>
-
+                    <div className="flex flex-col w-full gap-2">
                       <Button
                         onClick={handleNext}
                         disabled={!canProceed() && !canProceedQ2}
                         className={cn(
-                          'gap-2 px-8 py-6 text-lg transition-all',
+                          'w-full h-[52px] gap-3 text-lg transition-all',
                           (canProceed() || canProceedQ2)
                             ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
                             : 'bg-muted text-muted-foreground'
@@ -492,7 +479,17 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
                           </>
                         )}
                       </Button>
-                    </>
+                      {!isFirstStep && (
+                        <Button
+                          variant="ghost"
+                          onClick={handleBack}
+                          className="gap-2 text-muted-foreground hover:text-foreground"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          Back
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               }
