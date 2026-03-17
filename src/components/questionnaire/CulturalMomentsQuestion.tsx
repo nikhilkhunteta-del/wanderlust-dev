@@ -231,7 +231,11 @@ export const CulturalMomentsQuestion = ({
             <div className="flex-1 h-px bg-border" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {outOfWindow.map((m) => renderCard(m, true))}
+            {outOfWindow.map((m, i) => (
+              <div key={m.value} className={outOfWindow.length % 2 !== 0 && i === outOfWindow.length - 1 ? 'col-span-2' : ''}>
+                {renderCard(m, true)}
+              </div>
+            ))}
           </div>
         </>
       )}
