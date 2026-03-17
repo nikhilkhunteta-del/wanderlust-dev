@@ -66,7 +66,7 @@ export const SingleSelectQuestion = ({
 
   if (variant === 'card-grid') {
     return (
-      <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto">
+      <div className="grid grid-cols-2 gap-4 w-full">
         {options.map((option, index) => {
           const isSelected = selected === option.value;
           const isLastOdd = options.length % 2 !== 0 && index === options.length - 1;
@@ -78,7 +78,7 @@ export const SingleSelectQuestion = ({
               whileTap={{ scale: 0.97 }}
               className={cn(
                 'relative flex flex-col items-center justify-center text-center rounded-xl px-3 py-4 cursor-pointer transition-all duration-200',
-                'min-h-[80px]',
+                'min-h-[120px]',
                 isLastOdd && 'col-span-2',
                 isSelected
                   ? 'ring-2 ring-primary bg-primary/10 shadow-md shadow-primary/10'
