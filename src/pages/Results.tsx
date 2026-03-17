@@ -125,7 +125,7 @@ const Results = () => {
     <div className="min-h-screen gradient-warm">
       <Header rightContent="Your Destinations" />
 
-      <main className="page-container py-12">
+      <main className="py-12">
         {/* Intro Section */}
         <div className="text-center mb-12">
           {profile && (
