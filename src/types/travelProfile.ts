@@ -35,6 +35,7 @@ export interface TravelProfile {
   adventureTypes: string[];
   bucketListExperiences: string[];
   culturalMoments: string[];
+  culturalMomentDetails?: { value: string; label: string; city: string; country: string }[];
 
   departureCity: string;
   travelMonth: string;

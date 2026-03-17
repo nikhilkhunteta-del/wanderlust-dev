@@ -13,6 +13,7 @@ interface TravelProfile {
   adventureTypes: string[];
   bucketListExperiences?: string[];
   culturalMoments?: string[];
+  culturalMomentDetails?: { value: string; label: string; city: string; country: string }[];
   departureCity: string;
   travelMonth: string;
   tripDuration: number;
@@ -141,9 +142,13 @@ BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" fi
       ? profile.bucketListExperiences.join(", ")
       : null;
 
-    const culturalMomentsList = profile.culturalMoments && profile.culturalMoments.length > 0
-      ? profile.culturalMoments.join(", ")
-      : null;
+    const culturalMomentsList = profile.culturalMomentDetails && profile.culturalMomentDetails.length > 0
+      ? profile.culturalMomentDetails
+          .map(m => `${m.label} → lock city: ${m.city}, ${m.country}`)
+          .join('; ')
+      : profile.culturalMoments && profile.culturalMoments.length > 0
+        ? profile.culturalMoments.join(", ")
+        : null;
 
     const excludedLine = excludedCities && excludedCities.length > 0
       ? `\nEXCLUDED CITIES: ${excludedCities.map(c => `User has already visited ${c} — exclude it`).join('. ')}. Do NOT recommend any of these cities.`
@@ -155,7 +160,7 @@ BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" fi
 
     const userPrompt = `Find 3 destination cities for this traveller:
 
-INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}${culturalMomentsList ? `\nCULTURAL MOMENTS: ${culturalMomentsList} — the traveller wants to witness these specific events or festivals. Strongly prefer cities where these take place.` : ''}
+INTERESTS: ${topInterests.join(", ") || "varied interests"}${primaryLine}${bucketList ? `\nBUCKET LIST EXPERIENCES: ${bucketList} — these are trip-defining priorities. Select cities where these are world-class.` : ''}${culturalMomentsList ? `\nCULTURAL MOMENTS WITH LOCKED CITIES: ${culturalMomentsList} — the traveller wants to witness these specific events or festivals. You MUST recommend the locked city for each moment as one of the three recommendations.` : ''}
 FOOD PREFERENCE: ${profile.foodDepth ? profile.foodDepth.replace("-", " ") : "not specified"}
 ADVENTURE INTENSITY: ${(() => {
   const high = ['skydiving', 'bungee jumping', 'volcano trekking', 'river rafting', 'surfing', 'paragliding'];
