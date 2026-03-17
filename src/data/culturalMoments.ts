@@ -14,7 +14,7 @@ export interface CulturalMoment {
     url: string;
     credit: string;
     unsplashLink: string;
-    source: "unsplash" | "getty" | "pexels" | "ai";
+    source: "unsplash" | "getty" | "pexels" | "ai" | "wikimedia";
   };
   description: string;
   dateNote?: string;
@@ -53,7 +53,7 @@ export const culturalMoments: CulturalMoment[] = [
       url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//jaipur-literature-festival.png",
       credit: "Sneha Chakraborty",
       unsplashLink: "https://unsplash.com/photos/a-view-of-a-city-with-mountains-in-the-background-Fg8o-wImSTM",
-      source: "unsplash" as const,
+      source: "ai" as const,
     },
     description:
       "The world's largest free literary festival, set against the rose-pink backdrop of Rajasthan's most beautiful city",
@@ -68,10 +68,10 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://images.unsplash.com/photo-1579957023433-7fad5b83efae?ixid=M3w3MzcwNDJ8MHwxfHNlYXJjaHwxfHxTaW51bG9nJTIwZmVzdGl2YWwlMjBDZWJ1JTIwUGhpbGlwcGluZXMlMjBzdHJlZXQlMjBkYW5jaW5nJTIwY29zdHVtZXN8ZW58MXwwfHx8MTc3MzE4NDY5OHww&ixlib=rb-4.1.0&w=800&q=80&fit=crop",
+      url: "https://images.pexels.com/photos/11210198/pexels-photo-11210198.jpeg",
       credit: "Chloe Evans",
       unsplashLink: "https://unsplash.com/photos/people-in-red-and-gold-traditional-dress-CXgipFEHrq4",
-      source: "unsplash" as const,
+      source: "pexels" as const,
     },
     description:
       "One of Asia's greatest street festivals — nine days of dance, music, and colour honouring the Santo Niño",
@@ -86,10 +86,10 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://images.unsplash.com/photo-1564101183558-eacfd7e02d4f?ixid=M3w3MzcwNDJ8MHwxfHNlYXJjaHwxfHxUaW1rYXQlMjBFdGhpb3BpYW4lMjBPcnRob2RveCUyMGZlc3RpdmFsJTIwTGFsaWJlbGElMjBjZXJlbW9ueSUyMHByaWVzdHN8ZW58MXwwfHx8MTc3MzE4NDcwMHww&ixlib=rb-4.1.0&w=800&q=80&fit=crop",
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Priests_carrying_Tabot_during_Timket.jpg/640px-Priests_carrying_Tabot_during_Timket.jpg",
       credit: "Jorge Tung",
       unsplashLink: "https://unsplash.com/photos/people-in-white-clothes-6lFb1ojwvDA",
-      source: "unsplash" as const,
+      source: "wikimedia" as const,
     },
     description:
       "Ethiopia's most sacred celebration — priests carry the Ark replica through ancient rock-hewn churches at dawn",
@@ -104,10 +104,10 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://images.unsplash.com/photo-1603043147971-564df57e2915?ixid=M3w3MzcwNDJ8MHwxfHNlYXJjaHwxfHxWZW5pY2UlMjBjYXJuaXZhbCUyMG1hc2slMjBlbGFib3JhdGUlMjBjb3N0dW1lJTIwY2FuYWwlMjBJdGFseXxlbnwxfDB8fHwxNzczMTg0NzAyfDA&ixlib=rb-4.1.0&w=800&q=80&fit=crop",
+      url: "https://images.pexels.com/photos/34527712/pexels-photo-34527712.jpeg",
       credit: "Hasmik Ghazaryan Olson",
       unsplashLink: "https://unsplash.com/photos/white-and-purple-feather-mask-YPZeKiLiiUM",
-      source: "unsplash" as const,
+      source: "pexels" as const,
     },
     description:
       "Elaborate masquerade balls and centuries-old costumes transform Venice into the world's most theatrical city",
@@ -123,7 +123,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february", "march"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://images.unsplash.com/photo-1735839550903-98b86765a0d2?ixid=M3w3MzcwNDJ8MHwxfHNlYXJjaHwxfHxSaW8lMjBjYXJuaXZhbCUyMHNhbWJhJTIwcGFyYWRlJTIwc3BlY3RhY3VsYXIlMjBjb3N0dW1lcyUyMEJyYXppbHxlbnwxfDB8fHwxNzczMTg0NzA0fDA&ixlib=rb-4.1.0&w=800&q=80&fit=crop",
+      url: "https://images.unsplash.com/photo-1659700547307-6db624dc0cb4?q=80&w=850&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "Karla Vidal",
       unsplashLink: "https://unsplash.com/photos/a-man-in-a-green-and-orange-costume-9wRiBrR_Cdk",
       source: "unsplash" as const,
@@ -143,7 +143,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://images.unsplash.com/photo-1594792780987-83273a3991dd?ixid=M3w3MzcwNDJ8MHwxfHNlYXJjaHwxfHxza3klMjBsYW50ZXJucyUyMFRhaXdhbiUyMFBpbmd4aSUyMGZlc3RpdmFsJTIwbmlnaHQlMjBmbG9hdGluZ3xlbnwxfDB8fHwxNzczMTg0NzA2fDA&ixlib=rb-4.1.0&w=800&q=80&fit=crop",
+      url: "https://images.unsplash.com/photo-1523296066596-7ff8bb6e6d29?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "Nat Chen",
       unsplashLink: "https://unsplash.com/photos/orange-paper-lantern-on-blue-concrete-wall-eRKTHHNdy6E",
       source: "unsplash" as const,
