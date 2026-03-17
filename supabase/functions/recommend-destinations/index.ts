@@ -57,7 +57,7 @@ serve(async (req) => {
       'classics': 'wants classic, globally recognised destinations that are excellent for their interests',
       'mix': 'wants one well-known city, one moderately known, and one lesser-visited destination',
       'off-beaten-path': 'prefers lesser-known cities that reward curious travellers — avoid top 20 most visited cities globally',
-      'surprise': 'open to any destination — recommend purely on interest and timing match, no constraints',
+      'surprise': 'match interests with full accuracy but ignore city familiarity entirely — recommend anywhere in the world regardless of how well-known or obscure the destination is',
     };
 
     const noveltyDesc = noveltyMap[profile.noveltyPreference || ''] || 'open to any destination';
