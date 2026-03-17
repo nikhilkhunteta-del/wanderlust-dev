@@ -159,19 +159,22 @@ const Results = () => {
           ))}
         </div>
 
-        {/* Quick flights nudge */}
+        {/* Quick flights nudge — one per city */}
         {profile?.departureCity && recommendations.length > 0 && (
-          <div className="text-center mb-12">
-            <a
-              href={`https://www.google.com/travel/flights?q=${encodeURIComponent(`flights from ${profile.departureCity} to ${recommendations[0].city} ${profile.travelMonth || ''}`.trim()).replace(/%20/g, '+')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
-            >
-              <Plane className="w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
-              <span>See flights from {profile.departureCity} to {recommendations[0].city}</span>
-              <ExternalLink className="w-3 h-3 opacity-50" />
-            </a>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mb-12">
+            {recommendations.map((rec) => (
+              <a
+                key={rec.city}
+                href={`https://www.google.com/travel/flights?q=${encodeURIComponent(`flights from ${profile.departureCity} to ${rec.city} ${profile.travelMonth || ''}`.trim()).replace(/%20/g, '+')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+              >
+                <span>✈️</span>
+                <span>See flights to {rec.city}</span>
+                <ExternalLink className="w-3 h-3 opacity-50" />
+              </a>
+            ))}
           </div>
         )}
 
