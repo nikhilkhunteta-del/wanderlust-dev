@@ -1,4 +1,5 @@
 import { TravelPreferences } from '@/types/questionnaire';
+import { culturalMoments as allCulturalMoments } from '@/data/culturalMoments';
 import {
   TravelProfile,
   InterestScores,
