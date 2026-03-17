@@ -135,7 +135,7 @@ ESTIMATED FLIGHT HOURS: For each city, estimate the typical one-way flight durat
 BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" field with the ideal 2-3 month window for visiting (e.g. "Mar–May", "Sep–Nov", "Jun–Aug"). Use abbreviated month names with an en-dash. If the user specified a month, omit this field.`;
 
     const primaryLine = profile.primaryInterest
-      ? `\nPRIMARY INTEREST (treat this as 3x the weight of any secondary interest — if two cities are otherwise equal, this signal must break the tie): ${profile.primaryInterest}`
+      ? `\nPRIMARY INTEREST (If primaryInterest is set, at least 2 of the 3 recommended cities must be standout destinations for that specific interest — not merely adequate. A city that only touches on the primary interest does not qualify.): ${profile.primaryInterest}`
       : '';
 
     const bucketList = profile.bucketListExperiences && profile.bucketListExperiences.length > 0
