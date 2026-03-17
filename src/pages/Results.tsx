@@ -178,6 +178,8 @@ const Results = () => {
           </div>
         )}
 
+        <hr className="border-t border-border my-10 mx-6 md:mx-12" />
+
         {/* Save Travel Profile */}
         {profile && !isSaved && (
           <div className="max-w-md mx-auto mb-12 p-6 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm text-center">
