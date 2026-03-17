@@ -137,7 +137,7 @@ export const CulturalMomentsQuestion = ({
               </p>
               {/* Month badge chip */}
               <span
-                className={`flex-none px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                className={`flex-none shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap ${
                   isOutOfWindowCard
                     ? 'bg-muted text-muted-foreground'
                     : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
