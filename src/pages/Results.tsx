@@ -10,7 +10,7 @@ import { ResultsError } from "@/components/results/ResultsError";
 import { DestinationCard } from "@/components/results/DestinationCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, RefreshCw, ArrowRight, Sparkles, Check, Plane, ExternalLink } from "lucide-react";
+import { ArrowLeft, RefreshCw, ArrowRight, Sparkles, Check, ExternalLink } from "lucide-react";
 import { usePrefetchCityImages } from "@/hooks/useImagePack";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
