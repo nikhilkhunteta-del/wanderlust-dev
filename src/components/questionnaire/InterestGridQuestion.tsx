@@ -56,7 +56,7 @@ export const InterestGridQuestion = ({
           Select up to {maxSelections}
         </span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-[860px] mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
         {options.map((option) => {
           const isSelected = selected.includes(option.value);
           return (
@@ -66,7 +66,7 @@ export const InterestGridQuestion = ({
               onClick={() => toggleOption(option.value)}
               whileTap={{ scale: 0.97 }}
               className={cn(
-                'flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 px-3 py-4 transition-all duration-150 cursor-pointer min-h-[80px]',
+                'flex flex-col items-center justify-center gap-2 rounded-xl border-2 px-5 py-6 transition-all duration-150 cursor-pointer min-h-[200px]',
                 'bg-card shadow-sm hover:shadow-md',
                 isSelected
                   ? 'border-primary bg-[hsl(var(--primary)/0.06)]'
