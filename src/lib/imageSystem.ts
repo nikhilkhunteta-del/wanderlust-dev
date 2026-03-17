@@ -33,27 +33,47 @@ export async function resolveImage(request: ResolveImageRequest): Promise<Resolv
     return memoryCache.get(cacheKey)!;
   }
 
-  try {
-    const { data, error } = await supabase.functions.invoke<ResolveImageResponse>(
-      "resolve-image",
-      { body: request }
-    );
+  // Retry with exponential backoff for 503/network errors
+  const MAX_RETRIES = 3;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      // Stagger concurrent requests to avoid overwhelming edge runtime
+      if (attempt > 0) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt) + Math.random() * 300));
+      }
 
-    if (error) {
-      console.error("Error resolving image:", error);
+      const { data, error } = await supabase.functions.invoke<ResolveImageResponse>(
+        "resolve-image",
+        { body: request }
+      );
+
+      if (error) {
+        // Retry on 503 / network errors
+        const is503 = error.message?.includes('503') || error.message?.includes('non-2xx') || error.message?.includes('Failed to send');
+        if (is503 && attempt < MAX_RETRIES - 1) {
+          console.warn(`resolve-image attempt ${attempt + 1} failed (503), retrying...`);
+          continue;
+        }
+        console.error("Error resolving image:", error);
+        return null;
+      }
+
+      if (data?.image) {
+        memoryCache.set(cacheKey, data.image);
+        return data.image;
+      }
+
+      return null;
+    } catch (err) {
+      if (attempt < MAX_RETRIES - 1) {
+        console.warn(`resolve-image attempt ${attempt + 1} threw, retrying...`);
+        continue;
+      }
+      console.error("Failed to resolve image:", err);
       return null;
     }
-
-    if (data?.image) {
-      memoryCache.set(cacheKey, data.image);
-      return data.image;
-    }
-
-    return null;
-  } catch (err) {
-    console.error("Failed to resolve image:", err);
-    return null;
   }
+  return null;
 }
 
 /**
