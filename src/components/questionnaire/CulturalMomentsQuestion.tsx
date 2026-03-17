@@ -34,6 +34,7 @@ export const CulturalMomentsQuestion = ({
 }: CulturalMomentsQuestionProps) => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [monthConflict, setMonthConflict] = useState<string | null>(null);
+  const [showAllOutOfWindow, setShowAllOutOfWindow] = useState(false);
 
   const isFlexible = travelMonth === 'flexible';
   const fullMonth = MONTH_KEY_TO_FULL[travelMonth] || '';
@@ -231,12 +232,26 @@ export const CulturalMomentsQuestion = ({
             <div className="flex-1 h-px bg-border" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {outOfWindow.map((m, i) => (
-              <div key={m.value} className={outOfWindow.length % 2 !== 0 && i === outOfWindow.length - 1 ? 'col-span-2' : ''}>
-                {renderCard(m, true)}
-              </div>
-            ))}
+            {(showAllOutOfWindow ? outOfWindow : outOfWindow.slice(0, 4)).map((m, i) => {
+              const visibleList = showAllOutOfWindow ? outOfWindow : outOfWindow.slice(0, 4);
+              return (
+                <div key={m.value} className={visibleList.length % 2 !== 0 && i === visibleList.length - 1 ? 'col-span-2' : ''}>
+                  {renderCard(m, true)}
+                </div>
+              );
+            })}
           </div>
+          {!showAllOutOfWindow && outOfWindow.length > 4 && (
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setShowAllOutOfWindow(true)}
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                Show more moments →
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -246,17 +261,6 @@ export const CulturalMomentsQuestion = ({
           No cultural moments match your travel month — explore other options below.
         </p>
       )}
-
-      {/* Skip link */}
-      <div className="text-center pt-1">
-        <button
-          type="button"
-          onClick={onSkip}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4 decoration-muted-foreground/40"
-        >
-          None of these — just match my interests →
-        </button>
-      </div>
     </div>
   );
 };
