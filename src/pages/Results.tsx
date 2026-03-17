@@ -125,9 +125,9 @@ const Results = () => {
     <div className="min-h-screen gradient-warm">
       <Header rightContent="Your Destinations" />
 
-      <main className="page-container py-12">
+      <main className="py-12">
         {/* Intro Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 px-6 md:px-12">
           {profile && (
             <p className="text-base md:text-lg text-muted-foreground italic mb-6 max-w-2xl mx-auto leading-relaxed">
               {buildProfileSummary(profile)}
@@ -139,7 +139,7 @@ const Results = () => {
         </div>
 
         {/* Destination Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 px-6 md:px-12">
           {recommendations.map((rec) => (
             <div key={`${rec.city}-${rec.country}`} className="flex flex-col">
               <DestinationCard
