@@ -70,7 +70,7 @@ RULES:
 - DO NOT consider budget, hotel prices, or flight prices in your selection
 - Match cities based on: interests, adventure preferences, travel month weather suitability, trip duration, and travel companions
 - Ensure the three cities are meaningfully distinct in experience style
-- For each city, write exactly 2 sentences — no more. Sentence 1: explain the primary match, beginning with a direct address referencing the user's stated interests or cultural moments (e.g. "You told us you wanted [primaryInterest]..." or "For a [companions] trip built around [interest], [city]..."). Sentence 2: add one specific, concrete detail about the city that reinforces the match. Do not exceed 2 sentences. This is a hard limit. Count your sentences before outputting. If your rationale exceeds 2 sentences, remove sentences until exactly 2 remain. Do not summarise — truncate.
+- Write each city rationale in exactly 2 sentences. Sentence 1 must explain the primary match, beginning with a direct reference to the user's stated interests or selected cultural moment. Sentence 2 must add one specific, vivid, concrete detail that makes this city feel real and unmissable. Write both sentences before outputting — do not start outputting until both sentences are complete and you have verified the total is exactly 2. If you find yourself writing a third sentence, stop, delete it, and output only the first 2.
 - Include 3-5 relevant interest tags per city
 
 FLIGHT TIME FILTER (apply as a hard filter before any other signal matching):

@@ -1,16 +1,32 @@
 
 
-## Plan: Update rationale instruction in recommend-destinations
+# Cache the Itinerary Tab with React Query
 
-**What**: Replace the current rationale writing instruction in the system prompt with the user's exact new wording.
+## Problem
+The Itinerary tab stores its data in local component state (`useState` + `useEffect`). When you navigate to another tab and back, React unmounts and remounts the component, losing all state and triggering a fresh API call. Every other tab already uses React Query, which keeps data in a shared cache that survives tab switches.
 
-**Where**: `supabase/functions/recommend-destinations/index.ts`, in the `systemPrompt` string, the section starting with "For each city, write exactly 2 sentences".
+## Solution
+Migrate the Itinerary tab's data fetching to React Query, matching the pattern used by all other tabs.
 
-**Change**: Replace the existing rationale instruction block with:
+## Changes
 
-> "Write each city rationale in exactly 2 sentences. Sentence 1 must explain the primary match, beginning with a direct reference to the user's stated interests or selected cultural moment. Sentence 2 must add one specific, vivid, concrete detail that makes this city feel real and unmissable. Write both sentences before outputting — do not start outputting until both sentences are complete and you have verified the total is exactly 2. If you find yourself writing a third sentence, stop, delete it, and output only the first 2."
+### 1. Add `useCityItinerary` hook to `src/hooks/useCityData.ts`
+- Create a new hook wrapping `getCityItinerary` with React Query
+- Use a query key like `["city-itinerary", city, country, tripDuration, travelMonth, settings]`
+- Apply the same 5-minute stale time / 10-minute cache time as other tabs
 
-This replaces the current instruction that begins with "For each city, write exactly 2 sentences — no more..." through "...If your rationale exceeds 2 sentences, remove sentences until exactly 2 remain. Do not summarise — truncate."
+### 2. Refactor `src/components/itinerary/ItineraryTab.tsx`
+- Replace the local `useState` for itinerary/isLoading/error with the new `useCityItinerary` hook
+- Keep the local state for UI-only concerns (showMap, selectedMapDay, settings, multi-city toggle)
+- For day refinement (`handleRefineDay`), use React Query's `queryClient.setQueryData` to patch the cached itinerary in-place after a successful per-day regeneration, so the update is also cached
+- For full re-generation (when the user clicks "Update" in the refinement panel), call `refetch()` from the query result
+- Remove the `useEffect(() => fetchItinerary(), [])` call entirely
 
-Single file edit, prompt-only change, no structural or code logic changes.
+### 3. Add itinerary prefetching to `src/hooks/useTabPrefetch.ts`
+- In the `"itinerary"` case, prefetch the itinerary query so data is warm when the user navigates to it from an adjacent tab
+
+## What stays the same
+- All UI components (DayCard, RefinementPanel, etc.) remain unchanged
+- Day refinement and multi-city features work identically
+- Settings state stays local since it drives the query parameters
 
