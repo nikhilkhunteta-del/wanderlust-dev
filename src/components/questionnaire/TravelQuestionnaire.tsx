@@ -408,6 +408,8 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
     );
   }
 
+  const isCulturalMomentsStep = currentQuestion?.id === 'culturalMoments';
+
   return (
     <div className="min-h-screen flex flex-col gradient-warm">
       <Header />
@@ -416,7 +418,10 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
         <ProgressIndicator currentStep={currentStep} totalSteps={activeQuestions.length} />
       </div>
 
-      <main className="flex-1 flex flex-col justify-center px-6 md:px-12 pb-8">
+      <main className={cn(
+        'flex-1 flex flex-col justify-center px-6 md:px-12',
+        isCulturalMomentsStep ? 'pb-24' : 'pb-8'
+      )}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={`${currentStep}-${currentQuestion.id}`}
@@ -433,40 +438,42 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
               questionText={currentQuestion.questionText}
               subtitle={currentQuestion.subtitle}
               footer={
-                <div className="flex items-center gap-3 pt-2 w-full">
-                  {!isFirstStep && (
+                !isCulturalMomentsStep ? (
+                  <div className="flex items-center gap-3 pt-2 w-full">
+                    {!isFirstStep && (
+                      <Button
+                        variant="ghost"
+                        onClick={handleBack}
+                        className="gap-2 text-muted-foreground hover:text-foreground shrink-0"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                      </Button>
+                    )}
                     <Button
-                      variant="ghost"
-                      onClick={handleBack}
-                      className="gap-2 text-muted-foreground hover:text-foreground shrink-0"
+                      onClick={handleNext}
+                      disabled={!canProceed() && !canProceedQ2}
+                      className={cn(
+                        'flex-1 h-[52px] gap-3 text-lg transition-all',
+                        (canProceed() || canProceedQ2)
+                          ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
+                          : 'bg-muted text-muted-foreground'
+                      )}
                     >
-                      <ChevronLeft className="w-4 h-4" />
-                      Back
+                      {isLastStep ? (
+                        <>
+                          Design my journey
+                          <Sparkles className="w-5 h-5 animate-[shimmer_2s_ease-in-out_infinite]" />
+                        </>
+                      ) : (
+                        <>
+                          Continue
+                          <ChevronRight className="w-5 h-5" />
+                        </>
+                      )}
                     </Button>
-                  )}
-                  <Button
-                    onClick={handleNext}
-                    disabled={!canProceed() && !canProceedQ2}
-                    className={cn(
-                      'flex-1 h-[52px] gap-3 text-lg transition-all',
-                      (canProceed() || canProceedQ2)
-                        ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
-                        : 'bg-muted text-muted-foreground'
-                    )}
-                  >
-                    {isLastStep ? (
-                      <>
-                        Design my journey
-                        <Sparkles className="w-5 h-5 animate-[shimmer_2s_ease-in-out_infinite]" />
-                      </>
-                    ) : (
-                      <>
-                        Continue
-                        <ChevronRight className="w-5 h-5" />
-                      </>
-                    )}
-                  </Button>
-                </div>
+                  </div>
+                ) : undefined
               }
             >
               {renderQuestion()}
@@ -474,6 +481,43 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Sticky footer for Q3 cultural moments */}
+      {isCulturalMomentsStep && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-background/95 backdrop-blur-sm px-6 md:px-12 py-3">
+          <div className="flex items-center gap-3 w-full">
+            <button
+              type="button"
+              onClick={handleSkipCulturalMoments}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4 decoration-muted-foreground/40 shrink-0"
+            >
+              None of these — just match my interests →
+            </button>
+            <div className="flex-1" />
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              className="gap-2 text-muted-foreground hover:text-foreground shrink-0"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={!canProceed()}
+              className={cn(
+                'h-[52px] gap-3 text-lg px-8 transition-all',
+                canProceed()
+                  ? 'gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25'
+                  : 'bg-muted text-muted-foreground'
+              )}
+            >
+              Continue
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
