@@ -325,7 +325,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
           />
         );
       case 'single-select': {
-        const variant = currentQuestion.id === 'travelCompanions'
+        const variant = (currentQuestion.id === 'travelCompanions' || currentQuestion.id === 'noveltyPreference')
           ? 'card-grid'
           : 'default';
         return (
