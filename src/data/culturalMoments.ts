@@ -32,10 +32,10 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://images.unsplash.com/photo-1550450754-79c0648d0ef8?ixid=M3w3MzcwNDJ8MHwxfHNlYXJjaHwxfHxIYXJiaW4lMjBpY2UlMjBmZXN0aXZhbCUyMENoaW5hJTIwaWxsdW1pbmF0ZWQlMjBzY3VscHR1cmVzJTIwd2ludGVyfGVufDF8MHx8fDE3NzMxODQ2OTR8MA&ixlib=rb-4.1.0&w=800&q=80&fit=crop",
+      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//ice-snow-festival-harbin.png",
       credit: "Erica Li",
       unsplashLink: "https://unsplash.com/photos/gray-concrete-building-9N-vg1VRvwk",
-      source: "unsplash" as const,
+      source: "ai" as const,
     },
     description:
       "The world's largest ice festival — entire palaces carved from frozen river blocks, lit from within at night",
