@@ -78,7 +78,7 @@ export const SingleSelectQuestion = ({
               whileTap={{ scale: 0.97 }}
               className={cn(
                 'relative flex flex-col items-center justify-center text-center rounded-xl px-3 py-4 cursor-pointer transition-all duration-200',
-                'min-h-[80px]',
+                'min-h-[120px]',
                 isLastOdd && 'col-span-2',
                 isSelected
                   ? 'ring-2 ring-primary bg-primary/10 shadow-md shadow-primary/10'
