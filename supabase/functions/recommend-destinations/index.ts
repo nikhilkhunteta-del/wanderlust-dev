@@ -142,9 +142,13 @@ BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" fi
       ? profile.bucketListExperiences.join(", ")
       : null;
 
-    const culturalMomentsList = profile.culturalMoments && profile.culturalMoments.length > 0
-      ? profile.culturalMoments.join(", ")
-      : null;
+    const culturalMomentsList = profile.culturalMomentDetails && profile.culturalMomentDetails.length > 0
+      ? profile.culturalMomentDetails
+          .map(m => `${m.label} → lock city: ${m.city}, ${m.country}`)
+          .join('; ')
+      : profile.culturalMoments && profile.culturalMoments.length > 0
+        ? profile.culturalMoments.join(", ")
+        : null;
 
     const excludedLine = excludedCities && excludedCities.length > 0
       ? `\nEXCLUDED CITIES: ${excludedCities.map(c => `User has already visited ${c} — exclude it`).join('. ')}. Do NOT recommend any of these cities.`
