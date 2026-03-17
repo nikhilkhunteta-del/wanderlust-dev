@@ -132,7 +132,7 @@ Respond with ONLY valid JSON in this exact format:
 
 ESTIMATED FLIGHT HOURS: For each city, estimate the typical one-way flight duration in hours (as a decimal, e.g. 3.5 for 3h 30m) from the user's departure city. Include layover time for indirect routes. Use your knowledge of typical commercial flight routes.
 
-BEST MONTHS: If the user's travel month is "flexible", include a "bestMonths" field with the ideal 2-3 month window for visiting (e.g. "Mar–May", "Sep–Nov", "Jun–Aug"). Use abbreviated month names with an en-dash. If the user specified a month, omit this field.`;
+BEST MONTHS: If the user's travel month is "flexible", the "bestMonths" field is required for every city — return the 2 to 3 ideal months given the user's specific interests and the city's seasonal strengths (e.g. "Mar–May", "Sep–Nov", "Jun–Aug"). Use abbreviated month names with an en-dash. For non-flexible travel months, bestMonths is optional.`;
 
     const primaryLine = profile.primaryInterest
       ? `\nPRIMARY INTEREST (If primaryInterest is set, at least 2 of the 3 recommended cities must be standout destinations for that specific interest — not merely adequate. A city that only touches on the primary interest does not qualify.): ${profile.primaryInterest}`
