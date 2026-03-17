@@ -50,7 +50,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://images.unsplash.com/photo-1639844539732-964eecb7e9db?ixid=M3w3MzcwNDJ8MHwxfHNlYXJjaHwxfHxKYWlwdXIlMjBsaXRlcmF0dXJlJTIwZmVzdGl2YWwlMjBJbmRpYSUyMGNyb3dkJTIwYm9va3N8ZW58MXwwfHx8MTc3MzE4NDY5Nnww&ixlib=rb-4.1.0&w=800&q=80&fit=crop",
+      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//jaipur-literature-festival.png",
       credit: "Sneha Chakraborty",
       unsplashLink: "https://unsplash.com/photos/a-view-of-a-city-with-mountains-in-the-background-Fg8o-wImSTM",
       source: "unsplash" as const,
