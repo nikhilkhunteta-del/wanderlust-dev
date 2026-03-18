@@ -1,36 +1,109 @@
-import { ResolvedImage } from "@/components/shared/ResolvedImage";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { useHeroCollage, CollageImage } from "@/hooks/useHeroCollage";
 
 interface HighlightsHeroProps {
   city: string;
   country: string;
   matchStatement: string;
+  interests?: string[];
+}
+
+// Brand gradient fallbacks for failed images
+const FALLBACK_GRADIENTS = [
+  "linear-gradient(135deg, hsl(24 85% 58%), hsl(15 75% 52%))",
+  "linear-gradient(135deg, hsl(200 65% 48%), hsl(200 75% 65%))",
+  "linear-gradient(135deg, hsl(160 50% 40%), hsl(160 45% 55%))",
+  "linear-gradient(135deg, hsl(35 30% 85%), hsl(30 40% 75%))",
+];
+
+function CollageCell({
+  image,
+  index,
+  alt,
+}: {
+  image: CollageImage | null;
+  index: number;
+  alt: string;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  if (!image || failed) {
+    return (
+      <div
+        className="w-full h-full"
+        style={{ background: FALLBACK_GRADIENTS[index % 4] }}
+      />
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full overflow-hidden bg-muted">
+      {!loaded && (
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-muted-foreground/5 to-muted" />
+      )}
+      {image.smallUrl && !loaded && (
+        <img
+          src={image.smallUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+          aria-hidden="true"
+        />
+      )}
+      <img
+        src={image.url}
+        alt={alt}
+        className={cn(
+          "w-full h-full object-cover transition-opacity duration-300",
+          loaded ? "opacity-100" : "opacity-0"
+        )}
+        loading="eager"
+        onLoad={() => setLoaded(true)}
+        onError={() => setFailed(true)}
+      />
+      {loaded && image.photographer && (
+        <a
+          href={`${image.photographerUrl}?utm_source=travel_app&utm_medium=referral`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-1 right-1 text-[9px] text-white/60 hover:text-white bg-black/30 hover:bg-black/50 px-1.5 py-0.5 rounded transition-colors backdrop-blur-sm"
+        >
+          📷 {image.photographer}
+        </a>
+      )}
+    </div>
+  );
 }
 
 export const HighlightsHero = ({
   city,
   country,
   matchStatement,
+  interests = [],
 }: HighlightsHeroProps) => {
+  const { data: images } = useHeroCollage(city, country, interests);
+  const collageImages = images ?? [null, null, null, null];
+
   return (
-    <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
-      {/* Hero Image using new image system */}
-      <ResolvedImage
-        request={{
-          type: 'city_hero',
-          city,
-          country,
-        }}
-        alt={`${city}, ${country}`}
-        className="absolute inset-0 w-full h-full"
-        showAttribution
-        priority
-      />
-      
+    <section className="relative overflow-hidden">
+      {/* 2×2 Image Collage */}
+      <div className="grid grid-cols-2 grid-rows-2 h-[340px] md:h-[500px] w-full">
+        {collageImages.slice(0, 4).map((img, i) => (
+          <CollageCell
+            key={i}
+            image={img}
+            index={i}
+            alt={`${city}, ${country} — ${img?.query || `view ${i + 1}`}`}
+          />
+        ))}
+      </div>
+
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
-      
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12">
+      <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 pointer-events-none">
         <div className="max-w-4xl">
           <span className="text-white/70 text-sm font-medium uppercase tracking-wider mb-2 block">
             {country}

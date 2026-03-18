@@ -74,6 +74,7 @@ export const HighlightsTab = ({
         city={city}
         country={country}
         matchStatement={highlights.matchStatement}
+        interests={profile?.interests ?? []}
       />
 
       {/* Main Content */}
