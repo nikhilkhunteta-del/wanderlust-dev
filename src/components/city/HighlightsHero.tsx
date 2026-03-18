@@ -11,10 +11,10 @@ interface HighlightsHeroProps {
 
 // Brand gradient fallbacks for failed images
 const FALLBACK_GRADIENTS = [
-  "linear-gradient(135deg, hsl(var(--sunset-500)), hsl(var(--sunset-600)))",
-  "linear-gradient(135deg, hsl(var(--ocean-400)), hsl(var(--ocean-600)))",
-  "linear-gradient(135deg, hsl(var(--forest-400)), hsl(var(--forest-600)))",
-  "linear-gradient(135deg, hsl(var(--sand-300)), hsl(var(--sand-500)))",
+  "linear-gradient(135deg, hsl(24 85% 58%), hsl(15 75% 52%))",
+  "linear-gradient(135deg, hsl(200 65% 48%), hsl(200 75% 65%))",
+  "linear-gradient(135deg, hsl(160 50% 40%), hsl(160 45% 55%))",
+  "linear-gradient(135deg, hsl(35 30% 85%), hsl(30 40% 75%))",
 ];
 
 function CollageCell({
