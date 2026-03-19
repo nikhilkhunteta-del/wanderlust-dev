@@ -1699,7 +1699,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["april"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "",
+      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Kings-day.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1707,5 +1707,23 @@ export const culturalMoments: CulturalMoment[] = [
     description:
       "Amsterdam turns entirely orange — a million people on boats, bikes, and bridges celebrating the king's birthday in the world's most joyful street party",
     wikiUrl: "https://en.wikipedia.org/wiki/Koningsdag",
+  },
+  {
+    value: "national-day-norway",
+    label: "Norway's National Day",
+    location: "Oslo, Norway",
+    city: "Oslo",
+    country: "Norway",
+    months: ["may"],
+    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    image: {
+      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Norway.jpeg",
+      credit: "",
+      unsplashLink: "",
+      source: "unsplash" as const,
+    },
+    description:
+      "The most enthusiastic national day on earth — Oslo fills with children in traditional bunad dress, brass bands, and a city that celebrates itself with pure unbridled joy",
+    wikiUrl: "https://en.wikipedia.org/wiki/Norwegian_Constitution_Day",
   },
 ];
