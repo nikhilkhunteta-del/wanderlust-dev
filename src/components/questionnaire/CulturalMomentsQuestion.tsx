@@ -158,6 +158,17 @@ export const CulturalMomentsQuestion = ({
                 {moment.dateNote}
               </span>
             )}
+            {moment.wikiUrl && (
+              <a
+                href={moment.wikiUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="block text-right mt-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Learn more ↗
+              </a>
+            )}
           </div>
         </motion.button>
 
