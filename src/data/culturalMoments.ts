@@ -1651,4 +1651,24 @@ export const culturalMoments: CulturalMoment[] = [
     bookingNote: "Hotels book out a year in advance for peak parade weekends",
     wikiUrl: "https://en.wikipedia.org/wiki/Mardi_Gras_in_New_Orleans",
   },
+  {
+    value: "las-fallas-valencia",
+    label: "Las Fallas",
+    location: "Valencia, Spain",
+    city: "Valencia",
+    country: "Spain",
+    months: ["march"],
+    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    image: {
+      url: "https://images.unsplash.com/photo-1647693679671-26c83f9a582e?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      credit: "",
+      unsplashLink: "",
+      source: "unsplash" as const,
+    },
+    description:
+      "Enormous satirical sculptures fill Valencia's streets for five days before being burned simultaneously at midnight — the world's most spectacular bonfire",
+    dateNote: "Always 15–19 March",
+    bookingNote: "Hotels book out months in advance — book early",
+    wikiUrl: "https://en.wikipedia.org/wiki/Las_Fallas",
+  },
 ];
