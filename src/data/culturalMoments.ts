@@ -1671,4 +1671,41 @@ export const culturalMoments: CulturalMoment[] = [
     bookingNote: "Hotels book out months in advance — book early",
     wikiUrl: "https://en.wikipedia.org/wiki/Las_Fallas",
   },
+  {
+    value: "coachella-california",
+    label: "Coachella",
+    location: "Indio, California, USA",
+    city: "Los Angeles",
+    country: "USA",
+    months: ["april"],
+    triggeredBy: ["arts-music-nightlife"],
+    image: {
+      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Coachella.jpg",
+      credit: "",
+      unsplashLink: "",
+      source: "unsplash" as const,
+    },
+    description:
+      "The world's most famous music and arts festival — two weekends of headline acts, desert heat, and the kind of crowd that makes it a cultural moment in itself",
+    bookingNote: "Tickets sell out within minutes of release — register for presale",
+    wikiUrl: "https://en.wikipedia.org/wiki/Coachella",
+  },
+  {
+    value: "kings-day-netherlands",
+    label: "King's Day",
+    location: "Amsterdam, Netherlands",
+    city: "Amsterdam",
+    country: "Netherlands",
+    months: ["april"],
+    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    image: {
+      url: "",
+      credit: "",
+      unsplashLink: "",
+      source: "unsplash" as const,
+    },
+    description:
+      "Amsterdam turns entirely orange — a million people on boats, bikes, and bridges celebrating the king's birthday in the world's most joyful street party",
+    wikiUrl: "https://en.wikipedia.org/wiki/Koningsdag",
+  },
 ];
