@@ -220,14 +220,12 @@ export const CulturalMomentsQuestion = ({
               In your travel window
             </p>
           )}
-          <div className="max-h-[500px] overflow-y-auto scrollbar-thin pr-1">
-            <div className="grid grid-cols-2 gap-3">
-              {inWindow.map((m, i) => (
-                <div key={m.value} className={inWindow.length % 2 !== 0 && i === inWindow.length - 1 ? 'col-span-2' : ''}>
-                  {renderCard(m, false)}
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            {inWindow.map((m, i) => (
+              <div key={m.value} className={inWindow.length % 2 !== 0 && i === inWindow.length - 1 ? 'col-span-2' : ''}>
+                {renderCard(m, false)}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -235,12 +233,17 @@ export const CulturalMomentsQuestion = ({
       {/* Divider + Section 2 — Outside travel window */}
       {outOfWindow.length > 0 && (
         <>
-          <div className="relative flex items-center py-2">
-            <div className="flex-1 h-px bg-border" />
-            <span className="px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
-              Outside your travel window
-            </span>
-            <div className="flex-1 h-px bg-border" />
+          <div className="mt-8 space-y-2">
+            <div className="relative flex items-center py-2">
+              <div className="flex-1 h-[2px] bg-border" />
+              <span className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                Outside your travel window
+              </span>
+              <div className="flex-1 h-[2px] bg-border" />
+            </div>
+            <p className="text-xs text-muted-foreground italic text-center">
+              Festivals outside your dates — worth knowing about for future trips.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {(showAllOutOfWindow ? outOfWindow : outOfWindow.slice(0, 4)).map((m, i) => {
