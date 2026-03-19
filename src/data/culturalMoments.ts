@@ -1726,4 +1726,23 @@ export const culturalMoments: CulturalMoment[] = [
       "The most enthusiastic national day on earth — Oslo fills with children in traditional bunad dress, brass bands, and a city that celebrates itself with pure unbridled joy",
     wikiUrl: "https://en.wikipedia.org/wiki/Norwegian_Constitution_Day",
   },
+  {
+    value: "melon-day-turkmenistan",
+    label: "Melon Day",
+    location: "Ashgabat, Turkmenistan",
+    city: "Ashgabat",
+    country: "Turkmenistan",
+    months: ["august"],
+    triggeredBy: ["culture-history", "food-culinary"],
+    image: {
+      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Melon Day.jpeg",
+      credit: "",
+      unsplashLink: "",
+      source: "unsplash" as const,
+    },
+    description:
+      "Turkmenistan's most beloved national holiday — an entire country stops to celebrate the melon with parades, dancing, and competitive eating in one of the world's most secretive states",
+    dateNote: "Always the second Sunday of August",
+    wikiUrl: "https://en.wikipedia.org/wiki/Melon_Day",
+  },
 ];
