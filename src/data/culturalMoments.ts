@@ -1631,4 +1631,24 @@ export const culturalMoments: CulturalMoment[] = [
       "Oaxacan artisans carve extraordinary scenes into giant radishes and display them in the main plaza on December 23rd — absurd, beautiful, unmissable",
     wikiUrl: "https://en.wikipedia.org/wiki/Noche_de_R%C3%A1banos",
   },
+  {
+    value: "mardi-gras-new-orleans",
+    label: "Mardi Gras",
+    location: "New Orleans, USA",
+    city: "New Orleans",
+    country: "USA",
+    months: ["february", "march"],
+    triggeredBy: ["culture-history", "arts-music-nightlife", "food-culinary"],
+    image: {
+      url: "https://images.unsplash.com/photo-1703145217874-47c91be335e0?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      credit: "",
+      unsplashLink: "",
+      source: "unsplash" as const,
+    },
+    description:
+      "The greatest party in America — jazz-soaked streets, elaborate floats, and a city that genuinely loses its mind for two weeks",
+    dateNote: "Dates change annually — always ends on Shrove Tuesday before Lent",
+    bookingNote: "Hotels book out a year in advance for peak parade weekends",
+    wikiUrl: "https://en.wikipedia.org/wiki/Mardi_Gras_in_New_Orleans",
+  },
 ];
