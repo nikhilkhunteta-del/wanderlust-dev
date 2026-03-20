@@ -136,15 +136,6 @@ export const HighlightsTab = ({
           <InsiderMissedSection city={city} content={highlights.insiderMissed} />
         )}
       </div>
-
-      {/* 6. Closing CTA */}
-      <HighlightsClosingCTA
-        city={city}
-        travelMonth={travelMonth}
-        onSwitchTab={onSwitchTab}
-        allCities={allCities}
-        profile={profile}
-      />
     </div>
   );
 };
