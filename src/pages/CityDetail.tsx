@@ -208,10 +208,10 @@ const CityDetail = () => {
                 </span>
                 <button
                   onClick={() => handleTabChange("flights")}
-                  className="shrink-0 px-5 py-2 rounded-full text-sm font-semibold gradient-sunset text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-1.5"
+                  className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all flex items-center gap-1"
                 >
-                  Book this trip
-                  <ArrowRight className="w-4 h-4" />
+                  See flights
+                  <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
             </div>

@@ -1,12 +1,17 @@
 import { Sunrise } from "lucide-react";
+import { formatMonthName } from "@/lib/formatMonth";
 
 interface PerfectDayStripProps {
   city: string;
   narrative: string;
+  travelMonth?: string;
+  onSwitchTab?: (tab: string) => void;
 }
 
-export const PerfectDayStrip = ({ city, narrative }: PerfectDayStripProps) => {
+export const PerfectDayStrip = ({ city, narrative, travelMonth, onSwitchTab }: PerfectDayStripProps) => {
   if (!narrative) return null;
+
+  const month = travelMonth ? formatMonthName(travelMonth) : null;
 
   return (
     <section className="mb-14">
@@ -32,6 +37,15 @@ export const PerfectDayStrip = ({ city, narrative }: PerfectDayStripProps) => {
         >
           {narrative}
         </p>
+        {month && onSwitchTab && (
+          <button
+            onClick={() => onSwitchTab("weather")}
+            className="relative mt-4 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+            style={{ maxWidth: '680px', marginLeft: 'auto', marginRight: 'auto', display: 'block', textAlign: 'right' }}
+          >
+            How's the weather in {month}? →
+          </button>
+        )}
       </div>
     </section>
   );
