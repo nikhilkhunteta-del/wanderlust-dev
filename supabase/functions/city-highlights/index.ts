@@ -76,7 +76,7 @@ Respond with ONLY valid JSON in this exact format:
   "matchStatement": "2-3 sentences explaining why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
   "personalMatchReasons": ["Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last", "The **street food universe** of Chandni Chowk alone — paratha, jalebi, chaat — maps perfectly to your culinary curiosity", "Your preference for **warm, golden-light evenings** aligns with the sunset views from Humayun's Tomb gardens in your travel month"],
   "perfectDayNarrative": "A month-specific narrative — structure the day around the actual climate and conditions of the travel month...",
-  "insiderMissed": "3-4 sentences about what most first-time visitors don't expect — what surprises them, what they underestimate, what they miss by following the standard tourist trail. Specific to THIS city and no other. Honest, not promotional.",
+  "insiderMissed": "Exactly 2 sentences. Sentence 1: one surprising observation that most first-time visitors don't expect about this city. Sentence 2: one specific, actionable detail — a place, time, or trick — they can use on their trip. No more than 2 sentences.",
   "experiences": [
     {
       "title": "Experience title",
