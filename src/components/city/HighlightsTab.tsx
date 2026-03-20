@@ -7,7 +7,7 @@ import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
 import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { InsiderMissedSection } from "./InsiderMissedSection";
-import { HighlightsClosingCTA } from "./HighlightsClosingCTA";
+
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { useSavedExperiences } from "@/hooks/useSavedExperiences";
@@ -99,6 +99,8 @@ export const HighlightsTab = ({
         <PerfectDayStrip
           city={city}
           narrative={highlights.perfectDayNarrative ?? ""}
+          travelMonth={travelMonth}
+          onSwitchTab={onSwitchTab}
         />
 
         {/* City Vibe */}
@@ -136,15 +138,6 @@ export const HighlightsTab = ({
           <InsiderMissedSection city={city} content={highlights.insiderMissed} />
         )}
       </div>
-
-      {/* 6. Closing CTA */}
-      <HighlightsClosingCTA
-        city={city}
-        travelMonth={travelMonth}
-        onSwitchTab={onSwitchTab}
-        allCities={allCities}
-        profile={profile}
-      />
     </div>
   );
 };
