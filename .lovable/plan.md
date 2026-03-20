@@ -1,32 +1,74 @@
 
 
-# Cache the Itinerary Tab with React Query
+## Plan: Add Pollinations as Image Source in resolve-image Edge Function
 
-## Problem
-The Itinerary tab stores its data in local component state (`useState` + `useEffect`). When you navigate to another tab and back, React unmounts and remounts the component, losing all state and triggering a fresh API call. Every other tab already uses React Query, which keeps data in a shared cache that survives tab switches.
+### What Changes
 
-## Solution
-Migrate the Itinerary tab's data fetching to React Query, matching the pattern used by all other tabs.
+**1. Add `POLLINATIONS_API_KEY` secret**
+- Use the `add_secret` tool to request the key from the user before proceeding with code changes.
 
-## Changes
+**2. Update `resolve-image/index.ts`**
 
-### 1. Add `useCityItinerary` hook to `src/hooks/useCityData.ts`
-- Create a new hook wrapping `getCityItinerary` with React Query
-- Use a query key like `["city-itinerary", city, country, tripDuration, travelMonth, settings]`
-- Apply the same 5-minute stale time / 10-minute cache time as other tabs
+- Add `'pollinations'` to the `ImageSource` type union.
+- Add a `tryPollinations` function that:
+  - Reads `POLLINATIONS_API_KEY` from env.
+  - Derives a stable numeric seed from the entity/city name using a simple string hash (sum of char codes × prime, mod a large number).
+  - Constructs URL: `https://gen.pollinations.ai/image/{encodedPrompt}?width=1200&height=800&seed={seed}&key={apiKey}` where prompt = `"{entityName} {city} atmospheric travel photography cinematic"`.
+  - Fetches with a 20-second `AbortController` timeout.
+  - Validates the response has `content-type` starting with `image/` and status 200.
+  - Returns a `ResolvedImage` with `source: 'pollinations'`, `attributionRequired: false`, and the constructed URL.
+  - Returns `null` on timeout, non-image response, or any error.
 
-### 2. Refactor `src/components/itinerary/ItineraryTab.tsx`
-- Replace the local `useState` for itinerary/isLoading/error with the new `useCityItinerary` hook
-- Keep the local state for UI-only concerns (showMap, selectedMapDay, settings, multi-city toggle)
-- For day refinement (`handleRefineDay`), use React Query's `queryClient.setQueryData` to patch the cached itinerary in-place after a successful per-day regeneration, so the update is also cached
-- For full re-generation (when the user clicks "Update" in the refinement panel), call `refetch()` from the query result
-- Remove the `useEffect(() => fetchItinerary(), [])` call entirely
+- **Change the resolution order** (lines ~1008–1042) based on type:
+  - `attraction`, `city_hero`, `neighborhood`: Pollinations → Unsplash → Pexels → local storage (remove Wikimedia-first for named entities when type is one of these three).
+  - `seasonal`: Wikimedia → Unsplash → Pollinations → Pexels → local storage.
+  - `category` (unchanged): Wikimedia (if entityName) → Unsplash → Pexels → local storage.
 
-### 3. Add itinerary prefetching to `src/hooks/useTabPrefetch.ts`
-- In the `"itinerary"` case, prefetch the itinerary query so data is warm when the user navigates to it from an adjacent tab
+- Keep the existing hero fallback (monument-focused query on Unsplash/Pexels) after the main chain for `city_hero`.
 
-## What stays the same
-- All UI components (DayCard, RefinementPanel, etc.) remain unchanged
-- Day refinement and multi-city features work identically
-- Settings state stays local since it drives the query parameters
+**3. Update `src/types/imageSystem.ts`**
+- Add `'pollinations'` to the `ImageSource` type so the frontend type matches.
+
+### Technical Details
+
+**Hash function** (for deterministic seed):
+```typescript
+function stableHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+```
+
+**Pollinations URL construction:**
+```
+const prompt = `${entityName || city} ${city} atmospheric travel photography cinematic`;
+const encoded = encodeURIComponent(prompt);
+const seed = stableHash((entityName || city).toLowerCase());
+const url = `https://gen.pollinations.ai/image/${encoded}?width=1200&height=800&seed=${seed}&key=${apiKey}`;
+```
+
+**Timeout pattern:**
+```typescript
+const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 20000);
+const response = await fetch(url, { signal: controller.signal });
+clearTimeout(timeout);
+```
+
+**Resolution order by type:**
+
+| Type | Order |
+|------|-------|
+| `city_hero` | Pollinations → Unsplash (chaotic reject) → Pexels → hero fallback → Storage |
+| `attraction` | Pollinations → Unsplash → Pexels → Storage |
+| `neighborhood` | Pollinations → Unsplash → Pexels → Storage |
+| `seasonal` | Wikimedia → Unsplash → Pollinations → Pexels → Storage |
+| `category` | Wikimedia (if entity) → Unsplash → Pexels → Storage (unchanged) |
+
+### Files Modified
+- `supabase/functions/resolve-image/index.ts` — add `tryPollinations`, update resolution logic
+- `src/types/imageSystem.ts` — add `'pollinations'` to `ImageSource`
 
