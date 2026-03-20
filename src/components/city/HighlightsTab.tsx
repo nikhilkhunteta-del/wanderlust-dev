@@ -7,7 +7,7 @@ import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
 import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { InsiderMissedSection } from "./InsiderMissedSection";
-import { HighlightsClosingCTA } from "./HighlightsClosingCTA"; // unused – kept for tree-shaking
+
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { useSavedExperiences } from "@/hooks/useSavedExperiences";
