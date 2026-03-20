@@ -17,10 +17,8 @@ const ExperienceGrid = ({ experiences, city, country, isSaved, onToggleSave }: E
   // 1 card: full-width centred, max-width 65%
   if (count === 1) {
     return (
-      <div className="flex justify-center">
-        <div className="w-full max-w-[65%] max-md:max-w-full" data-scroll-fade>
-          <ExperienceCard experience={experiences[0]} city={city} country={country} isSaved={isSaved?.(experiences[0].title)} onToggleSave={onToggleSave} />
-        </div>
+      <div data-scroll-fade>
+        <ExperienceCard experience={experiences[0]} city={city} country={country} isSaved={isSaved?.(experiences[0].title)} onToggleSave={onToggleSave} />
       </div>
     );
   }
