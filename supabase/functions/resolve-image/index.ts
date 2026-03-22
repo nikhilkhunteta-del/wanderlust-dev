@@ -1178,26 +1178,40 @@ serve(async (req) => {
         console.log('Trying Pexels (seasonal)...');
         image = await tryPexels(searchQuery);
       }
-    } else if (request.type === 'attraction' || request.type === 'city_hero' || request.type === 'neighborhood') {
-      // Attraction/Hero/Neighborhood: Pollinations → Google Places → Unsplash → Pexels → Storage
-      console.log(`Trying Google Places (${request.type})...`);
-      image = await getGooglePlacesPhoto(supabase, searchQuery);
+    } else if (request.type === 'city_hero') {
+      // City Hero: Google Places ("{city} {country} cityscape") → Unsplash → Pexels → monument fallback → Storage
+      const heroQuery = `${request.city} ${request.country} cityscape`;
+      console.log(`Trying Google Places (city_hero): "${heroQuery}"`);
+      image = await getGooglePlacesPhoto(supabase, heroQuery);
 
       if (!image) {
-        console.log('Trying Unsplash...');
-        image = await tryUnsplash(searchQuery, isHero);
+        console.log('Trying Unsplash (city_hero)...');
+        image = await tryUnsplash(searchQuery, true);
       }
       if (!image) {
-        console.log('Trying Pexels...');
+        console.log('Trying Pexels (city_hero)...');
         image = await tryPexels(searchQuery);
       }
       // Hero fallback: monument-focused query
-      if (!image && isHero) {
+      if (!image) {
         const fallbackQuery = buildHeroFallbackQuery(request.city, request.country);
         console.log(`Hero fallback query: ${fallbackQuery}`);
         image = await getGooglePlacesPhoto(supabase, fallbackQuery);
         if (!image) image = await tryUnsplash(fallbackQuery, false);
         if (!image) image = await tryPexels(fallbackQuery);
+      }
+    } else if (request.type === 'attraction' || request.type === 'neighborhood') {
+      // Attraction/Neighborhood: Google Places → Unsplash → Pexels → Storage
+      console.log(`Trying Google Places (${request.type})...`);
+      image = await getGooglePlacesPhoto(supabase, searchQuery);
+
+      if (!image) {
+        console.log('Trying Unsplash...');
+        image = await tryUnsplash(searchQuery, false);
+      }
+      if (!image) {
+        console.log('Trying Pexels...');
+        image = await tryPexels(searchQuery);
       }
     } else {
       // Category / other: Wikimedia → Unsplash → Pexels → Storage (unchanged)
