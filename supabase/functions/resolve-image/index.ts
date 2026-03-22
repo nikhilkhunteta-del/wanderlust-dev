@@ -1159,31 +1159,59 @@ serve(async (req) => {
 
     let image: ResolvedImage | null = null;
 
-    // For named entities, try Wikimedia first
-    if (request.entityName) {
-      console.log('Trying Wikimedia Commons...');
-      image = await tryWikimedia(searchQuery, request.entityName, request.city);
-    }
-
-    // Try Unsplash (with chaotic rejection for heroes)
-    if (!image) {
-      console.log('Trying Unsplash...');
-      image = await tryUnsplash(searchQuery, isHero);
-    }
-
-    // Try Pexels
-    if (!image) {
-      console.log('Trying Pexels...');
-      image = await tryPexels(searchQuery);
-    }
-
-    // Hero fallback: if still no image, try monument-focused query
-    if (!image && isHero) {
-      const fallbackQuery = buildHeroFallbackQuery(request.city, request.country);
-      console.log(`Hero fallback query: ${fallbackQuery}`);
-      image = await tryUnsplash(fallbackQuery, false);
+    // Resolution order depends on image type
+    if (request.type === 'seasonal') {
+      // Seasonal: Wikimedia → Unsplash → Google Places → Pexels → Storage
+      if (request.entityName) {
+        console.log('Trying Wikimedia Commons (seasonal)...');
+        image = await tryWikimedia(searchQuery, request.entityName, request.city);
+      }
       if (!image) {
-        image = await tryPexels(fallbackQuery);
+        console.log('Trying Unsplash (seasonal)...');
+        image = await tryUnsplash(searchQuery, false);
+      }
+      if (!image) {
+        console.log('Trying Google Places (seasonal)...');
+        image = await getGooglePlacesPhoto(supabase, searchQuery);
+      }
+      if (!image) {
+        console.log('Trying Pexels (seasonal)...');
+        image = await tryPexels(searchQuery);
+      }
+    } else if (request.type === 'attraction' || request.type === 'city_hero' || request.type === 'neighborhood') {
+      // Attraction/Hero/Neighborhood: Pollinations → Google Places → Unsplash → Pexels → Storage
+      console.log(`Trying Google Places (${request.type})...`);
+      image = await getGooglePlacesPhoto(supabase, searchQuery);
+
+      if (!image) {
+        console.log('Trying Unsplash...');
+        image = await tryUnsplash(searchQuery, isHero);
+      }
+      if (!image) {
+        console.log('Trying Pexels...');
+        image = await tryPexels(searchQuery);
+      }
+      // Hero fallback: monument-focused query
+      if (!image && isHero) {
+        const fallbackQuery = buildHeroFallbackQuery(request.city, request.country);
+        console.log(`Hero fallback query: ${fallbackQuery}`);
+        image = await getGooglePlacesPhoto(supabase, fallbackQuery);
+        if (!image) image = await tryUnsplash(fallbackQuery, false);
+        if (!image) image = await tryPexels(fallbackQuery);
+      }
+    } else {
+      // Category / other: Wikimedia → Unsplash → Pexels → Storage (unchanged)
+      if (request.entityName) {
+        console.log('Trying Wikimedia Commons...');
+        image = await tryWikimedia(searchQuery, request.entityName, request.city);
+      }
+      if (!image) {
+        console.log('Trying Unsplash...');
+        image = await tryUnsplash(searchQuery, false);
+      }
+      if (!image) {
+        console.log('Trying Pexels...');
+        image = await tryPexels(searchQuery);
       }
     }
 
