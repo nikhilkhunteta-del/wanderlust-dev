@@ -18,6 +18,7 @@ interface CollageImage {
   photographer: string;
   photographerUrl: string;
   query: string;
+  source: string;
 }
 
 interface CollageResponse {
@@ -40,25 +41,151 @@ function interestToSearchTerm(interest: string): string {
   return map[interest] || interest.replace(/-/g, " ");
 }
 
-// Build 4 search queries from city + interests
+// Build 4 search queries using the prescribed pattern
 function buildQueries(city: string, interests: string[]): string[] {
-  const queries: string[] = [];
+  const primaryInterest = interests[0] ? interestToSearchTerm(interests[0]) : "culture";
+  const secondaryInterest = interests[1] ? interestToSearchTerm(interests[1]) : "food";
 
-  // Use up to 4 interests, pad with defaults if fewer
-  const defaults = ["cityscape skyline", "street life", "architecture", "landscape"];
-  const tags = interests.slice(0, 4);
-  while (tags.length < 4) {
-    const fallback = defaults[tags.length];
-    if (fallback) tags.push(fallback);
-    else break;
+  return [
+    `${city} landmark architecture`,
+    `${city} street neighbourhood`,
+    `${city} ${primaryInterest}`,
+    `${city} ${secondaryInterest}`,
+  ];
+}
+
+// Fetch a photo via Google Places API (New), store in Supabase Storage, return permanent URL
+async function fetchGooglePlacesImage(
+  supabase: any,
+  query: string,
+  maxWidthPx = 1200
+): Promise<CollageImage | null> {
+  const apiKey = Deno.env.get("GOOGLE_PLACES_API_KEY");
+  if (!apiKey) return null;
+
+  try {
+    // Step 1: Text search for place photos
+    const searchResp = await fetch(
+      "https://places.googleapis.com/v1/places:searchText",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": apiKey,
+          "X-Goog-FieldMask": "places.photos",
+        },
+        body: JSON.stringify({ textQuery: query }),
+      }
+    );
+
+    if (!searchResp.ok) {
+      console.error(`Google Places search failed (${searchResp.status}) for: ${query}`);
+      return null;
+    }
+
+    const searchData = await searchResp.json();
+    const photoName = searchData?.places?.[0]?.photos?.[0]?.name;
+    if (!photoName) {
+      console.log(`No Google Places photos for: ${query}`);
+      return null;
+    }
+
+    // Step 2: Get media URI (skipHttpRedirect=true returns JSON with photoUri)
+    const mediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidthPx}&key=${apiKey}&skipHttpRedirect=true`;
+    const mediaResp = await fetch(mediaUrl);
+    if (!mediaResp.ok) return null;
+
+    const mediaData = await mediaResp.json();
+    const photoUri = mediaData?.photoUri;
+    if (!photoUri) return null;
+
+    // Step 3: Download image bytes
+    const imgResp = await fetch(photoUri);
+    if (!imgResp.ok) return null;
+
+    const contentType = imgResp.headers.get("content-type") || "image/jpeg";
+    const imgBuffer = await imgResp.arrayBuffer();
+    const ext = contentType.includes("png") ? "png" : "jpg";
+
+    // Step 4: Upload to Supabase Storage for a permanent URL
+    const slug = query.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 80);
+    const storagePath = `google-places/collage-${slug}-${maxWidthPx}.${ext}`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from("travel-images")
+      .upload(storagePath, imgBuffer, { contentType, upsert: true });
+
+    if (uploadErr) {
+      console.error("Storage upload error:", uploadErr);
+      return null;
+    }
+
+    const { data: pubData } = supabase.storage.from("travel-images").getPublicUrl(storagePath);
+    const permanentUrl = pubData?.publicUrl;
+    if (!permanentUrl) return null;
+
+    // Step 5: Also get a smaller version for thumbnails
+    let smallUrl = permanentUrl;
+    try {
+      const smallMediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=400&key=${apiKey}&skipHttpRedirect=true`;
+      const smallMediaResp = await fetch(smallMediaUrl);
+      if (smallMediaResp.ok) {
+        const smallMediaData = await smallMediaResp.json();
+        if (smallMediaData?.photoUri) {
+          const smallImgResp = await fetch(smallMediaData.photoUri);
+          if (smallImgResp.ok) {
+            const smallBuf = await smallImgResp.arrayBuffer();
+            const smallPath = `google-places/collage-${slug}-400.${ext}`;
+            await supabase.storage.from("travel-images").upload(smallPath, smallBuf, { contentType, upsert: true });
+            const { data: smallPub } = supabase.storage.from("travel-images").getPublicUrl(smallPath);
+            if (smallPub?.publicUrl) smallUrl = smallPub.publicUrl;
+          }
+        }
+      }
+    } catch {
+      // Small version failed, use full size
+    }
+
+    console.log(`Google Places image stored: ${permanentUrl}`);
+
+    return {
+      url: permanentUrl,
+      smallUrl,
+      photographer: "Google",
+      photographerUrl: "",
+      query,
+      source: "google_places",
+    };
+  } catch (err) {
+    console.error(`Google Places error for "${query}":`, err);
+    return null;
   }
+}
 
-  for (const tag of tags) {
-    const term = interestToSearchTerm(tag);
-    queries.push(`${city} ${term}`);
+// Unsplash fallback for a single query
+async function fetchUnsplashImage(query: string): Promise<CollageImage | null> {
+  const unsplashKey = Deno.env.get("UNSPLASH_ACCESS_KEY");
+  if (!unsplashKey) return null;
+
+  try {
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=squarish&client_id=${unsplashKey}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const photo = data.results?.[0];
+    if (!photo) return null;
+
+    return {
+      url: photo.urls?.regular || photo.urls?.small,
+      smallUrl: photo.urls?.small || photo.urls?.thumb,
+      photographer: photo.user?.name || "Unknown",
+      photographerUrl: photo.user?.links?.html || "",
+      query,
+      source: "unsplash",
+    };
+  } catch {
+    return null;
   }
-
-  return queries.slice(0, 4);
 }
 
 Deno.serve(async (req) => {
@@ -80,7 +207,7 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check cache first — look for collage-type entries for this city
+    // Check cache first
     const cacheKey = `hero_collage:${city.toLowerCase()}:${(interests || []).sort().join("-")}`;
 
     const { data: cached } = await supabase
@@ -92,10 +219,8 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (cached) {
-      // Parse the cached collage data from entity_name (we store JSON there)
       try {
         const cachedImages = JSON.parse(cached.entity_name || "[]");
-        // Increment hit count
         await supabase
           .from("image_cache")
           .update({ hit_count: (cached.hit_count || 0) + 1 })
@@ -106,39 +231,24 @@ Deno.serve(async (req) => {
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch {
-        // Bad cache data, continue to fetch fresh
+        // Bad cache data, fetch fresh
       }
     }
 
-    // Fetch from Unsplash
-    const unsplashKey = Deno.env.get("UNSPLASH_ACCESS_KEY");
-    if (!unsplashKey) {
-      return new Response(JSON.stringify({ error: "UNSPLASH_ACCESS_KEY not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    // Build 4 queries
     const queries = buildQueries(city, interests || []);
     const images: (CollageImage | null)[] = [];
 
-    // Fetch all 4 in parallel
+    // Fetch all 4 in parallel: Google Places primary, Unsplash fallback
     const results = await Promise.allSettled(
-      queries.map(async (query) => {
-        const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=squarish&client_id=${unsplashKey}`;
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const data = await res.json();
-        const photo = data.results?.[0];
-        if (!photo) return null;
+      queries.map(async (query): Promise<CollageImage | null> => {
+        // Try Google Places first
+        const gpImage = await fetchGooglePlacesImage(supabase, query);
+        if (gpImage) return gpImage;
 
-        return {
-          url: photo.urls?.regular || photo.urls?.small,
-          smallUrl: photo.urls?.small || photo.urls?.thumb,
-          photographer: photo.user?.name || "Unknown",
-          photographerUrl: photo.user?.links?.html || "",
-          query,
-        } as CollageImage;
+        // Fall back to Unsplash
+        console.log(`Google Places failed for "${query}", falling back to Unsplash`);
+        return await fetchUnsplashImage(query);
       })
     );
 
@@ -146,7 +256,18 @@ Deno.serve(async (req) => {
       images.push(r.status === "fulfilled" ? r.value : null);
     }
 
-    // Cache the results
+    // Fill any null slots by reusing a successfully fetched image
+    const firstValid = images.find((img) => img !== null) || null;
+    for (let i = 0; i < images.length; i++) {
+      if (images[i] === null && firstValid) {
+        images[i] = firstValid;
+      }
+    }
+
+    // Determine primary source for cache metadata
+    const primarySource = images[0]?.source || "google_places";
+
+    // Cache the results (90 days)
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 90);
 
@@ -159,7 +280,7 @@ Deno.serve(async (req) => {
         entity_name: JSON.stringify(images),
         image_url: images[0]?.url || "",
         small_url: images[0]?.smallUrl || "",
-        source: "unsplash",
+        source: primarySource,
         photographer: images[0]?.photographer || null,
         photographer_url: images[0]?.photographerUrl || null,
         attribution_required: true,
