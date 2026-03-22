@@ -1,5 +1,5 @@
 export type ImageType = 'city_hero' | 'attraction' | 'seasonal' | 'neighborhood' | 'category';
-export type ImageSource = 'wikimedia' | 'unsplash' | 'pexels' | 'local';
+export type ImageSource = 'wikimedia' | 'unsplash' | 'pexels' | 'local' | 'pollinations' | 'google_places';
 
 export interface ResolvedImage {
   id: string;

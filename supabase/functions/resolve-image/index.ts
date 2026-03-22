@@ -9,7 +9,7 @@ const corsHeaders = {
 };
 
 type ImageType = 'city_hero' | 'attraction' | 'seasonal' | 'neighborhood' | 'category';
-type ImageSource = 'wikimedia' | 'unsplash' | 'pexels' | 'local';
+type ImageSource = 'wikimedia' | 'unsplash' | 'pexels' | 'local' | 'pollinations' | 'google_places';
 
 interface ResolvedImage {
   id: string;
@@ -887,6 +887,158 @@ async function tryPexels(query: string): Promise<ResolvedImage | null> {
   }
 }
 
+// Try Google Places API (New) - fetches real photos and stores in Supabase Storage
+async function getGooglePlacesPhoto(
+  supabase: any,
+  query: string,
+  maxWidthPx = 1200
+): Promise<ResolvedImage | null> {
+  const GOOGLE_PLACES_API_KEY = Deno.env.get("GOOGLE_PLACES_API_KEY");
+  if (!GOOGLE_PLACES_API_KEY) {
+    console.log("Google Places API key not configured");
+    return null;
+  }
+
+  try {
+    // Step 1: Search for the place
+    const searchResponse = await fetch(
+      "https://places.googleapis.com/v1/places:searchText",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+          "X-Goog-FieldMask": "places.photos",
+        },
+        body: JSON.stringify({ textQuery: query }),
+      }
+    );
+
+    if (!searchResponse.ok) {
+      console.error(`Google Places search failed: ${searchResponse.status}`);
+      return null;
+    }
+
+    const searchData = await searchResponse.json();
+    const photoName = searchData?.places?.[0]?.photos?.[0]?.name;
+
+    if (!photoName) {
+      console.log(`No Google Places photos found for: ${query}`);
+      return null;
+    }
+
+    console.log(`Google Places photo found: ${photoName}`);
+
+    // Step 2: Get the photo media URL (follows redirect to actual image)
+    const mediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidthPx}&key=${GOOGLE_PLACES_API_KEY}&skipHttpRedirect=true`;
+    const mediaResponse = await fetch(mediaUrl);
+
+    if (!mediaResponse.ok) {
+      console.error(`Google Places media fetch failed: ${mediaResponse.status}`);
+      return null;
+    }
+
+    const mediaData = await mediaResponse.json();
+    const photoUri = mediaData?.photoUri;
+
+    if (!photoUri) {
+      console.error("No photoUri in Google Places media response");
+      return null;
+    }
+
+    console.log(`Google Places photoUri obtained, downloading for storage...`);
+
+    // Step 3: Download the actual image bytes
+    const imageResponse = await fetch(photoUri);
+    if (!imageResponse.ok) {
+      console.error(`Failed to download Google Places image: ${imageResponse.status}`);
+      return null;
+    }
+
+    const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
+    const imageBlob = await imageResponse.arrayBuffer();
+
+    // Step 4: Upload to Supabase Storage for permanent URL
+    const fileExt = contentType.includes("png") ? "png" : "jpg";
+    const storagePath = `google-places/${query.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 80)}-${maxWidthPx}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("travel-images")
+      .upload(storagePath, imageBlob, {
+        contentType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("travel-images")
+      .getPublicUrl(storagePath);
+
+    const permanentUrl = publicUrlData?.publicUrl;
+    if (!permanentUrl) {
+      console.error("Failed to get public URL from storage");
+      return null;
+    }
+
+    console.log(`Google Places image stored at: ${permanentUrl}`);
+
+    // Also get a smaller version for thumbnails
+    let smallUrl = permanentUrl;
+    let thumbUrl = permanentUrl;
+
+    if (maxWidthPx > 400) {
+      // Fetch a smaller version for thumb/small
+      const smallMediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=400&key=${GOOGLE_PLACES_API_KEY}&skipHttpRedirect=true`;
+      try {
+        const smallMediaResp = await fetch(smallMediaUrl);
+        if (smallMediaResp.ok) {
+          const smallMediaData = await smallMediaResp.json();
+          if (smallMediaData?.photoUri) {
+            const smallImgResp = await fetch(smallMediaData.photoUri);
+            if (smallImgResp.ok) {
+              const smallBlob = await smallImgResp.arrayBuffer();
+              const smallPath = `google-places/${query.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 80)}-400.${fileExt}`;
+              await supabase.storage.from("travel-images").upload(smallPath, smallBlob, { contentType, upsert: true });
+              const { data: smallPubData } = supabase.storage.from("travel-images").getPublicUrl(smallPath);
+              if (smallPubData?.publicUrl) {
+                smallUrl = smallPubData.publicUrl;
+                thumbUrl = smallPubData.publicUrl;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to get small Google Places image, using full size", e);
+      }
+    }
+
+    return {
+      id: `gp-${photoName.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 40)}`,
+      cacheKey: '',
+      imageType: 'city_hero',
+      city: '',
+      country: '',
+      url: permanentUrl,
+      smallUrl,
+      thumbUrl,
+      source: 'google_places',
+      photographer: 'Google',
+      photographerUrl: undefined,
+      sourceUrl: undefined,
+      attributionRequired: true,
+      width: maxWidthPx,
+      height: undefined,
+    };
+  } catch (error) {
+    console.error("Google Places photo error:", error);
+    return null;
+  }
+}
+
 // Try local storage fallback
 async function tryLocalStorage(supabase: any, city: string, type: ImageType): Promise<ResolvedImage | null> {
   try {
@@ -1007,31 +1159,59 @@ serve(async (req) => {
 
     let image: ResolvedImage | null = null;
 
-    // For named entities, try Wikimedia first
-    if (request.entityName) {
-      console.log('Trying Wikimedia Commons...');
-      image = await tryWikimedia(searchQuery, request.entityName, request.city);
-    }
-
-    // Try Unsplash (with chaotic rejection for heroes)
-    if (!image) {
-      console.log('Trying Unsplash...');
-      image = await tryUnsplash(searchQuery, isHero);
-    }
-
-    // Try Pexels
-    if (!image) {
-      console.log('Trying Pexels...');
-      image = await tryPexels(searchQuery);
-    }
-
-    // Hero fallback: if still no image, try monument-focused query
-    if (!image && isHero) {
-      const fallbackQuery = buildHeroFallbackQuery(request.city, request.country);
-      console.log(`Hero fallback query: ${fallbackQuery}`);
-      image = await tryUnsplash(fallbackQuery, false);
+    // Resolution order depends on image type
+    if (request.type === 'seasonal') {
+      // Seasonal: Wikimedia → Unsplash → Google Places → Pexels → Storage
+      if (request.entityName) {
+        console.log('Trying Wikimedia Commons (seasonal)...');
+        image = await tryWikimedia(searchQuery, request.entityName, request.city);
+      }
       if (!image) {
-        image = await tryPexels(fallbackQuery);
+        console.log('Trying Unsplash (seasonal)...');
+        image = await tryUnsplash(searchQuery, false);
+      }
+      if (!image) {
+        console.log('Trying Google Places (seasonal)...');
+        image = await getGooglePlacesPhoto(supabase, searchQuery);
+      }
+      if (!image) {
+        console.log('Trying Pexels (seasonal)...');
+        image = await tryPexels(searchQuery);
+      }
+    } else if (request.type === 'attraction' || request.type === 'city_hero' || request.type === 'neighborhood') {
+      // Attraction/Hero/Neighborhood: Pollinations → Google Places → Unsplash → Pexels → Storage
+      console.log(`Trying Google Places (${request.type})...`);
+      image = await getGooglePlacesPhoto(supabase, searchQuery);
+
+      if (!image) {
+        console.log('Trying Unsplash...');
+        image = await tryUnsplash(searchQuery, isHero);
+      }
+      if (!image) {
+        console.log('Trying Pexels...');
+        image = await tryPexels(searchQuery);
+      }
+      // Hero fallback: monument-focused query
+      if (!image && isHero) {
+        const fallbackQuery = buildHeroFallbackQuery(request.city, request.country);
+        console.log(`Hero fallback query: ${fallbackQuery}`);
+        image = await getGooglePlacesPhoto(supabase, fallbackQuery);
+        if (!image) image = await tryUnsplash(fallbackQuery, false);
+        if (!image) image = await tryPexels(fallbackQuery);
+      }
+    } else {
+      // Category / other: Wikimedia → Unsplash → Pexels → Storage (unchanged)
+      if (request.entityName) {
+        console.log('Trying Wikimedia Commons...');
+        image = await tryWikimedia(searchQuery, request.entityName, request.city);
+      }
+      if (!image) {
+        console.log('Trying Unsplash...');
+        image = await tryUnsplash(searchQuery, false);
+      }
+      if (!image) {
+        console.log('Trying Pexels...');
+        image = await tryPexels(searchQuery);
       }
     }
 
