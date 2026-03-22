@@ -107,6 +107,7 @@ function ImageAttribution({ image }: ImageAttributionProps) {
   const sourceLabel = image.source === 'unsplash' ? 'Unsplash' 
     : image.source === 'pexels' ? 'Pexels'
     : image.source === 'wikimedia' ? 'Wikimedia'
+    : image.source === 'google_places' ? 'Google'
     : null;
 
   if (!sourceLabel || !image.photographer) return null;
