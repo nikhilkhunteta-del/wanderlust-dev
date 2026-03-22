@@ -9,7 +9,7 @@ const corsHeaders = {
 };
 
 type ImageType = 'city_hero' | 'attraction' | 'seasonal' | 'neighborhood' | 'category';
-type ImageSource = 'wikimedia' | 'unsplash' | 'pexels' | 'local';
+type ImageSource = 'wikimedia' | 'unsplash' | 'pexels' | 'local' | 'pollinations' | 'google_places';
 
 interface ResolvedImage {
   id: string;
