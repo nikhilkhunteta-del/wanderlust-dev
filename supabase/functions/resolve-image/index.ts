@@ -1039,6 +1039,107 @@ async function getGooglePlacesPhoto(
   }
 }
 
+// Derive a consistent seed from a string by summing char codes
+function stableCharCodeSum(str: string): number {
+  let sum = 0;
+  for (let i = 0; i < str.length; i++) {
+    sum += str.charCodeAt(i);
+  }
+  return sum;
+}
+
+// Try Pollinations AI image generation, download + persist to Supabase Storage
+async function tryPollinations(
+  supabase: any,
+  entityName: string,
+  city: string,
+): Promise<ResolvedImage | null> {
+  try {
+    const apiKey = Deno.env.get("POLLINATIONS_API_KEY");
+    if (!apiKey) {
+      console.warn("POLLINATIONS_API_KEY not set, skipping Pollinations");
+      return null;
+    }
+
+    const prompt = `${entityName} ${city} atmospheric travel photography cinematic`;
+    const seed = stableCharCodeSum(entityName);
+    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=1200&height=800&seed=${seed}&key=${apiKey}`;
+
+    console.log(`Pollinations URL: ${pollinationsUrl}`);
+
+    // 20-second timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    const response = await fetch(pollinationsUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error(`Pollinations returned ${response.status}`);
+      return null;
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.startsWith("image/")) {
+      console.error(`Pollinations returned non-image content-type: ${contentType}`);
+      return null;
+    }
+
+    // Download image bytes and persist to Supabase Storage
+    const imageBytes = new Uint8Array(await response.arrayBuffer());
+    const ext = contentType.includes("png") ? "png" : "jpg";
+    const slug = `${entityName}-${city}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 80);
+    const storagePath = `pollinations/${slug}-${seed}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("travel-images")
+      .upload(storagePath, imageBytes, {
+        contentType: contentType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("Pollinations storage upload error:", uploadError);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("travel-images")
+      .getPublicUrl(storagePath);
+
+    const permanentUrl = urlData?.publicUrl;
+    if (!permanentUrl) {
+      console.error("Could not get public URL for pollinations image");
+      return null;
+    }
+
+    console.log(`Pollinations image stored: ${permanentUrl}`);
+
+    return {
+      id: `pollinations-${seed}`,
+      cacheKey: "",
+      imageType: "attraction",
+      city,
+      country: "",
+      url: permanentUrl,
+      smallUrl: permanentUrl,
+      thumbUrl: permanentUrl,
+      source: "pollinations",
+      photographer: "Pollinations AI",
+      attributionRequired: false,
+      width: 1200,
+      height: 800,
+    };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.error("Pollinations request timed out after 20s");
+    } else {
+      console.error("Pollinations error:", error);
+    }
+    return null;
+  }
+}
+
 // Try local storage fallback
 async function tryLocalStorage(supabase: any, city: string, type: ImageType): Promise<ResolvedImage | null> {
   try {
