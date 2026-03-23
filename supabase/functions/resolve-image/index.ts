@@ -1266,7 +1266,7 @@ serve(async (req) => {
 
     // Resolution order depends on image type
     if (request.type === 'seasonal') {
-      // Seasonal: Wikimedia → Unsplash → Google Places → Pexels → Storage
+      // Seasonal: Wikimedia → Unsplash → Pollinations → Pexels → Storage
       if (request.entityName) {
         console.log('Trying Wikimedia Commons (seasonal)...');
         image = await tryWikimedia(searchQuery, request.entityName, request.city);
@@ -1275,9 +1275,14 @@ serve(async (req) => {
         console.log('Trying Unsplash (seasonal)...');
         image = await tryUnsplash(searchQuery, false);
       }
-      if (!image) {
-        console.log('Trying Google Places (seasonal)...');
-        image = await getGooglePlacesPhoto(supabase, searchQuery);
+      if (!image && request.entityName) {
+        console.log('Trying Pollinations (seasonal)...');
+        image = await tryPollinations(supabase, request.entityName, request.city, {
+          promptSuffix: "festival celebration atmospheric",
+          width: 800,
+          height: 600,
+          imageType: "seasonal",
+        });
       }
       if (!image) {
         console.log('Trying Pexels (seasonal)...');
