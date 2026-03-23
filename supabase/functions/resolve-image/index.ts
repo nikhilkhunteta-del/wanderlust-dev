@@ -1053,6 +1053,7 @@ async function tryPollinations(
   supabase: any,
   entityName: string,
   city: string,
+  options?: { promptSuffix?: string; width?: number; height?: number; imageType?: ImageType },
 ): Promise<ResolvedImage | null> {
   try {
     const apiKey = Deno.env.get("POLLINATIONS_API_KEY");
@@ -1061,9 +1062,12 @@ async function tryPollinations(
       return null;
     }
 
-    const prompt = `${entityName} ${city} atmospheric travel photography cinematic`;
+    const suffix = options?.promptSuffix ?? "atmospheric travel photography cinematic";
+    const width = options?.width ?? 1200;
+    const height = options?.height ?? 800;
+    const prompt = `${entityName} ${city} ${suffix}`;
     const seed = stableCharCodeSum(entityName);
-    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=1200&height=800&seed=${seed}&key=${apiKey}`;
+    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&key=${apiKey}`;
 
     console.log(`Pollinations URL: ${pollinationsUrl}`);
 
@@ -1118,7 +1122,7 @@ async function tryPollinations(
     return {
       id: `pollinations-${seed}`,
       cacheKey: "",
-      imageType: "attraction",
+      imageType: options?.imageType ?? "attraction",
       city,
       country: "",
       url: permanentUrl,
@@ -1127,8 +1131,8 @@ async function tryPollinations(
       source: "pollinations",
       photographer: "Pollinations AI",
       attributionRequired: false,
-      width: 1200,
-      height: 800,
+      width,
+      height,
     };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -1262,7 +1266,7 @@ serve(async (req) => {
 
     // Resolution order depends on image type
     if (request.type === 'seasonal') {
-      // Seasonal: Wikimedia → Unsplash → Google Places → Pexels → Storage
+      // Seasonal: Wikimedia → Unsplash → Pollinations → Pexels → Storage
       if (request.entityName) {
         console.log('Trying Wikimedia Commons (seasonal)...');
         image = await tryWikimedia(searchQuery, request.entityName, request.city);
@@ -1271,9 +1275,14 @@ serve(async (req) => {
         console.log('Trying Unsplash (seasonal)...');
         image = await tryUnsplash(searchQuery, false);
       }
-      if (!image) {
-        console.log('Trying Google Places (seasonal)...');
-        image = await getGooglePlacesPhoto(supabase, searchQuery);
+      if (!image && request.entityName) {
+        console.log('Trying Pollinations (seasonal)...');
+        image = await tryPollinations(supabase, request.entityName, request.city, {
+          promptSuffix: "festival celebration atmospheric",
+          width: 800,
+          height: 600,
+          imageType: "seasonal",
+        });
       }
       if (!image) {
         console.log('Trying Pexels (seasonal)...');
