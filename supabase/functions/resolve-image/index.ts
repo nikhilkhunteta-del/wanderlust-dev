@@ -1301,17 +1301,35 @@ serve(async (req) => {
         if (!image) image = await tryUnsplash(fallbackQuery, false);
         if (!image) image = await tryPexels(fallbackQuery);
       }
-    } else if (request.type === 'attraction' || request.type === 'neighborhood') {
-      // Attraction/Neighborhood: Google Places → Unsplash → Pexels → Storage
-      console.log(`Trying Google Places (${request.type})...`);
-      image = await getGooglePlacesPhoto(supabase, searchQuery);
-
+    } else if (request.type === 'attraction') {
+      // Attraction: Pollinations → Unsplash → Google Places → Pexels → Storage
+      if (request.entityName) {
+        console.log('Trying Pollinations (attraction)...');
+        image = await tryPollinations(supabase, request.entityName, request.city);
+      }
       if (!image) {
-        console.log('Trying Unsplash...');
+        console.log('Trying Unsplash (attraction)...');
         image = await tryUnsplash(searchQuery, false);
       }
       if (!image) {
-        console.log('Trying Pexels...');
+        console.log('Trying Google Places (attraction)...');
+        image = await getGooglePlacesPhoto(supabase, searchQuery);
+      }
+      if (!image) {
+        console.log('Trying Pexels (attraction)...');
+        image = await tryPexels(searchQuery);
+      }
+    } else if (request.type === 'neighborhood') {
+      // Neighborhood: Google Places → Unsplash → Pexels → Storage
+      console.log('Trying Google Places (neighborhood)...');
+      image = await getGooglePlacesPhoto(supabase, searchQuery);
+
+      if (!image) {
+        console.log('Trying Unsplash (neighborhood)...');
+        image = await tryUnsplash(searchQuery, false);
+      }
+      if (!image) {
+        console.log('Trying Pexels (neighborhood)...');
         image = await tryPexels(searchQuery);
       }
     } else {
