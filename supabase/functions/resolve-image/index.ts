@@ -1345,17 +1345,19 @@ serve(async (req) => {
         image = await tryPexels(searchQuery);
       }
     } else {
-      // Category / other: Wikimedia → Unsplash → Pexels → Storage (unchanged)
-      if (request.entityName) {
-        console.log('Trying Wikimedia Commons...');
-        image = await tryWikimedia(searchQuery, request.entityName, request.city);
-      }
+      // Category / other: Google Places → Unsplash → Pexels → Storage
+      const catQuery = request.entityName
+        ? `${request.entityName} ${request.city}`
+        : searchQuery;
+      console.log(`Trying Google Places (category): "${catQuery}"`);
+      image = await getGooglePlacesPhoto(supabase, catQuery);
+
       if (!image) {
-        console.log('Trying Unsplash...');
+        console.log('Trying Unsplash (category)...');
         image = await tryUnsplash(searchQuery, false);
       }
       if (!image) {
-        console.log('Trying Pexels...');
+        console.log('Trying Pexels (category)...');
         image = await tryPexels(searchQuery);
       }
     }
