@@ -1,17 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { CityScores, CITY_COLORS, CITY_BG_COLORS, DIMENSION_LABELS, DimensionWeights } from "@/types/comparison";
 import { ChevronDown, Trophy, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CityRecommendation } from "@/types/recommendations";
 import { TravelProfile } from "@/types/travelProfile";
+import { useCityHeroImage } from "@/hooks/useResolvedImage";
 
 interface ComparisonTableProps {
   cityScores: CityScores[];
   allCities?: CityRecommendation[];
   profile?: TravelProfile;
   groundData?: any[];
+}
+
+// Hook that checks image_cache table first, then falls back to resolve-image
+function useCachedCityHero(city: string | null, country: string | null) {
+  const cacheKey = city && country
+    ? `city_hero:${city.toLowerCase()}:${country.toLowerCase()}`
+    : null;
+
+  // Step 1: Check the image_cache table directly
+  const { data: cachedUrl, isLoading: isCacheLoading } = useQuery({
+    queryKey: ["image-cache-check", cacheKey],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("image_cache")
+        .select("image_url")
+        .eq("cache_key", cacheKey!)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+      return data?.image_url || null;
+    },
+    enabled: !!cacheKey,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  // Step 2: Only call resolve-image if cache miss
+  const heroImage = useCityHeroImage(
+    cachedUrl ? null : city, // skip resolve-image if we have a cached URL
+    cachedUrl ? null : country
+  );
+
+  return {
+    url: cachedUrl || heroImage.data?.url || null,
+    isLoading: isCacheLoading || (!cachedUrl && heroImage.isLoading),
+  };
 }
 
 const DIMENSIONS: (keyof DimensionWeights)[] = [
@@ -86,6 +123,34 @@ function SafetyExpandedRow({ cs, groundItem }: { cs: CityScores; groundItem: any
   );
 }
 
+// Sub-component so the hook is called at top level per city
+function CityColumnHeader({ cs, colorIndex }: { cs: CityScores; colorIndex: number }) {
+  const { url, isLoading } = useCachedCityHero(cs.city.city, cs.city.country);
+
+  return (
+    <div className="p-3 flex flex-col items-center gap-2">
+      <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/50 flex-shrink-0">
+        {isLoading ? (
+          <div className="w-full h-full animate-pulse bg-muted" />
+        ) : url ? (
+          <img src={url} alt={cs.city.city} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+            {cs.city.city.charAt(0)}
+          </div>
+        )}
+      </div>
+      <span
+        className="inline-flex items-center gap-1.5 text-sm font-semibold"
+        style={{ color: CITY_COLORS[colorIndex] }}
+      >
+        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CITY_COLORS[colorIndex] }} />
+        {cs.city.city}
+      </span>
+    </div>
+  );
+}
+
 export const ComparisonTable = ({ cityScores, allCities, profile, groundData }: ComparisonTableProps) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -109,15 +174,7 @@ export const ComparisonTable = ({ cityScores, allCities, profile, groundData }: 
           Dimension
         </div>
         {cityScores.map((cs, i) => (
-          <div key={cs.city.city} className="p-3 text-center">
-            <span
-              className="inline-flex items-center gap-1.5 text-sm font-semibold"
-              style={{ color: CITY_COLORS[i] }}
-            >
-              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CITY_COLORS[i] }} />
-              {cs.city.city}
-            </span>
-          </div>
+          <CityColumnHeader key={cs.city.city} cs={cs} colorIndex={i} />
         ))}
       </div>
 
