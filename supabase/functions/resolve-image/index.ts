@@ -1311,18 +1311,18 @@ serve(async (req) => {
         if (!image) image = await tryPexels(fallbackQuery);
       }
     } else if (request.type === 'attraction') {
-      // Attraction: Pollinations → Unsplash → Google Places → Pexels → Storage
+      // Attraction: Pollinations → Google Places → Unsplash → Pexels → Storage
       if (request.entityName) {
         console.log('Trying Pollinations (attraction)...');
         image = await tryPollinations(supabase, request.entityName, request.city);
       }
       if (!image) {
-        console.log('Trying Unsplash (attraction)...');
-        image = await tryUnsplash(searchQuery, false);
-      }
-      if (!image) {
         console.log('Trying Google Places (attraction)...');
         image = await getGooglePlacesPhoto(supabase, searchQuery);
+      }
+      if (!image) {
+        console.log('Trying Unsplash (attraction)...');
+        image = await tryUnsplash(searchQuery, false);
       }
       if (!image) {
         console.log('Trying Pexels (attraction)...');
