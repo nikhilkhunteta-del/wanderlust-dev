@@ -123,6 +123,34 @@ function SafetyExpandedRow({ cs, groundItem }: { cs: CityScores; groundItem: any
   );
 }
 
+// Sub-component so the hook is called at top level per city
+function CityColumnHeader({ cs, colorIndex }: { cs: CityScores; colorIndex: number }) {
+  const { url, isLoading } = useCachedCityHero(cs.city.city, cs.city.country);
+
+  return (
+    <div className="p-3 flex flex-col items-center gap-2">
+      <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/50 flex-shrink-0">
+        {isLoading ? (
+          <div className="w-full h-full animate-pulse bg-muted" />
+        ) : url ? (
+          <img src={url} alt={cs.city.city} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+            {cs.city.city.charAt(0)}
+          </div>
+        )}
+      </div>
+      <span
+        className="inline-flex items-center gap-1.5 text-sm font-semibold"
+        style={{ color: CITY_COLORS[colorIndex] }}
+      >
+        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CITY_COLORS[colorIndex] }} />
+        {cs.city.city}
+      </span>
+    </div>
+  );
+}
+
 export const ComparisonTable = ({ cityScores, allCities, profile, groundData }: ComparisonTableProps) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -146,15 +174,7 @@ export const ComparisonTable = ({ cityScores, allCities, profile, groundData }: 
           Dimension
         </div>
         {cityScores.map((cs, i) => (
-          <div key={cs.city.city} className="p-3 text-center">
-            <span
-              className="inline-flex items-center gap-1.5 text-sm font-semibold"
-              style={{ color: CITY_COLORS[i] }}
-            >
-              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CITY_COLORS[i] }} />
-              {cs.city.city}
-            </span>
-          </div>
+          <CityColumnHeader key={cs.city.city} cs={cs} colorIndex={i} />
         ))}
       </div>
 
