@@ -1,17 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { CityScores, CITY_COLORS, CITY_BG_COLORS, DIMENSION_LABELS, DimensionWeights } from "@/types/comparison";
 import { ChevronDown, Trophy, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CityRecommendation } from "@/types/recommendations";
 import { TravelProfile } from "@/types/travelProfile";
+import { useCityHeroImage } from "@/hooks/useResolvedImage";
 
 interface ComparisonTableProps {
   cityScores: CityScores[];
   allCities?: CityRecommendation[];
   profile?: TravelProfile;
   groundData?: any[];
+}
+
+// Hook that checks image_cache table first, then falls back to resolve-image
+function useCachedCityHero(city: string | null, country: string | null) {
+  const cacheKey = city && country
+    ? `city_hero:${city.toLowerCase()}:${country.toLowerCase()}`
+    : null;
+
+  // Step 1: Check the image_cache table directly
+  const { data: cachedUrl, isLoading: isCacheLoading } = useQuery({
+    queryKey: ["image-cache-check", cacheKey],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("image_cache")
+        .select("image_url")
+        .eq("cache_key", cacheKey!)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+      return data?.image_url || null;
+    },
+    enabled: !!cacheKey,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  // Step 2: Only call resolve-image if cache miss
+  const heroImage = useCityHeroImage(
+    cachedUrl ? null : city, // skip resolve-image if we have a cached URL
+    cachedUrl ? null : country
+  );
+
+  return {
+    url: cachedUrl || heroImage.data?.url || null,
+    isLoading: isCacheLoading || (!cachedUrl && heroImage.isLoading),
+  };
 }
 
 const DIMENSIONS: (keyof DimensionWeights)[] = [
