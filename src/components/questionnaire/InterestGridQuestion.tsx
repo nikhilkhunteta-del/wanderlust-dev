@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Option {
   value: string;
@@ -36,11 +38,26 @@ export const InterestGridQuestion = ({
   primaryInterest,
   onPrimaryChange,
 }: InterestGridQuestionProps) => {
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('q1-category-images');
+        if (!error && data) {
+          setCategoryImages(data as Record<string, string>);
+        }
+      } catch (err) {
+        console.error('Failed to fetch category images:', err);
+      }
+    };
+    fetchImages();
+  }, []);
+
   const toggleOption = (value: string) => {
     if (selected.includes(value)) {
       const newSelected = selected.filter((v) => v !== value);
       onChange(newSelected);
-      // Clear primary if deselected
       if (primaryInterest === value && onPrimaryChange) {
         onPrimaryChange(newSelected[0] || '');
       }
@@ -59,6 +76,7 @@ export const InterestGridQuestion = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
         {options.map((option) => {
           const isSelected = selected.includes(option.value);
+          const bgUrl = categoryImages[option.value];
           return (
             <motion.button
               key={option.value}
@@ -66,18 +84,44 @@ export const InterestGridQuestion = ({
               onClick={() => toggleOption(option.value)}
               whileTap={{ scale: 0.97 }}
               className={cn(
-                'flex flex-col items-center justify-center gap-2 rounded-xl border-2 px-5 py-6 transition-all duration-150 cursor-pointer min-h-[200px]',
-                'bg-card shadow-sm hover:shadow-md',
+                'relative flex flex-col items-center justify-end rounded-xl border-2 overflow-hidden transition-all duration-150 cursor-pointer min-h-[200px]',
+                'shadow-sm hover:shadow-md',
                 isSelected
-                  ? 'border-primary bg-[hsl(var(--primary)/0.06)]'
-                  : 'border-border/50 hover:border-border'
+                  ? 'border-primary ring-1 ring-primary/30 brightness-110'
+                  : 'border-transparent hover:border-border/50'
               )}
+              style={bgUrl ? {
+                backgroundImage: `url(${bgUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              } : undefined}
             >
-              {option.icon && <span className="text-2xl">{option.icon}</span>}
-              <span className="text-sm font-medium text-foreground leading-tight">{option.label}</span>
-              {option.description && (
-                <span className="text-[11px] text-muted-foreground leading-tight">{option.description}</span>
+              {/* Dark gradient overlay — bottom 40% */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+
+              {/* Fallback background if no image */}
+              {!bgUrl && (
+                <div className="absolute inset-0 bg-card" />
               )}
+
+              {/* Text content */}
+              <div className="relative z-10 flex flex-col items-center gap-1 px-3 pb-4 pt-8 text-center">
+                {option.icon && <span className="text-2xl drop-shadow-md">{option.icon}</span>}
+                <span className={cn(
+                  "text-sm font-semibold leading-tight drop-shadow-md",
+                  bgUrl ? "text-white" : "text-foreground"
+                )}>
+                  {option.label}
+                </span>
+                {option.description && (
+                  <span className={cn(
+                    "text-[11px] leading-tight drop-shadow-sm",
+                    bgUrl ? "text-white/80" : "text-muted-foreground"
+                  )}>
+                    {option.description}
+                  </span>
+                )}
+              </div>
             </motion.button>
           );
         })}

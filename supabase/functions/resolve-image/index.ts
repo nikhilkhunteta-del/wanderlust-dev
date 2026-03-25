@@ -1069,7 +1069,7 @@ async function tryPollinations(
     const seed = stableCharCodeSum(entityName);
     const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&key=${apiKey}`;
 
-    console.log(`Pollinations URL: ${pollinationsUrl}`);
+    console.log(`Pollinations: fetching image for "${entityName}" in ${city} (${width}x${height}, seed=${seed})`);
 
     // 20-second timeout
     const controller = new AbortController();
