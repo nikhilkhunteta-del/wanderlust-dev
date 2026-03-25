@@ -1,0 +1,2 @@
+ALTER TABLE public.image_cache DROP CONSTRAINT image_cache_source_check;
+ALTER TABLE public.image_cache ADD CONSTRAINT image_cache_source_check CHECK (source = ANY (ARRAY['wikimedia'::text, 'unsplash'::text, 'pexels'::text, 'local'::text, 'pollinations'::text, 'google_places'::text]));
