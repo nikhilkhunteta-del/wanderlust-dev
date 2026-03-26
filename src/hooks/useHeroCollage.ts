@@ -22,7 +22,7 @@ export function useHeroCollage(
   return useQuery({
     queryKey: ["hero-collage", city, country, interests.sort().join(",")],
     queryFn: async (): Promise<(CollageImage | null)[]> => {
-      if (!city || !country) return [null, null, null, null];
+      if (!city || !country) return [null, null, null];
 
       const { data, error } = await supabase.functions.invoke<CollageResponse>(
         "hero-collage",
@@ -31,10 +31,10 @@ export function useHeroCollage(
 
       if (error) {
         console.error("hero-collage error:", error);
-        return [null, null, null, null];
+        return [null, null, null];
       }
 
-      return data?.images ?? [null, null, null, null];
+      return data?.images ?? [null, null, null];
     },
     enabled: !!city && !!country,
     staleTime: 30 * 60 * 1000,

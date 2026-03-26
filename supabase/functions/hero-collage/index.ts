@@ -26,10 +26,9 @@ interface CollageResponse {
   fromCache: boolean;
 }
 
-// Map interest slugs to tourism-specific search terms for collage slots
-function interestToSearchTerm(interest: string, city: string, slot: "primary" | "secondary"): string {
-  // Slot-specific queries to ensure tourism-relevant photography
-  const primaryMap: Record<string, string> = {
+// Map interest slugs to tourism-specific search terms
+function interestToSearchTerm(interest: string, city: string): string {
+  const map: Record<string, string> = {
     "culture-history": `${city} famous monument historic site tourism`,
     "nature-outdoors": `${city} scenic nature landscape viewpoint`,
     "beach-coastal": `${city} beach coastline ocean panorama`,
@@ -39,31 +38,19 @@ function interestToSearchTerm(interest: string, city: string, slot: "primary" | 
     "shopping-markets": `${city} traditional market bazaar souvenirs`,
     "wellness-slow-travel": `${city} luxury spa wellness retreat scenic`,
   };
-  const secondaryMap: Record<string, string> = {
-    "culture-history": `${city} culture history museum gallery`,
-    "nature-outdoors": `${city} national park hiking trail nature`,
-    "beach-coastal": `${city} seaside harbour waterfront promenade`,
-    "food-culinary": `${city} food market cuisine street food`,
-    "arts-music-nightlife": `${city} live music festival street art`,
-    "active-sport": `${city} cycling hiking water sports`,
-    "shopping-markets": `${city} artisan crafts boutique shopping street`,
-    "wellness-slow-travel": `${city} thermal bath garden peaceful retreat`,
-  };
-  const map = slot === "primary" ? primaryMap : secondaryMap;
   return map[interest] || `${city} ${interest.replace(/-/g, " ")} tourism`;
 }
 
-// Build 4 search queries using tourism-specific patterns
+// Build 3 search queries for the asymmetric collage
 function buildQueries(city: string, interests: string[]): string[] {
   const primary = interests[0] || "culture-history";
-  const secondary = interests[1] || "food-culinary";
 
   return [
-    `${city} iconic landmark architecture tourism`,
-    `${city} charming neighbourhood street scene local life`,
-    interestToSearchTerm(primary, city, "primary"),
-    interestToSearchTerm(secondary, city, "secondary"),
+    `${city} landmark`,
+    `${city} street neighbourhood`,
+    interestToSearchTerm(primary, city),
   ];
+}
 }
 
 // Fetch a photo via Google Places API (New), store in Supabase Storage, return permanent URL
