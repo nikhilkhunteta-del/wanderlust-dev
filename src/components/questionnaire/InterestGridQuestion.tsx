@@ -73,7 +73,7 @@ export const InterestGridQuestion = ({
           Select up to {maxSelections}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 -mx-6 md:-mx-12 px-0 w-[calc(100%+48px)] md:w-[calc(100%+96px)]">
         {options.map((option) => {
           const isSelected = selected.includes(option.value);
           const bgUrl = categoryImages[option.value];
