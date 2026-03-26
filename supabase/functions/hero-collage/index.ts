@@ -51,7 +51,6 @@ function buildQueries(city: string, interests: string[]): string[] {
     interestToSearchTerm(primary, city),
   ];
 }
-}
 
 // Fetch a photo via Google Places API (New), store in Supabase Storage, return permanent URL
 async function fetchGooglePlacesImage(
