@@ -26,31 +26,43 @@ interface CollageResponse {
   fromCache: boolean;
 }
 
-// Map interest slugs to readable search terms
-function interestToSearchTerm(interest: string): string {
-  const map: Record<string, string> = {
-    "culture-history": "culture history landmarks",
-    "nature-outdoors": "nature landscape scenery",
-    "beach-coastal": "beach coast ocean",
-    "food-culinary": "food cuisine restaurant",
-    "arts-music-nightlife": "nightlife music arts",
-    "active-sport": "sports adventure outdoor activity",
-    "shopping-markets": "market bazaar shopping street",
-    "wellness-slow-travel": "wellness spa relaxation",
+// Map interest slugs to tourism-specific search terms for collage slots
+function interestToSearchTerm(interest: string, city: string, slot: "primary" | "secondary"): string {
+  // Slot-specific queries to ensure tourism-relevant photography
+  const primaryMap: Record<string, string> = {
+    "culture-history": `${city} famous monument historic site tourism`,
+    "nature-outdoors": `${city} scenic nature landscape viewpoint`,
+    "beach-coastal": `${city} beach coastline ocean panorama`,
+    "food-culinary": `${city} food market cuisine local dishes`,
+    "arts-music-nightlife": `${city} performing arts theatre nightlife district`,
+    "active-sport": `${city} outdoor adventure sport activity tourism`,
+    "shopping-markets": `${city} traditional market bazaar souvenirs`,
+    "wellness-slow-travel": `${city} luxury spa wellness retreat scenic`,
   };
-  return map[interest] || interest.replace(/-/g, " ");
+  const secondaryMap: Record<string, string> = {
+    "culture-history": `${city} culture history museum gallery`,
+    "nature-outdoors": `${city} national park hiking trail nature`,
+    "beach-coastal": `${city} seaside harbour waterfront promenade`,
+    "food-culinary": `${city} food market cuisine street food`,
+    "arts-music-nightlife": `${city} live music festival street art`,
+    "active-sport": `${city} cycling hiking water sports`,
+    "shopping-markets": `${city} artisan crafts boutique shopping street`,
+    "wellness-slow-travel": `${city} thermal bath garden peaceful retreat`,
+  };
+  const map = slot === "primary" ? primaryMap : secondaryMap;
+  return map[interest] || `${city} ${interest.replace(/-/g, " ")} tourism`;
 }
 
-// Build 4 search queries using the prescribed pattern
+// Build 4 search queries using tourism-specific patterns
 function buildQueries(city: string, interests: string[]): string[] {
-  const primaryInterest = interests[0] ? interestToSearchTerm(interests[0]) : "culture";
-  const secondaryInterest = interests[1] ? interestToSearchTerm(interests[1]) : "food";
+  const primary = interests[0] || "culture-history";
+  const secondary = interests[1] || "food-culinary";
 
   return [
-    `${city} landmark architecture`,
-    `${city} street neighbourhood`,
-    `${city} ${primaryInterest}`,
-    `${city} ${secondaryInterest}`,
+    `${city} iconic landmark architecture tourism`,
+    `${city} charming neighbourhood street scene local life`,
+    interestToSearchTerm(primary, city, "primary"),
+    interestToSearchTerm(secondary, city, "secondary"),
   ];
 }
 
