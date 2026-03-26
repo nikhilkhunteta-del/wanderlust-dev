@@ -1311,22 +1311,23 @@ serve(async (req) => {
         if (!image) image = await tryPexels(fallbackQuery);
       }
     } else if (request.type === 'attraction') {
-      // Attraction: Pollinations → Google Places → Unsplash → Pexels → Storage
+      // Attraction: Pollinations → Google Places → Unsplash (no Pexels)
       if (request.entityName) {
         console.log('Trying Pollinations (attraction)...');
-        image = await tryPollinations(supabase, request.entityName, request.city);
+        image = await tryPollinations(supabase, request.entityName, request.city, {
+          promptSuffix: "travel photography high quality",
+        });
       }
       if (!image) {
-        console.log('Trying Google Places (attraction)...');
-        image = await getGooglePlacesPhoto(supabase, searchQuery);
+        const gpQuery = request.entityName
+          ? `${request.entityName} ${request.city}`
+          : searchQuery;
+        console.log(`Trying Google Places (attraction): "${gpQuery}"`);
+        image = await getGooglePlacesPhoto(supabase, gpQuery);
       }
       if (!image) {
         console.log('Trying Unsplash (attraction)...');
         image = await tryUnsplash(searchQuery, false);
-      }
-      if (!image) {
-        console.log('Trying Pexels (attraction)...');
-        image = await tryPexels(searchQuery);
       }
     } else if (request.type === 'neighborhood') {
       // Neighborhood: Google Places ("{name} {city} neighbourhood street") → Unsplash → Pexels → Storage
