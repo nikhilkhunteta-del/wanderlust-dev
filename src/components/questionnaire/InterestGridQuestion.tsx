@@ -73,7 +73,7 @@ export const InterestGridQuestion = ({
           Select up to {maxSelections}
         </span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
         {options.map((option) => {
           const isSelected = selected.includes(option.value);
           const bgUrl = categoryImages[option.value];
@@ -84,8 +84,8 @@ export const InterestGridQuestion = ({
               onClick={() => toggleOption(option.value)}
               whileTap={{ scale: 0.97 }}
               className={cn(
-                'relative flex flex-col items-center justify-end rounded-xl border-2 overflow-hidden transition-all duration-150 cursor-pointer min-h-[200px]',
-                'shadow-sm hover:shadow-md',
+                'relative flex flex-col justify-end rounded-xl border-2 overflow-hidden transition-all duration-150 cursor-pointer h-[280px]',
+                'shadow-sm hover:shadow-lg',
                 isSelected
                   ? 'border-primary ring-1 ring-primary/30 brightness-110'
                   : 'border-transparent hover:border-border/50'
@@ -96,26 +96,25 @@ export const InterestGridQuestion = ({
                 backgroundPosition: 'center',
               } : undefined}
             >
-              {/* Dark gradient overlay — bottom 40% */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+              {/* Dark gradient overlay — bottom 30% */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
 
               {/* Fallback background if no image */}
               {!bgUrl && (
-                <div className="absolute inset-0 bg-card" />
+                <div className="absolute inset-0 bg-muted" />
               )}
 
-              {/* Text content */}
-              <div className="relative z-10 flex flex-col items-center gap-1 px-3 pb-4 pt-8 text-center">
-                {option.icon && <span className="text-2xl drop-shadow-md">{option.icon}</span>}
+              {/* Text content — bottom 30% */}
+              <div className="relative z-10 flex flex-col items-start gap-0.5 px-5 pb-5 text-left">
                 <span className={cn(
-                  "text-sm font-semibold leading-tight drop-shadow-md",
+                  "text-base font-bold leading-tight drop-shadow-md",
                   bgUrl ? "text-white" : "text-foreground"
                 )}>
                   {option.label}
                 </span>
                 {option.description && (
                   <span className={cn(
-                    "text-[11px] leading-tight drop-shadow-sm",
+                    "text-xs leading-tight drop-shadow-sm",
                     bgUrl ? "text-white/80" : "text-muted-foreground"
                   )}>
                     {option.description}
