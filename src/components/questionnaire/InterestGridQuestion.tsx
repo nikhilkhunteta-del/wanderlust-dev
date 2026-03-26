@@ -84,7 +84,7 @@ export const InterestGridQuestion = ({
               onClick={() => toggleOption(option.value)}
               whileTap={{ scale: 0.97 }}
               className={cn(
-                'relative flex flex-col justify-end rounded-xl border-2 overflow-hidden transition-all duration-150 cursor-pointer h-[280px]',
+                'relative flex flex-col justify-end rounded-xl border-2 overflow-hidden transition-all duration-150 cursor-pointer h-[400px]',
                 'shadow-sm hover:shadow-lg',
                 isSelected
                   ? 'border-primary ring-1 ring-primary/30 brightness-110'
