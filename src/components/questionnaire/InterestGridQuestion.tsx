@@ -97,7 +97,7 @@ export const InterestGridQuestion = ({
               } : undefined}
             >
               {/* Dark gradient overlay — bottom 30% */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 from-0% via-black/40 via-40% to-transparent to-70% pointer-events-none" />
 
               {/* Fallback background if no image */}
               {!bgUrl && (
