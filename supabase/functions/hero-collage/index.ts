@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
     const queries = buildQueries(city, interests || []);
     const images: (CollageImage | null)[] = [];
 
-    // Fetch all 4 in parallel: Google Places primary, Unsplash fallback
+    // Fetch all 3 in parallel: Google Places primary, Unsplash fallback
     const results = await Promise.allSettled(
       queries.map(async (query): Promise<CollageImage | null> => {
         // Try Google Places first
