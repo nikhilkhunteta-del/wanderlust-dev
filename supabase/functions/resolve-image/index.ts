@@ -1282,8 +1282,13 @@ serve(async (req) => {
       }
       if (!image && request.entityName) {
         console.log('Trying Pollinations (seasonal)...');
+        const PERFORMANCE_KEYWORDS = /concert|recital|performance|opera|symphony|philharmonic|orchestra|music\s*festival|live\s*music|gig|sonata|choir|choral/i;
+        const isPerformance = PERFORMANCE_KEYWORDS.test(request.entityName);
+        const seasonalSuffix = isPerformance
+          ? `${request.country} concert performance audience evening atmospheric photography`
+          : `${request.country} festival celebration crowd street photography atmospheric`;
         image = await tryPollinations(supabase, request.entityName, request.city, {
-          promptSuffix: `${request.country} festival celebration crowd street photography atmospheric`,
+          promptSuffix: seasonalSuffix,
           width: 800,
           height: 600,
           imageType: "seasonal",
