@@ -1315,7 +1315,7 @@ serve(async (req) => {
       if (request.entityName) {
         console.log('Trying Pollinations (attraction)...');
         image = await tryPollinations(supabase, request.entityName, request.city, {
-          promptSuffix: "travel photography high quality",
+          promptSuffix: `${request.country} travel photography atmospheric cinematic landmark`,
         });
       }
       if (!image) {
