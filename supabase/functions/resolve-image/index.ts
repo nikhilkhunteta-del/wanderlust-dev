@@ -1067,7 +1067,7 @@ async function tryPollinations(
     const height = options?.height ?? 800;
     const prompt = `${entityName} ${city} ${suffix}`;
     const seed = stableCharCodeSum(entityName);
-    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&key=${apiKey}`;
+    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=true&key=${apiKey}`;
 
     console.log(`Pollinations: fetching image for "${entityName}" in ${city} (${width}x${height}, seed=${seed})`);
 
