@@ -1266,10 +1266,15 @@ serve(async (req) => {
 
     // Resolution order depends on image type
     if (request.type === 'seasonal') {
-      // Seasonal: Wikimedia → Unsplash → Pollinations → Pexels → Storage
+      // Seasonal: Wikimedia (with non-photo filter) → Unsplash → Pollinations → Pexels → Storage
+      const NON_PHOTO_PATTERNS = /\.(svg|SVG)|manuscript|painting|score|sheet_music|artwork|illustration|drawing|engraving|lithograph/i;
       if (request.entityName) {
         console.log('Trying Wikimedia Commons (seasonal)...');
         image = await tryWikimedia(searchQuery, request.entityName, request.city);
+        if (image && NON_PHOTO_PATTERNS.test(image.url)) {
+          console.log(`Wikimedia result appears non-photographic (${image.url}), skipping`);
+          image = null;
+        }
       }
       if (!image) {
         console.log('Trying Unsplash (seasonal)...');
@@ -1278,7 +1283,7 @@ serve(async (req) => {
       if (!image && request.entityName) {
         console.log('Trying Pollinations (seasonal)...');
         image = await tryPollinations(supabase, request.entityName, request.city, {
-          promptSuffix: "festival celebration atmospheric",
+          promptSuffix: `${request.country} festival celebration crowd street photography atmospheric`,
           width: 800,
           height: 600,
           imageType: "seasonal",
