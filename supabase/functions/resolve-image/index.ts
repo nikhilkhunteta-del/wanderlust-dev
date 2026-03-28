@@ -1342,8 +1342,8 @@ serve(async (req) => {
     } else if (request.type === 'neighborhood') {
       // Neighborhood: Google Places ("{name} {city} neighbourhood street") → Unsplash → Pexels → Storage
       const neighQuery = request.entityName
-        ? `${request.entityName} ${request.city} neighbourhood street`
-        : `${request.city} neighbourhood street`;
+        ? `${request.entityName} neighbourhood ${request.city} ${request.country} street architecture`
+        : `${request.city} ${request.country} neighbourhood street architecture`;
       console.log(`Trying Google Places (neighborhood): "${neighQuery}"`);
       image = await getGooglePlacesPhoto(supabase, neighQuery);
 
