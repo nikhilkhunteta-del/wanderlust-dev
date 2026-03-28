@@ -76,11 +76,16 @@ export function WordOnStreetTab({ city, country }: WordOnStreetTabProps) {
 
       {data?.categories && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.categories.map((cat, index) => (
-            <div key={cat.name} className={data.categories.length % 2 !== 0 && index === data.categories.length - 1 ? "sm:col-span-2 lg:col-span-1" : ""}>
-              <SentimentCard category={cat} />
-            </div>
-          ))}
+          {data.categories.map((cat, index) => {
+            const total = data.categories.length;
+            const isLast = index === total - 1;
+            const spanClass = isLast && total % 2 !== 0 && total > 1 ? "sm:col-span-2 lg:col-span-1" : "";
+            return (
+              <div key={cat.name} className={spanClass}>
+                <SentimentCard category={cat} />
+              </div>
+            );
+          })}
         </div>
       )}
 
