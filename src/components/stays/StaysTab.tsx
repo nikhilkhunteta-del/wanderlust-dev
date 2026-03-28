@@ -225,15 +225,26 @@ export const StaysTab = ({
                   ? "sm:grid-cols-2"
                   : "sm:grid-cols-2 lg:grid-cols-3"
             }`}>
-              {neighbourhoodsWithDedup.map((neighbourhood, index) => (
-                <NeighbourhoodCard
-                  key={index}
-                  neighbourhood={neighbourhood}
-                  city={city}
-                  country={country}
-                  alternateQuery={neighbourhood.alternateQuery}
-                />
-              ))}
+              {neighbourhoodsWithDedup.map((neighbourhood, index) => {
+                const total = neighbourhoodsWithDedup.length;
+                const isLast = index === total - 1;
+                const spanFullSm = isLast && total % 2 !== 0 && total > 1;
+                const spanFullLg = isLast && total % 3 !== 0 && total > 2;
+                const spanClass = [
+                  spanFullSm ? "sm:col-span-2" : "",
+                  spanFullLg ? (total % 3 === 1 ? "lg:col-span-3" : "lg:col-span-1") : "",
+                ].filter(Boolean).join(" ");
+                return (
+                  <div key={index} className={spanClass}>
+                    <NeighbourhoodCard
+                      neighbourhood={neighbourhood}
+                      city={city}
+                      country={country}
+                      alternateQuery={neighbourhood.alternateQuery}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
