@@ -98,63 +98,63 @@ export const CulturalMomentsQuestion = ({
           type="button"
           onClick={() => toggleMoment(moment.value, isOutOfWindowCard)}
           whileTap={{ scale: 0.97 }}
-          className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary border ${
+          className={`relative flex flex-col justify-end rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary h-[320px] ${
             isSelected
-              ? 'ring-2 ring-primary shadow-lg shadow-primary/20 border-primary bg-card'
-              : 'border-border/50 hover:border-border hover:shadow-md bg-card'
+              ? 'border-[3px] border-primary shadow-lg shadow-primary/20'
+              : 'border border-border/50 hover:border-border hover:shadow-md'
           }`}
         >
-          {/* Image top half */}
-          <div className="relative w-full aspect-[16/10] overflow-hidden">
-            {!hasError ? (
-              <img
-                src={moment.image.url}
-                alt={moment.label}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-                onError={() => handleImageError(moment.value)}
-              />
-            ) : (
-              <div className="absolute inset-0 bg-muted" />
-            )}
+          {/* Background image */}
+          {!hasError ? (
+            <img
+              src={moment.image.url}
+              alt={moment.label}
+              className="absolute inset-0 w-full h-full object-cover object-center"
+              loading="lazy"
+              onError={() => handleImageError(moment.value)}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-muted" />
+          )}
 
-            {/* Selected checkmark */}
-            {isSelected && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md"
-              >
-                <Check className="w-4 h-4 text-primary-foreground" />
-              </motion.div>
-            )}
-          </div>
+          {/* Gradient overlay — transparent top 60%, black/70 bottom */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 from-0% to-transparent to-60% pointer-events-none" />
 
-          {/* Text bottom half */}
-          <div className="p-3.5 space-y-1.5" style={isOutOfWindowCard ? { backgroundColor: '#F5F5F0' } : undefined}>
+          {/* Selected checkmark */}
+          {isSelected && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md z-20"
+            >
+              <Check className="w-4 h-4 text-primary-foreground" />
+            </motion.div>
+          )}
+
+          {/* Text content at bottom */}
+          <div className="relative z-10 px-4 pb-4 space-y-1">
             <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-semibold leading-tight text-foreground">
+              <p className="text-sm font-semibold leading-tight text-white drop-shadow-md">
                 {moment.label}
               </p>
-              {/* Month badge chip */}
               <span
                 className={`flex-none shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap ${
                   isOutOfWindowCard
-                    ? 'bg-muted text-muted-foreground'
-                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                    ? 'bg-white/20 text-white/80'
+                    : 'bg-emerald-500/30 text-emerald-200'
                 }`}
               >
                 {formatMonth(moment.months)}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">{moment.location}</p>
+            <p className="text-xs text-white/70 drop-shadow-sm">{moment.location}</p>
             {moment.description && (
-              <p className="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">
+              <p className="text-xs text-white/60 leading-relaxed line-clamp-2 drop-shadow-sm">
                 {moment.description}
               </p>
             )}
             {moment.dateNote && (
-              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-medium">
+              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-200 text-[10px] font-medium">
                 {moment.dateNote}
               </span>
             )}
@@ -164,7 +164,7 @@ export const CulturalMomentsQuestion = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="block text-right mt-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                className="block text-right mt-1 text-[11px] text-white/50 hover:text-white/80 transition-colors"
               >
                 Learn more ↗
               </a>
