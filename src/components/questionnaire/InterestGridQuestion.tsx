@@ -73,10 +73,14 @@ export const InterestGridQuestion = ({
           Select up to {maxSelections}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 -mx-6 md:-mx-12 px-0 w-[calc(100%+48px)] md:w-[calc(100%+96px)]">
-        {options.map((option) => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-6 -mx-6 md:-mx-12 w-[calc(100%+48px)] md:w-[calc(100%+96px)]">
+        {options.map((option, i) => {
           const isSelected = selected.includes(option.value);
           const bgUrl = categoryImages[option.value];
+          const total = options.length;
+          const isLast = i === total - 1;
+          const spanFull2 = isLast && total % 2 !== 0;
+          const spanFull3 = isLast && total % 3 !== 0;
           return (
             <motion.button
               key={option.value}
@@ -84,11 +88,14 @@ export const InterestGridQuestion = ({
               onClick={() => toggleOption(option.value)}
               whileTap={{ scale: 0.97 }}
               className={cn(
-                'relative flex flex-col justify-end rounded-xl border-2 overflow-hidden transition-all duration-150 cursor-pointer h-[400px]',
+                'relative flex flex-col justify-end rounded-2xl overflow-hidden transition-all duration-150 cursor-pointer h-[320px]',
                 'shadow-sm hover:shadow-lg',
                 isSelected
-                  ? 'border-primary ring-1 ring-primary/30 brightness-110'
-                  : 'border-transparent hover:border-border/50'
+                  ? 'border-[3px] border-primary'
+                  : 'border border-transparent hover:border-border/50',
+                spanFull2 ? 'col-span-2 sm:col-span-1' : '',
+                spanFull3 ? 'sm:col-span-1' : '',
+                spanFull2 && spanFull3 ? 'sm:col-span-1' : '',
               )}
               style={bgUrl ? {
                 backgroundImage: `url(${bgUrl})`,
@@ -96,15 +103,15 @@ export const InterestGridQuestion = ({
                 backgroundPosition: 'center',
               } : undefined}
             >
-              {/* Dark gradient overlay — bottom 30% */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 from-0% via-black/40 via-40% to-transparent to-70% pointer-events-none" />
+              {/* Gradient overlay — transparent top 60%, black/70 bottom */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 from-0% to-transparent to-60% pointer-events-none" />
 
               {/* Fallback background if no image */}
               {!bgUrl && (
                 <div className="absolute inset-0 bg-muted" />
               )}
 
-              {/* Text content — bottom 30% */}
+              {/* Text content */}
               <div className="relative z-10 flex flex-col items-start gap-0.5 px-5 pb-5 text-left">
                 <span className={cn(
                   "text-base font-bold leading-tight drop-shadow-md",
