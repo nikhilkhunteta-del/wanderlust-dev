@@ -254,11 +254,18 @@ export const CulturalMomentsQuestion = ({
               Festivals outside your dates — worth knowing about for future trips.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 px-6">
             {(showAllOutOfWindow ? outOfWindow : outOfWindow.slice(0, 4)).map((m, i) => {
               const visibleList = showAllOutOfWindow ? outOfWindow : outOfWindow.slice(0, 4);
+              const total = visibleList.length;
+              const isLast = i === total - 1;
+              const spanFull2 = isLast && total % 2 !== 0;
+              const spanFull3 = isLast && total % 3 !== 0 && total % 3 === 1;
               return (
-                <div key={m.value} className={visibleList.length % 2 !== 0 && i === visibleList.length - 1 ? 'col-span-2' : ''}>
+                <div key={m.value} className={cn(
+                  spanFull2 ? 'col-span-2 sm:col-span-1' : '',
+                  spanFull3 ? 'sm:col-span-3' : '',
+                )}>
                   {renderCard(m, true)}
                 </div>
               );

@@ -1756,6 +1756,7 @@ export const culturalMoments: CulturalMoment[] = [
     image: {
       url: "https://plus.unsplash.com/premium_photo-1695186450461-777ea482f34b?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "",
+      unsplashLink: "",
       source: "unsplash",
     },
     description:
