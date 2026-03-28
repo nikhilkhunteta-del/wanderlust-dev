@@ -1745,4 +1745,23 @@ export const culturalMoments: CulturalMoment[] = [
     dateNote: "Always the second Sunday of August",
     wikiUrl: "https://en.wikipedia.org/wiki/Melon_Day",
   },
+  {
+    value: "total-solar-eclipse",
+    label: "Total Solar Eclipse",
+    location: "Spain & Iceland",
+    city: "Seville",
+    country: "Spain",
+    months: ["august"],
+    triggeredBy: ["nature-outdoors", "culture-history"],
+    image: {
+      url: "https://plus.unsplash.com/premium_photo-1695186450461-777ea482f34b?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      credit: "",
+      source: "unsplash",
+    },
+    description:
+      "Day turns to night in two minutes — totality is the most visceral natural phenomenon a human can witness",
+    dateNote: "Next total solar eclipse over Europe: 12 August 2026 passing through Spain, Iceland, and North Africa",
+    bookingNote: "Accommodation along the path of totality books out years in advance",
+    wikiUrl: "https://en.wikipedia.org/wiki/Solar_eclipse_of_August_12,_2026",
+  },
 ];
