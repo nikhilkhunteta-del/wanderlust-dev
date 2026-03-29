@@ -100,14 +100,14 @@ export const CulturalMomentsQuestion = ({
           onClick={() => toggleMoment(moment.value, isOutOfWindowCard)}
           whileTap={{ scale: 0.97 }}
           className={cn(
-            'flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary h-[320px] bg-card shadow-sm hover:shadow-lg',
+            'flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[320px] bg-card shadow-sm hover:shadow-lg',
             isSelected
               ? 'border-[3px] border-primary shadow-lg shadow-primary/20'
               : 'border border-border/40 hover:border-border/60'
           )}
         >
           {/* Image area ~75% */}
-          <div className="relative w-full h-[75%] flex-none">
+          <div className="relative w-full h-[240px] flex-none">
             {!hasError ? (
               <img
                 src={moment.image.url}
@@ -132,8 +132,8 @@ export const CulturalMomentsQuestion = ({
             )}
           </div>
 
-          {/* Text area ~25% */}
-          <div className="flex flex-col justify-center gap-0.5 px-4 py-2 flex-1">
+          {/* Text area */}
+          <div className="flex flex-col justify-center gap-0.5 px-4 py-2">
             <div className="flex items-start justify-between gap-2">
               <p className="text-[15px] font-semibold leading-tight text-foreground line-clamp-1">
                 {moment.label}
@@ -149,8 +149,8 @@ export const CulturalMomentsQuestion = ({
                 {formatMonth(moment.months)}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground line-clamp-1">{moment.location}</p>
-            <p className="text-xs text-muted-foreground line-clamp-1">{moment.description}</p>
+            <p className="text-xs text-muted-foreground">{moment.location}</p>
+            <p className="text-xs text-muted-foreground">{moment.description}</p>
           </div>
         </motion.button>
 
