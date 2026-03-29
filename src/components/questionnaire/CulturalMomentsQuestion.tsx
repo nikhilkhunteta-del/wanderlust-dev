@@ -100,7 +100,7 @@ export const CulturalMomentsQuestion = ({
           onClick={() => toggleMoment(moment.value, isOutOfWindowCard)}
           whileTap={{ scale: 0.97 }}
           className={cn(
-            'flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary h-[320px] bg-card shadow-sm hover:shadow-lg',
+            'flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[320px] bg-card shadow-sm hover:shadow-lg',
             isSelected
               ? 'border-[3px] border-primary shadow-lg shadow-primary/20'
               : 'border border-border/40 hover:border-border/60'
