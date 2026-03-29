@@ -218,11 +218,11 @@ export const CulturalMomentsQuestion = ({
               const total = inWindow.length;
               const isLast = i === total - 1;
               const spanFull2 = isLast && total % 2 !== 0;
-              const spanFull3 = isLast && total % 3 !== 0 && total % 3 === 1;
+              const isOrphan3 = isLast && total % 3 === 1;
               return (
                 <div key={m.value} className={cn(
                   spanFull2 ? 'col-span-2 sm:col-span-1' : '',
-                  spanFull3 ? 'sm:col-span-3' : (isLast && total % 3 === 2 ? '' : ''),
+                  isOrphan3 ? 'sm:col-span-2' : '',
                 )}>
                   {renderCard(m, false)}
                 </div>
