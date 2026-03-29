@@ -88,42 +88,32 @@ export const InterestGridQuestion = ({
               onClick={() => toggleOption(option.value)}
               whileTap={{ scale: 0.97 }}
               className={cn(
-                'relative flex flex-col justify-end rounded-2xl overflow-hidden transition-all duration-150 cursor-pointer h-[320px]',
-                'shadow-sm hover:shadow-lg',
+                'flex flex-col rounded-2xl overflow-hidden transition-all duration-150 cursor-pointer h-[320px]',
+                'shadow-sm hover:shadow-lg bg-card',
                 isSelected
                   ? 'border-[3px] border-primary'
-                  : 'border border-transparent hover:border-border/50',
+                  : 'border border-border/40 hover:border-border/60',
                 spanFull2 ? 'col-span-2 sm:col-span-1' : '',
                 spanFull3 ? 'sm:col-span-1' : '',
                 spanFull2 && spanFull3 ? 'sm:col-span-1' : '',
               )}
-              style={bgUrl ? {
-                backgroundImage: `url(${bgUrl})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              } : undefined}
             >
-              {/* Gradient overlay — transparent top 60%, black/70 bottom */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 from-0% to-transparent to-60% pointer-events-none" />
+              {/* Image area ~75% */}
+              <div className="relative w-full h-[75%] flex-none">
+                {bgUrl ? (
+                  <img src={bgUrl} alt={option.label} className="w-full h-full object-cover object-center" />
+                ) : (
+                  <div className="w-full h-full bg-muted" />
+                )}
+              </div>
 
-              {/* Fallback background if no image */}
-              {!bgUrl && (
-                <div className="absolute inset-0 bg-muted" />
-              )}
-
-              {/* Text content */}
-              <div className="relative z-10 flex flex-col items-start gap-0.5 px-5 pb-5 text-left">
-                <span className={cn(
-                  "text-base font-bold leading-tight drop-shadow-md",
-                  bgUrl ? "text-white" : "text-foreground"
-                )}>
+              {/* Text area ~25% */}
+              <div className="flex flex-col justify-center gap-0.5 px-4 py-3 text-left flex-1">
+                <span className="text-[15px] font-semibold leading-tight text-foreground">
                   {option.label}
                 </span>
                 {option.description && (
-                  <span className={cn(
-                    "text-xs leading-tight drop-shadow-sm",
-                    bgUrl ? "text-white/80" : "text-muted-foreground"
-                  )}>
+                  <span className="text-xs leading-tight text-muted-foreground">
                     {option.description}
                   </span>
                 )}

@@ -99,77 +99,57 @@ export const CulturalMomentsQuestion = ({
           type="button"
           onClick={() => toggleMoment(moment.value, isOutOfWindowCard)}
           whileTap={{ scale: 0.97 }}
-          className={`relative flex flex-col justify-end rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary h-[320px] ${
+          className={cn(
+            'flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary h-[320px] bg-card shadow-sm hover:shadow-lg',
             isSelected
               ? 'border-[3px] border-primary shadow-lg shadow-primary/20'
-              : 'border border-border/50 hover:border-border hover:shadow-md'
-          }`}
+              : 'border border-border/40 hover:border-border/60'
+          )}
         >
-          {/* Background image */}
-          {!hasError ? (
-            <img
-              src={moment.image.url}
-              alt={moment.label}
-              className="absolute inset-0 w-full h-full object-cover object-center"
-              loading="lazy"
-              onError={() => handleImageError(moment.value)}
-            />
-          ) : (
-            <div className="absolute inset-0 bg-muted" />
-          )}
+          {/* Image area ~75% */}
+          <div className="relative w-full h-[75%] flex-none">
+            {!hasError ? (
+              <img
+                src={moment.image.url}
+                alt={moment.label}
+                className="w-full h-full object-cover object-center"
+                loading="lazy"
+                onError={() => handleImageError(moment.value)}
+              />
+            ) : (
+              <div className="w-full h-full bg-muted" />
+            )}
 
-          {/* Gradient overlay — transparent top 60%, black/70 bottom */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 from-0% to-transparent to-60% pointer-events-none" />
+            {/* Selected checkmark */}
+            {isSelected && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md z-20"
+              >
+                <Check className="w-4 h-4 text-primary-foreground" />
+              </motion.div>
+            )}
+          </div>
 
-          {/* Selected checkmark */}
-          {isSelected && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md z-20"
-            >
-              <Check className="w-4 h-4 text-primary-foreground" />
-            </motion.div>
-          )}
-
-          {/* Text content at bottom */}
-          <div className="relative z-10 px-4 pb-4 space-y-1">
+          {/* Text area ~25% */}
+          <div className="flex flex-col justify-center gap-0.5 px-4 py-2 flex-1">
             <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-semibold leading-tight text-white drop-shadow-md">
+              <p className="text-[15px] font-semibold leading-tight text-foreground line-clamp-1">
                 {moment.label}
               </p>
               <span
-                className={`flex-none shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap ${
+                className={cn(
+                  'flex-none shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap',
                   isOutOfWindowCard
-                    ? 'bg-white/20 text-white/80'
-                    : 'bg-emerald-500/30 text-emerald-200'
-                }`}
+                    ? 'bg-muted text-muted-foreground'
+                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                )}
               >
                 {formatMonth(moment.months)}
               </span>
             </div>
-            <p className="text-xs text-white/70 drop-shadow-sm">{moment.location}</p>
-            {moment.description && (
-              <p className="text-xs text-white/60 leading-relaxed line-clamp-2 drop-shadow-sm">
-                {moment.description}
-              </p>
-            )}
-            {moment.dateNote && (
-              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-200 text-[10px] font-medium">
-                {moment.dateNote}
-              </span>
-            )}
-            {moment.wikiUrl && (
-              <a
-                href={moment.wikiUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="block text-right mt-1 text-[11px] text-white/50 hover:text-white/80 transition-colors"
-              >
-                Learn more ↗
-              </a>
-            )}
+            <p className="text-xs text-muted-foreground line-clamp-1">{moment.location}</p>
           </div>
         </motion.button>
 
