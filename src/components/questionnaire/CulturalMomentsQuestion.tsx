@@ -150,6 +150,7 @@ export const CulturalMomentsQuestion = ({
               </span>
             </div>
             <p className="text-xs text-muted-foreground line-clamp-1">{moment.location}</p>
+            <p className="text-xs text-muted-foreground line-clamp-1">{moment.description}</p>
           </div>
         </motion.button>
 
