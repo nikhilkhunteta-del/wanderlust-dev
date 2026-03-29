@@ -151,6 +151,17 @@ export const CulturalMomentsQuestion = ({
             </div>
             <p className="text-xs text-muted-foreground">{moment.location}</p>
             <p className="text-xs text-muted-foreground">{moment.description}</p>
+            {moment.wikiUrl && (
+              <a
+                href={moment.wikiUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[11px] font-medium text-primary hover:text-primary/80 transition-colors mt-0.5"
+              >
+                Learn more ↗
+              </a>
+            )}
           </div>
         </motion.button>
 
