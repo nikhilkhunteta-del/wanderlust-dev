@@ -1266,7 +1266,7 @@ serve(async (req) => {
 
     // Resolution order depends on image type
     if (request.type === 'seasonal') {
-      // Seasonal: Wikimedia (with non-photo filter) → Unsplash → Pollinations → Pexels → Storage
+      // Seasonal: Wikimedia (with non-photo filter) → Pollinations only (no Unsplash/Pexels)
       const NON_PHOTO_PATTERNS = /\.(svg|SVG)|manuscript|painting|score|sheet_music|artwork|illustration|drawing|engraving|lithograph/i;
       if (request.entityName) {
         console.log('Trying Wikimedia Commons (seasonal)...');
@@ -1276,27 +1276,22 @@ serve(async (req) => {
           image = null;
         }
       }
-      if (!image) {
-        console.log('Trying Unsplash (seasonal)...');
-        image = await tryUnsplash(searchQuery, false);
-      }
       if (!image && request.entityName) {
-        console.log('Trying Pollinations (seasonal)...');
-        const PERFORMANCE_KEYWORDS = /concert|recital|performance|opera|symphony|philharmonic|orchestra|music\s*festival|live\s*music|gig|sonata|choir|choral/i;
-        const isPerformance = PERFORMANCE_KEYWORDS.test(request.entityName);
-        const seasonalSuffix = isPerformance
-          ? `${request.country} concert performance audience evening atmospheric photography`
-          : `${request.country} festival celebration crowd street photography atmospheric`;
+        console.log('Trying Pollinations (seasonal fallback)...');
+        const eventType = (() => {
+          const name = (request.entityName || '').toLowerCase();
+          if (/concert|recital|opera|symphony|philharmonic|orchestra|music|choir|choral|fest\b|festival/i.test(name)) return 'music festival';
+          if (/parade|march|pride|carnival/i.test(name)) return 'parade celebration';
+          if (/feast|saint|religious|holy|easter|christmas/i.test(name)) return 'religious celebration';
+          if (/food|culinary|gastro|tasting|market/i.test(name)) return 'food festival';
+          return 'cultural event';
+        })();
         image = await tryPollinations(supabase, request.entityName, request.city, {
-          promptSuffix: seasonalSuffix,
+          promptSuffix: `${eventType} atmospheric photography`,
           width: 800,
           height: 600,
           imageType: "seasonal",
         });
-      }
-      if (!image) {
-        console.log('Trying Pexels (seasonal)...');
-        image = await tryPexels(searchQuery);
       }
     } else if (request.type === 'city_hero') {
       // City Hero: Google Places ("{city} {country} cityscape") → Unsplash → Pexels → monument fallback → Storage
