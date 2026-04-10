@@ -1266,7 +1266,7 @@ serve(async (req) => {
 
     // Resolution order depends on image type
     if (request.type === 'seasonal') {
-      // Seasonal: Wikimedia (with non-photo filter) → Pollinations only (no Unsplash/Pexels)
+      // Seasonal: Wikimedia (with non-photo filter) → Pollinations → Unsplash
       const NON_PHOTO_PATTERNS = /\.(svg|SVG)|manuscript|painting|score|sheet_music|artwork|illustration|drawing|engraving|lithograph/i;
       if (request.entityName) {
         console.log('Trying Wikimedia Commons (seasonal)...');
@@ -1292,6 +1292,11 @@ serve(async (req) => {
           height: 600,
           imageType: "seasonal",
         });
+      }
+      // Fallback to Unsplash if Pollinations also fails (e.g. 402 quota exceeded)
+      if (!image && request.entityName) {
+        console.log('Trying Unsplash (seasonal fallback)...');
+        image = await tryUnsplash(`${request.entityName} ${request.city}`, false);
       }
     } else if (request.type === 'city_hero') {
       // City Hero: Google Places ("{city} {country} cityscape") → Unsplash → Pexels → monument fallback → Storage
