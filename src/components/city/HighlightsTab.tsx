@@ -99,6 +99,7 @@ export const HighlightsTab = ({
         <PerfectDayStrip
           city={city}
           narrative={highlights.perfectDayNarrative ?? ""}
+          perfectDayTimeline={highlights.perfectDayTimeline}
           travelMonth={travelMonth}
           onSwitchTab={onSwitchTab}
         />

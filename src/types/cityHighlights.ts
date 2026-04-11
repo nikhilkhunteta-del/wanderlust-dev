@@ -14,6 +14,7 @@ export interface CityHighlights {
   heroImageQuery: string;
   personalMatchReasons?: string[];
   perfectDayNarrative?: string;
+  perfectDayTimeline?: { time: string; activity: string }[];
   insiderMissed?: string;
   featuredExperienceIndex?: number;
   experienceThemes?: ExperienceTheme[];
