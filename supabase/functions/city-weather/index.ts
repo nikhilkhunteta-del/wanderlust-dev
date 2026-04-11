@@ -28,7 +28,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { city, country, travelMonth } = await req.json();
+    const body = await req.json();
+    // Normalize slug-style names (e.g. "chiang-mai" → "Chiang Mai")
+    const city = (body.city || "").replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+    const country = body.country || "";
+    const travelMonth = body.travelMonth || "";
     console.log(`Fetching weather data for ${city}, ${country} in ${travelMonth}`);
 
     // Step 1: Geocode
