@@ -76,7 +76,13 @@ Respond with ONLY valid JSON in this exact format:
 {
   "matchStatement": "2-3 sentences explaining why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
   "personalMatchReasons": ["Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last", "The **street food universe** of Chandni Chowk alone — paratha, jalebi, chaat — maps perfectly to your culinary curiosity", "Your preference for **warm, golden-light evenings** aligns with the sunset views from Humayun's Tomb gardens in your travel month"],
-  "perfectDayNarrative": "A month-specific narrative — structure the day around the actual climate and conditions of the travel month...",
+  "perfectDayTimeline": [
+    {"time": "Morning", "activity": "Beat the heat with an early walk through Lodhi Gardens..."},
+    {"time": "Midday", "activity": "Escape into the cool marble halls of the National Museum..."},
+    {"time": "Evening", "activity": "As golden light hits Humayun's Tomb, join locals on the lawns..."},
+    {"time": "Night", "activity": "End at Hauz Khas Village for rooftop drinks overlooking the reservoir..."}
+  ],
+  "perfectDayNarrative": "A single paragraph fallback version of the timeline above...",
   "insiderMissed": "Exactly 2 sentences. Sentence 1: one surprising observation that most first-time visitors don't expect about this city. Sentence 2: one specific, actionable detail — a place, time, or trick — they can use on their trip. No more than 2 sentences.",
   "experiences": [
     {
@@ -114,7 +120,7 @@ ${requestData.rationale}
 Generate:
 1. A match statement (2-3 sentences) explaining why ${requestData.city} fits their interests
 2. Exactly 3 personalMatchReasons as bullet points. Each bullet must make a completely distinct point — no two bullets may share the same theme. Each must name a specific place, experience, or local characteristic of ${requestData.city} that connects to one of the traveler's interests: ${requestData.userInterests.join(", ")}. Format: one **bold** key phrase followed by a grammatically complete sentence. CRITICAL: The bold phrase and surrounding sentence must read as a complete, natural English sentence — never leave a blank subject like "Your appreciation for will be..." or "Your love of connects to...". Always name the specific interest explicitly, e.g. "Your love of **Tuscan cuisine** finds its match in...".
-3. A perfectDayNarrative written SPECIFICALLY for ${requestData.travelMonth || "the travel month"} in ${requestData.city}. The month must be woven into every part of the day — climate, light, crowds, atmosphere. A reader should identify the month from the narrative alone.
+3. A perfectDayTimeline: an array of exactly 4 objects [{time: "Morning", activity: "..."}, {time: "Midday", activity: "..."}, {time: "Evening", activity: "..."}, {time: "Night", activity: "..."}]. Each activity is one sentence naming a specific place in ${requestData.city}, tailored to ${requestData.travelMonth || "the travel month"} climate. Also include a perfectDayNarrative as a single paragraph fallback.
 3b. An "insiderMissed" field: EXACTLY 2 sentences, no more. Sentence 1: one surprising observation that most first-time visitors to ${requestData.city} don't expect. Sentence 2: one specific, actionable detail — a place, time, or trick — they can use. Count your sentences before outputting; truncate any excess.
 4. 5-7 EVERGREEN signature experiences — year-round places, activities, and encounters available regardless of travel month. Do NOT include seasonal festivals or time-limited events. For the featured experience, write a two-sentence description: first sentence explains why it's the best match; second sentence gives a specific insider detail. For others, one compelling sentence.${hasChildren ? " Include a childNote field on each experience with one honest child-suitability sentence." : ""}
 5. featuredExperienceIndex: the index of the single best-matching experience
