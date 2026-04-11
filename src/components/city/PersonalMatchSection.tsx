@@ -70,7 +70,7 @@ export const PersonalMatchSection = ({ city, reasons }: PersonalMatchSectionProp
                 <p className="text-sm font-semibold text-foreground leading-tight mb-1">
                   {label}
                 </p>
-                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {description}
                 </p>
               </div>
