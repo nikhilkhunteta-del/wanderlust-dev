@@ -27,7 +27,7 @@ export const FeaturedExperienceCard = ({ experience, city, country, isSaved, onT
           </button>
         )}
 
-        <div className="h-[280px] overflow-hidden">
+        <div className="aspect-[21/9] md:aspect-[3/1] overflow-hidden">
           <ResolvedImage
             request={{
               type: 'attraction',

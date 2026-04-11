@@ -27,7 +27,7 @@ export const ExperienceCard = ({ experience, city, country, isSaved, onToggleSav
       )}
 
       {/* Image */}
-      <div className="h-[220px] overflow-hidden">
+      <div className="aspect-[3/2] overflow-hidden">
         <ResolvedImage
           request={{
             type: 'attraction',
