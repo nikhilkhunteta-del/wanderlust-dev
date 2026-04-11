@@ -184,6 +184,7 @@ export function DirectResolvedImage({
             "w-full h-full object-cover transition-opacity duration-300",
             imageLoaded ? "opacity-100" : "opacity-0"
           )}
+          style={{ objectPosition: 'center 60%' }}
           loading={priority ? "eager" : "lazy"}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
