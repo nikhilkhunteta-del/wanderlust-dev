@@ -101,7 +101,7 @@ export const InterestGridQuestion = ({
               {/* Image area ~75% */}
               <div className="relative w-full h-[75%] flex-none">
                 {bgUrl ? (
-                  <img src={bgUrl} alt={option.label} className="w-full h-full object-cover" style={{ objectPosition: 'center 60%' }} /> alt={option.label} className="w-full h-full object-cover" style={{ objectPosition: 'center 60%' }} /> />
+                  <img src={bgUrl} alt={option.label} className="w-full h-full object-cover" style={{ objectPosition: 'center 60%' }} />
                 ) : (
                   <div className="w-full h-full bg-muted" />
                 )}
