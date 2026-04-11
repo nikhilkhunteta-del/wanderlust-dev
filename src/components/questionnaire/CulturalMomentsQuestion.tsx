@@ -112,8 +112,7 @@ export const CulturalMomentsQuestion = ({
               <img
                 src={moment.image.url}
                 alt={moment.label}
-                className="w-full h-full object-cover"
-                style={{ objectPosition: 'center 60%' }}
+                className="w-full h-full object-cover object-center"
                 loading="lazy"
                 onError={() => handleImageError(moment.value)}
               />
