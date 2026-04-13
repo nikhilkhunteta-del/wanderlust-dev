@@ -102,11 +102,11 @@ export const InterestGridQuestion = ({
 
               {/* Text area */}
               <div className="flex flex-col gap-1 px-5 py-4 text-left">
-                <span className="text-[11px] font-semibold tracking-[0.1em] uppercase text-foreground">
+                <span className="font-semibold tracking-[0.1em] uppercase text-foreground text-sm">
                   {option.label}
                 </span>
                 {option.description && (
-                  <span className="text-xs leading-relaxed text-muted-foreground">
+                  <span className="leading-relaxed text-muted-foreground text-sm">
                     {option.description}
                   </span>
                 )}
