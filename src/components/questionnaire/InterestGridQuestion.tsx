@@ -92,11 +92,11 @@ export const InterestGridQuestion = ({
               )}
             >
               {/* Square image area */}
-              <div className="relative w-full flex-none">
+              <div className="relative w-full flex-none aspect-[4/3] bg-[#111]">
                 {bgUrl ? (
-                  <img src={bgUrl} alt={option.label} className="w-full h-auto block" />
+                  <img src={bgUrl} alt={option.label} className="w-full h-full object-contain" />
                 ) : (
-                  <div className="w-full aspect-square bg-muted" />
+                  <div className="w-full h-full bg-muted" />
                 )}
               </div>
 
