@@ -73,14 +73,10 @@ export const InterestGridQuestion = ({
           Select up to {maxSelections}
         </span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-6 -mx-6 md:-mx-12 w-[calc(100%+48px)] md:w-[calc(100%+96px)]">
-        {options.map((option, i) => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+        {options.map((option) => {
           const isSelected = selected.includes(option.value);
           const bgUrl = categoryImages[option.value];
-          const total = options.length;
-          const isLast = i === total - 1;
-          const spanFull2 = isLast && total % 2 !== 0;
-          const spanFull3 = isLast && total % 3 !== 0;
           return (
             <motion.button
               key={option.value}
@@ -88,18 +84,15 @@ export const InterestGridQuestion = ({
               onClick={() => toggleOption(option.value)}
               whileTap={{ scale: 0.97 }}
               className={cn(
-                'flex flex-col rounded-2xl overflow-hidden transition-all duration-150 cursor-pointer h-[320px]',
+                'flex flex-col rounded-2xl overflow-hidden transition-all duration-150 cursor-pointer',
                 'shadow-sm hover:shadow-lg bg-card',
                 isSelected
                   ? 'border-[3px] border-primary'
                   : 'border border-border/40 hover:border-border/60',
-                spanFull2 ? 'col-span-2 sm:col-span-1' : '',
-                spanFull3 ? 'sm:col-span-1' : '',
-                spanFull2 && spanFull3 ? 'sm:col-span-1' : '',
               )}
             >
-              {/* Image area ~75% */}
-              <div className="relative w-full h-[75%] flex-none">
+              {/* Square image area */}
+              <div className="relative w-full aspect-square flex-none">
                 {bgUrl ? (
                   <img src={bgUrl} alt={option.label} className="w-full h-full object-cover object-center" />
                 ) : (
@@ -107,13 +100,13 @@ export const InterestGridQuestion = ({
                 )}
               </div>
 
-              {/* Text area ~25% */}
-              <div className="flex flex-col justify-center gap-0.5 px-4 py-3 text-left flex-1">
-                <span className="text-[15px] font-semibold leading-tight text-foreground">
+              {/* Text area */}
+              <div className="flex flex-col gap-1 px-5 py-4 text-left">
+                <span className="text-[11px] font-semibold tracking-[0.1em] uppercase text-foreground">
                   {option.label}
                 </span>
                 {option.description && (
-                  <span className="text-xs leading-tight text-muted-foreground">
+                  <span className="text-xs leading-relaxed text-muted-foreground">
                     {option.description}
                   </span>
                 )}
