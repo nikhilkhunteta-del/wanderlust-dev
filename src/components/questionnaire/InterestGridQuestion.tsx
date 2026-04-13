@@ -39,8 +39,11 @@ export const InterestGridQuestion = ({
   onPrimaryChange,
 }: InterestGridQuestionProps) => {
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     const fetchImages = async () => {
       try {
         const { data, error } = await supabase.functions.invoke('q1-category-images');
@@ -94,7 +97,7 @@ export const InterestGridQuestion = ({
               {/* Square image area */}
               <div className="relative w-full flex-none aspect-[4/3] overflow-hidden">
                 {bgUrl ? (
-                  <img src={bgUrl} alt={option.label} className="w-full h-full object-cover object-center block" />
+                  <img src={bgUrl} alt={option.label} loading="eager" className="w-full h-full object-cover object-center block" />
                 ) : (
                   <div className="w-full h-full bg-muted" />
                 )}
