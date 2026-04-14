@@ -1,8 +1,15 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CulturalMoment } from '@/data/culturalMoments';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from '@/components/ui/carousel';
 
 const MONTH_KEY_TO_FULL: Record<string, string> = {
   jan: 'january', feb: 'february', mar: 'march', apr: 'april',
