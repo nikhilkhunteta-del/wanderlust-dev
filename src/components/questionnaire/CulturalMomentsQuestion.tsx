@@ -42,17 +42,24 @@ export const CulturalMomentsQuestion = ({
 }: CulturalMomentsQuestionProps) => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [monthConflict, setMonthConflict] = useState<string | null>(null);
-  const [showAllOutOfWindow, setShowAllOutOfWindow] = useState(false);
 
   const isFlexible = travelMonth === 'flexible';
   const fullMonth = MONTH_KEY_TO_FULL[travelMonth] || '';
 
-  const { inWindow, outOfWindow } = useMemo(() => {
-    if (isFlexible) return { inWindow: moments, outOfWindow: [] as CulturalMoment[] };
-    return {
-      inWindow: moments.filter((m) => m.months.includes(fullMonth)),
-      outOfWindow: moments.filter((m) => !m.months.includes(fullMonth)),
-    };
+  const { inWindow, outOfWindow, outByMonth } = useMemo(() => {
+    if (isFlexible) return { inWindow: moments, outOfWindow: [] as CulturalMoment[], outByMonth: [] as [string, CulturalMoment[]][] };
+    const inW = moments.filter((m) => m.months.includes(fullMonth));
+    const outW = moments.filter((m) => !m.months.includes(fullMonth));
+    // Group out-of-window by first month, ordered by calendar
+    const monthOrder = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    const grouped = new Map<string, CulturalMoment[]>();
+    for (const m of outW) {
+      const key = m.months[0] || 'unknown';
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(m);
+    }
+    const sorted = monthOrder.filter(mo => grouped.has(mo)).map(mo => [mo, grouped.get(mo)!] as [string, CulturalMoment[]]);
+    return { inWindow: inW, outOfWindow: outW, outByMonth: sorted };
   }, [moments, fullMonth, isFlexible]);
 
   const toggleMoment = (value: string, isOutOfWindow: boolean) => {
@@ -242,10 +249,10 @@ export const CulturalMomentsQuestion = ({
         </div>
       )}
 
-      {/* Divider + Section 2 — Outside travel window */}
-      {outOfWindow.length > 0 && (
+      {/* Section 2 — Outside travel window, grouped by month */}
+      {outByMonth.length > 0 && (
         <>
-          <div className="mt-8 space-y-2">
+          <div className="mt-8">
             <div className="relative flex items-center py-2">
               <div className="flex-1 h-[2px] bg-border" />
               <span className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
@@ -253,43 +260,37 @@ export const CulturalMomentsQuestion = ({
               </span>
               <div className="flex-1 h-[2px] bg-border" />
             </div>
-            <p className="text-xs text-muted-foreground italic text-center">
-              Festivals outside your dates — worth knowing about for future trips.
-            </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 px-6">
-            {(showAllOutOfWindow ? outOfWindow : outOfWindow.slice(0, 4)).map((m, i) => {
-              const visibleList = showAllOutOfWindow ? outOfWindow : outOfWindow.slice(0, 4);
-              const total = visibleList.length;
-              const isLast = i === total - 1;
-              const spanFull2 = isLast && total % 2 !== 0;
-              const isOrphan3 = isLast && total % 3 === 1;
-              return (
-                <div key={m.value} className={cn(
-                  spanFull2 ? 'col-span-2 sm:col-span-1' : '',
-                  isOrphan3 ? 'sm:col-span-2' : '',
-                )}>
-                  {renderCard(m, true)}
-                </div>
-              );
-            })}
-          </div>
-          {!showAllOutOfWindow && outOfWindow.length > 4 && (
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setShowAllOutOfWindow(true)}
-                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                Show more moments →
-              </button>
+          {outByMonth.map(([monthKey, monthMoments]) => (
+            <div key={monthKey} className="space-y-2">
+              <div className="px-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                  {MONTH_FULL_TO_LABEL[monthKey] || monthKey}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Shift your dates to catch these
+                </p>
+              </div>
+              <div className="relative opacity-[0.85]">
+                <Carousel opts={{ align: 'start', loop: false }} className="w-full">
+                  <CarouselContent className="-ml-4">
+                    {monthMoments.map((m) => (
+                      <CarouselItem key={m.value} className="pl-4 basis-[70%] sm:basis-1/3">
+                        {renderCard(m, true)}
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
+                  <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
+                </Carousel>
+              </div>
             </div>
-          )}
+          ))}
         </>
       )}
 
       {/* Empty state */}
-      {inWindow.length === 0 && outOfWindow.length > 0 && (
+      {inWindow.length === 0 && outByMonth.length > 0 && (
         <p className="text-sm text-muted-foreground text-center py-4">
           No cultural moments match your travel month — explore other options below.
         </p>
