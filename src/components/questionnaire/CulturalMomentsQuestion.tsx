@@ -114,7 +114,7 @@ export const CulturalMomentsQuestion = ({
           )}
         >
           {/* Image area ~75% */}
-          <div className="relative w-full h-[240px] flex-none overflow-hidden">
+          <div className="relative w-full flex-none aspect-[4/3] overflow-hidden">
             {!hasError ? (
               <img
                 src={moment.image.url}
