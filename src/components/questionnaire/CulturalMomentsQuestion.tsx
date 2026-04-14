@@ -46,12 +46,20 @@ export const CulturalMomentsQuestion = ({
   const isFlexible = travelMonth === 'flexible';
   const fullMonth = MONTH_KEY_TO_FULL[travelMonth] || '';
 
-  const { inWindow, outOfWindow } = useMemo(() => {
-    if (isFlexible) return { inWindow: moments, outOfWindow: [] as CulturalMoment[] };
-    return {
-      inWindow: moments.filter((m) => m.months.includes(fullMonth)),
-      outOfWindow: moments.filter((m) => !m.months.includes(fullMonth)),
-    };
+  const { inWindow, outOfWindow, outByMonth } = useMemo(() => {
+    if (isFlexible) return { inWindow: moments, outOfWindow: [] as CulturalMoment[], outByMonth: [] as [string, CulturalMoment[]][] };
+    const inW = moments.filter((m) => m.months.includes(fullMonth));
+    const outW = moments.filter((m) => !m.months.includes(fullMonth));
+    // Group out-of-window by first month, ordered by calendar
+    const monthOrder = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    const grouped = new Map<string, CulturalMoment[]>();
+    for (const m of outW) {
+      const key = m.months[0] || 'unknown';
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(m);
+    }
+    const sorted = monthOrder.filter(mo => grouped.has(mo)).map(mo => [mo, grouped.get(mo)!] as [string, CulturalMoment[]]);
+    return { inWindow: inW, outOfWindow: outW, outByMonth: sorted };
   }, [moments, fullMonth, isFlexible]);
 
   const toggleMoment = (value: string, isOutOfWindow: boolean) => {
