@@ -29,19 +29,24 @@ const MONTH_INSIGHTS: Record<string, string> = {
   flexible: 'We\'ll find the best time for your ideal destination — weather, crowds, and all.',
 };
 
+const SEASONAL_BORDER: Record<string, string> = {
+  dec: '#B8D4E8', jan: '#B8D4E8', feb: '#B8D4E8',
+  mar: '#B8D4B0', apr: '#B8D4B0', may: '#B8D4B0',
+  jun: '#F0C070', jul: '#F0C070', aug: '#F0C070',
+  sep: '#D4845A', oct: '#D4845A', nov: '#D4845A',
+};
+
 export const MonthGridQuestion = ({
   options,
   selected,
   onChange,
 }: MonthGridQuestionProps) => {
-  // Separate months from the "flexible" option
   const months = options.filter((o) => o.value !== 'flexible');
   const flexibleOption = options.find((o) => o.value === 'flexible');
   const insight = selected ? MONTH_INSIGHTS[selected] : null;
 
   return (
     <div className="space-y-5 w-full">
-      {/* Month grid — 4 columns on md, 3 on small */}
       <div
         className="grid grid-cols-3 md:grid-cols-4 gap-2"
         role="radiogroup"
@@ -49,6 +54,7 @@ export const MonthGridQuestion = ({
       >
         {months.map((option) => {
           const isSelected = selected === option.value;
+          const borderColor = SEASONAL_BORDER[option.value] || '#C8B89A';
           return (
             <motion.button
               key={option.value}
@@ -58,8 +64,12 @@ export const MonthGridQuestion = ({
               onClick={() => onChange(option.value)}
               animate={{ scale: isSelected ? 1.03 : 1 }}
               transition={{ duration: 0.14, ease: 'easeOut' }}
+              style={{
+                borderBottomWidth: isSelected ? '4px' : '3px',
+                borderBottomColor: borderColor,
+              }}
               className={cn(
-                'flex flex-col items-center gap-1 rounded-xl border-2 px-3 py-3 text-sm font-medium',
+                'flex items-center justify-center rounded-xl border-2 px-3 py-3 text-sm font-bold',
                 'transition-all duration-150 ease-out cursor-pointer select-none',
                 'border-border bg-card hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
@@ -67,14 +77,12 @@ export const MonthGridQuestion = ({
                   'border-primary bg-primary/15 text-primary shadow-md shadow-primary/10'
               )}
             >
-              <span className="text-lg leading-none">{option.icon}</span>
               <span>{option.label}</span>
             </motion.button>
           );
         })}
       </div>
 
-      {/* Flexible option */}
       {flexibleOption && (
         <div className="flex justify-center">
           <motion.button
@@ -84,18 +92,20 @@ export const MonthGridQuestion = ({
             onClick={() => onChange(flexibleOption.value)}
             animate={{ scale: selected === flexibleOption.value ? 1.02 : 1 }}
             transition={{ duration: 0.14, ease: 'easeOut' }}
+            style={{
+              borderBottomWidth: '3px',
+              borderBottomColor: '#C8B89A',
+            }}
             className={cn(
               'option-chip',
               selected === flexibleOption.value && 'option-chip-selected'
             )}
           >
-            {flexibleOption.icon && <span className="mr-2">{flexibleOption.icon}</span>}
             {flexibleOption.label}
           </motion.button>
         </div>
       )}
 
-      {/* Contextual insight */}
       <AnimatePresence mode="wait">
         {insight && (
           <motion.p
