@@ -220,21 +220,24 @@ export const CulturalMomentsQuestion = ({
               In your travel window
             </p>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 px-6">
-            {inWindow.map((m, i) => {
-              const total = inWindow.length;
-              const isLast = i === total - 1;
-              const spanFull2 = isLast && total % 2 !== 0;
-              const isOrphan3 = isLast && total % 3 === 1;
-              return (
-                <div key={m.value} className={cn(
-                  spanFull2 ? 'col-span-2 sm:col-span-1' : '',
-                  isOrphan3 ? 'sm:col-span-2' : '',
-                )}>
-                  {renderCard(m, false)}
-                </div>
-              );
-            })}
+          <div className="relative">
+            <Carousel
+              opts={{ align: 'start', loop: false }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
+                {inWindow.map((m) => (
+                  <CarouselItem
+                    key={m.value}
+                    className="pl-4 basis-[70%] sm:basis-1/3"
+                  >
+                    {renderCard(m, false)}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
+              <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
+            </Carousel>
           </div>
         </div>
       )}
