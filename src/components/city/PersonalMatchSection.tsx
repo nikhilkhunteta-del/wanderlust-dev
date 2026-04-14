@@ -5,44 +5,45 @@ interface PersonalMatchSectionProps {
   reasons: string[];
 }
 
-const EMOJI_MAP: Record<string, string> = {
-  culture: "🏰", history: "🏰", heritage: "🏰",
-  nature: "🌿", outdoors: "🌿", hiking: "🌿", park: "🌿",
-  beach: "🏖️", coastal: "🏖️", sea: "🏖️", ocean: "🏖️",
-  food: "🍜", culinary: "🍜", dining: "🍜", gastro: "🍜", cuisine: "🍜", eat: "🍜",
-  art: "🎭", music: "🎭", nightlife: "🎭", theater: "🎭", gallery: "🎭",
-  active: "🚴", sport: "🚴", adventure: "🚴", cycling: "🚴",
-  shopping: "🛍️", market: "🛍️", bazaar: "🛍️",
-  wellness: "🧘", slow: "🧘", spa: "🧘", relaxation: "🧘", retreat: "🧘",
-  architecture: "🏛️", design: "🏛️", building: "🏛️",
-  festival: "🎉", event: "🎉", celebration: "🎉",
-  romance: "💕", couple: "💕", romantic: "💕",
-  family: "👨‍👩‍👧", kid: "👨‍👩‍👧", child: "👨‍👩‍👧",
-  photo: "📸", scenic: "📸", view: "📸", panoram: "📸",
+const TAG_LABELS: Record<string, string> = {
+  'culture-history': 'Culture & History',
+  'nature-outdoors': 'Nature & Outdoors',
+  'beach-coastal': 'Beach & Coastal',
+  'food-culinary': 'Food & Culinary',
+  'arts-music-nightlife': 'Arts, Music & Nightlife',
+  'active-sport': 'Active & Sport',
+  'shopping-markets': 'Shopping & Markets',
+  'wellness-slow-travel': 'Wellness & Slow Travel',
 };
 
-function pickEmoji(text: string): string {
-  const lower = text.toLowerCase();
-  for (const [keyword, emoji] of Object.entries(EMOJI_MAP)) {
-    if (lower.includes(keyword)) return emoji;
-  }
-  return "✨";
+function humanizeLabel(label: string): string {
+  if (TAG_LABELS[label.toLowerCase()]) return TAG_LABELS[label.toLowerCase()];
+  // Also handle labels that may already be partially readable
+  const dashFixed = label.replace(/-/g, ' ');
+  if (TAG_LABELS[dashFixed.toLowerCase()]) return TAG_LABELS[dashFixed.toLowerCase()];
+  // Title case fallback
+  return dashFixed.replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function extractLabel(reason: string): { label: string; description: string } {
-  // Try to extract bold text as the label
   const boldMatch = reason.match(/\*\*(.*?)\*\*/);
   if (boldMatch) {
-    const label = boldMatch[1];
+    const rawLabel = boldMatch[1];
+    const label = humanizeLabel(rawLabel);
     const description = reason.replace(/\*\*.*?\*\*\s*[-–:.]?\s*/, "").trim();
     return { label, description: description || reason.replace(/\*\*.*?\*\*/g, "").trim() };
   }
-  // Fallback: use first few words as label
   const words = reason.split(" ");
   return {
-    label: words.slice(0, 3).join(" "),
+    label: humanizeLabel(words.slice(0, 3).join(" ")),
     description: reason,
   };
+}
+
+function limitToTwoSentences(text: string): string {
+  const sentences = text.match(/[^.!?]+[.!?]+/g);
+  if (!sentences || sentences.length <= 2) return text;
+  return sentences.slice(0, 2).join("").trim();
 }
 
 export const PersonalMatchSection = ({ city, reasons }: PersonalMatchSectionProps) => {
@@ -56,24 +57,23 @@ export const PersonalMatchSection = ({ city, reasons }: PersonalMatchSectionProp
         <Sparkles className="w-5 h-5 text-primary" />
         Why {city} matches your travel style
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {cards.map((reason, i) => {
           const { label, description } = extractLabel(reason);
-          const emoji = pickEmoji(reason);
           return (
             <div
               key={i}
-              className="flex items-start gap-3 p-4 rounded-xl border border-border/60 bg-card"
+              className="p-5 rounded-xl bg-card shadow-sm"
             >
-              <span className="text-2xl leading-none mt-0.5">{emoji}</span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-tight mb-1">
-                  {label}
-                </p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {description}
-                </p>
-              </div>
+              <p
+                className="font-semibold text-foreground leading-tight mb-2"
+                style={{ fontSize: 18 }}
+              >
+                {label}
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {limitToTwoSentences(description)}
+              </p>
             </div>
           );
         })}
