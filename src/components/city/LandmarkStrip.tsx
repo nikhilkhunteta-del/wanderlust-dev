@@ -70,7 +70,7 @@ export const LandmarkStrip = ({ city, country, places, primaryInterest }: Landma
 
   return (
     <section className="relative group">
-      <h2 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-4 px-6 md:px-12">
+      <h2 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-4 px-4 md:px-6">
         {city} through a {INTEREST_LENS[primaryInterest || "culture-history"] || "traveller's lens"}
       </h2>
       {/* Scroll container */}
