@@ -247,6 +247,11 @@ Generate:
       } catch (e) {
         console.warn("First JSON parse failed, attempting repair:", (e as Error).message);
 
+        // Try replacing single-quoted keys/values with double quotes
+        cleaned = cleaned
+          .replace(/'/g, '"')                    // single quotes → double quotes
+          .replace(/,\s*([}\]])/g, "$1");        // re-clean trailing commas
+
         // Try to fix unescaped quotes inside string values
         cleaned = cleaned.replace(/:\s*"((?:[^"\\]|\\.)*)"/g, (_match, inner) => {
           const fixed = inner.replace(/(?<!\\)"/g, '\\"');
