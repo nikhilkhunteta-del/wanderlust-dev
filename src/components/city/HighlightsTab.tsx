@@ -76,7 +76,7 @@ export const HighlightsTab = ({
       <CityStatsStrip
         city={city}
         country={country}
-        primaryInterest={profile?.interests?.[0] || "culture-history"}
+        primaryInterest={profile?.primaryInterest || "culture-history"}
       />
 
       {/* Main Content */}
