@@ -72,6 +72,14 @@ export const CityStatsStrip = ({ city, country, primaryInterest }: CityStatsStri
     if (!el) return;
     const observer = new IntersectionObserver(handleIntersect, { threshold: 0.3 });
     observer.observe(el);
+
+    // Check immediately in case element is already in viewport on mount
+    const rect = el.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    if (rect.top < viewportHeight && rect.bottom > 0) {
+      setHasAnimated(true);
+    }
+
     return () => observer.disconnect();
   }, [handleIntersect]);
 
