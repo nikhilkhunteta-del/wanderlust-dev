@@ -116,10 +116,12 @@ Respond with ONLY valid JSON in this exact format:
 
     const hasChildren = requestData.groupType === 'family' || (requestData.travelCompanions || '').toLowerCase().includes('child');
 
+    const humanInterests = requestData.userInterests.map(i => INTEREST_LABELS[i] || i).join(", ");
+
     const userPrompt = `Create personalized highlights for a traveler visiting ${requestData.city}, ${requestData.country}.
 
 TRAVELER PROFILE:
-- Interests: ${requestData.userInterests.join(", ") || "varied interests"}
+- Interests: ${humanInterests || "varied interests"}
 - Adventure preferences: ${requestData.adventureTypes.length > 0 ? requestData.adventureTypes.join(", ") : "relaxed activities"}
 - Travel month: ${requestData.travelMonth || "flexible"}
 - Travel style: ${requestData.styleTags.join(", ")}
@@ -130,7 +132,7 @@ ${requestData.rationale}
 
 Generate:
 1. A match statement (2-3 sentences) explaining why ${requestData.city} fits their interests
-2. Exactly 3 personalMatchReasons as bullet points. Each bullet must make a completely distinct point — no two bullets may share the same theme. Each must name a specific place, experience, or local characteristic of ${requestData.city} that connects to one of the traveler's interests: ${requestData.userInterests.join(", ")}. Format: one **bold** key phrase followed by a grammatically complete sentence. CRITICAL: The bold phrase and surrounding sentence must read as a complete, natural English sentence — never leave a blank subject like "Your appreciation for will be..." or "Your love of connects to...". Always name the specific interest explicitly, e.g. "Your love of **Tuscan cuisine** finds its match in...".
+2. Exactly 3 personalMatchReasons as bullet points. Each bullet must make a completely distinct point — no two bullets may share the same theme. Each must name a specific place, experience, or local characteristic of ${requestData.city} that connects to one of the traveler's interests: ${humanInterests}. Format: one **bold** key phrase followed by a grammatically complete sentence. CRITICAL: The bold phrase and surrounding sentence must read as a complete, natural English sentence — never leave a blank subject like "Your appreciation for will be..." or "Your love of connects to...". Always use the full human-readable interest label in context, e.g. "Your love of **Culture & History** finds its match in..." or "Your passion for **Food & Culinary** exploration meets...".
 3. A perfectDayTimeline: an array of exactly 4 objects [{time: "Morning", activity: "..."}, {time: "Midday", activity: "..."}, {time: "Evening", activity: "..."}, {time: "Night", activity: "..."}]. Each activity is one sentence naming a specific place in ${requestData.city}, tailored to ${requestData.travelMonth || "the travel month"} climate. Also include a perfectDayNarrative as a single paragraph fallback.
 3b. An "insiderMissed" field: EXACTLY 2 sentences, no more. Sentence 1: one surprising observation that most first-time visitors to ${requestData.city} don't expect. Sentence 2: one specific, actionable detail — a place, time, or trick — they can use. Count your sentences before outputting; truncate any excess.
 4. 5-7 EVERGREEN signature experiences — year-round places, activities, and encounters available regardless of travel month. Do NOT include seasonal festivals or time-limited events. For the featured experience, write a two-sentence description: first sentence explains why it's the best match; second sentence gives a specific insider detail. For others, one compelling sentence.${hasChildren ? " Include a childNote field on each experience with one honest child-suitability sentence." : ""}
