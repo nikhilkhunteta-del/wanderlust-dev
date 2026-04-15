@@ -26,29 +26,63 @@ interface CollageResponse {
   fromCache: boolean;
 }
 
-// Map interest slugs to tourism-specific search terms
-function interestToSearchTerm(interest: string, city: string): string {
-  const map: Record<string, string> = {
-    "culture-history": `${city} famous monument historic site tourism`,
-    "nature-outdoors": `${city} scenic nature landscape viewpoint`,
-    "beach-coastal": `${city} beach coastline ocean panorama`,
-    "food-culinary": `${city} food market cuisine local dishes`,
-    "arts-music-nightlife": `${city} performing arts theatre nightlife district`,
-    "active-sport": `${city} outdoor adventure sport activity tourism`,
-    "shopping-markets": `${city} traditional market bazaar souvenirs`,
-    "wellness-slow-travel": `${city} luxury spa wellness retreat scenic`,
-  };
-  return map[interest] || `${city} ${interest.replace(/-/g, " ")} tourism`;
+// Use AI to identify the single most iconic landmark for a city
+async function getIconicLandmark(city: string, country: string): Promise<string> {
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) {
+    console.warn("No LOVABLE_API_KEY, falling back to generic query");
+    return `${city} landmark`;
+  }
+
+  try {
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No explanation, no punctuation, no quotes.",
+          },
+          {
+            role: "user",
+            content: `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Give me just the landmark name that a tourist would search for on Google.`,
+          },
+        ],
+      }),
+    });
+
+    if (!resp.ok) {
+      console.error(`AI landmark lookup failed (${resp.status})`);
+      return `${city} landmark`;
+    }
+
+    const data = await resp.json();
+    const landmark = data.choices?.[0]?.message?.content?.trim();
+    if (!landmark || landmark.length > 80) {
+      return `${city} landmark`;
+    }
+
+    console.log(`AI identified iconic landmark for ${city}: ${landmark}`);
+    return landmark;
+  } catch (err) {
+    console.error("AI landmark lookup error:", err);
+    return `${city} landmark`;
+  }
 }
 
 // Build 3 search queries for the asymmetric collage
-function buildQueries(city: string, interests: string[]): string[] {
-  const primary = interests[0] || "culture-history";
+async function buildQueries(city: string, country: string, interests: string[]): Promise<string[]> {
+  const landmark = await getIconicLandmark(city, country);
 
   return [
-    `${city} landmark`,
+    landmark,
     `${city} street neighbourhood`,
-    interestToSearchTerm(primary, city),
+    `${city} ${country} tourism`,
   ];
 }
 
@@ -234,7 +268,7 @@ Deno.serve(async (req) => {
     }
 
     // Build 4 queries
-    const queries = buildQueries(city, interests || []);
+    const queries = await buildQueries(city, country || city, interests || []);
     const images: (CollageImage | null)[] = [];
 
     // Fetch all 3 in parallel: Google Places primary, Unsplash fallback
