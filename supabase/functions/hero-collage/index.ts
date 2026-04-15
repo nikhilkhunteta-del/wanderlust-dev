@@ -85,16 +85,16 @@ async function getIconicLandmarks(city: string, country: string): Promise<string
 }
 
 // Build 3 search queries for the asymmetric collage
-async function buildQueries(city: string, country: string, interests: string[]): Promise<{ queries: string[]; landmark: string }> {
-  const landmark = await getIconicLandmark(city, country);
+async function buildQueries(city: string, country: string, interests: string[]): Promise<{ queries: string[]; landmarks: string[] }> {
+  const landmarks = await getIconicLandmarks(city, country);
 
   return {
     queries: [
-      landmark,
+      landmarks[0], // Hero image uses the #1 landmark
       `${city} street neighbourhood`,
       `${city} ${country} tourism`,
     ],
-    landmark,
+    landmarks,
   };
 }
 
