@@ -6,10 +6,12 @@ import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
 import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { InsiderMissedSection } from "./InsiderMissedSection";
+import { LandmarkStrip } from "./LandmarkStrip";
 
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { useSavedExperiences } from "@/hooks/useSavedExperiences";
+import { useHeroCollage } from "@/hooks/useHeroCollage";
 
 interface HighlightsTabProps {
   city: string;
@@ -36,6 +38,8 @@ export const HighlightsTab = ({
 }: HighlightsTabProps) => {
   const scrollRef = useScrollFade<HTMLDivElement>();
   const { isSaved, toggle } = useSavedExperiences(city, country);
+  const { data: heroData } = useHeroCollage(city, country, profile?.interests ?? []);
+  const stripLandmarks = (heroData?.landmarks ?? []).slice(1, 6);
 
   if (isLoading) {
     return (
@@ -75,6 +79,11 @@ export const HighlightsTab = ({
           city={city}
           reasons={highlights.personalMatchReasons ?? []}
         />
+
+        {/* Landmark photo strip */}
+        {stripLandmarks.length > 0 && (
+          <LandmarkStrip city={city} country={country} landmarks={stripLandmarks} />
+        )}
 
         {/* Tension callout */}
         {highlights.tensionNote && (
