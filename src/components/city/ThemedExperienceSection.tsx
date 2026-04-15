@@ -124,7 +124,7 @@ export const ThemedExperienceSection = ({
   if (!themes || themes.length === 0) {
     const remaining = experiences.filter((_, i) => i !== featuredIndex);
     return (
-      <section className="mb-14">
+      <section>
         <h2 className="text-2xl font-display font-semibold mb-6 text-foreground">
           More experiences for you
         </h2>
@@ -134,7 +134,7 @@ export const ThemedExperienceSection = ({
   }
 
   return (
-    <div className="space-y-14">
+    <div className="space-y-12">
       {themes.map((theme, ti) => {
         const themeExperiences = theme.experienceIndices
           .filter((idx) => idx !== featuredIndex && idx < experiences.length)
