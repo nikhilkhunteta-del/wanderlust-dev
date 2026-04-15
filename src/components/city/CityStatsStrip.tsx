@@ -61,11 +61,6 @@ export const CityStatsStrip = ({ city, country, primaryInterest }: CityStatsStri
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
 
-  const handleIntersect = useCallback((entries: IntersectionObserverEntry[]) => {
-    if (entries[0]?.isIntersecting && !hasAnimated) {
-      setHasAnimated(true);
-    }
-  }, [hasAnimated]);
 
   useEffect(() => {
     const el = containerRef.current;
