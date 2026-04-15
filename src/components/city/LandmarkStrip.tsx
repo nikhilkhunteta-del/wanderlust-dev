@@ -35,7 +35,7 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
     );
   }
 
-  if (validImages.length === 0) return null;
+  if (validImages.length < 2) return null;
 
   const updateScrollButtons = () => {
     const el = scrollRef.current;
