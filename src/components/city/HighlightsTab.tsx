@@ -73,6 +73,13 @@ export const HighlightsTab = ({
 
   return (
     <div ref={scrollRef}>
+      {/* Stats strip */}
+      <CityStatsStrip
+        city={city}
+        country={country}
+        primaryInterest={profile?.interests?.[0] || "culture-history"}
+      />
+
       {/* Main Content */}
       <div className="page-container py-12 space-y-0">
         {/* 1. Personal match reasons */}
