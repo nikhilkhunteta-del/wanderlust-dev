@@ -10,11 +10,13 @@ export function useCityStats(city: string | null, country: string | null, primar
   return useQuery({
     queryKey: ["city-stats", city, country, primaryInterest],
     queryFn: async (): Promise<CityStat[]> => {
-      if (!city || !country) return [];
+      if (!city) return [];
+
+      const resolvedCountry = country || city;
 
       const { data, error } = await supabase.functions.invoke<{ stats: CityStat[] }>(
         "get-city-stats",
-        { body: { city, country, primaryInterest } }
+        { body: { city, country: resolvedCountry, primaryInterest } }
       );
 
       if (error) {
@@ -24,7 +26,7 @@ export function useCityStats(city: string | null, country: string | null, primar
 
       return data?.stats ?? [];
     },
-    enabled: !!city && !!country,
+    enabled: !!city,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   });
