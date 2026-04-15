@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { TravelProfile } from "@/types/travelProfile";
 import { CityRecommendation } from "@/types/recommendations";
@@ -52,20 +52,8 @@ const CityDetail = () => {
   const navigate = useNavigate();
   const { cityName } = useParams<{ cityName: string }>();
   const [activeTab, setActiveTab] = useState("highlights");
-  const [pastHero, setPastHero] = useState(false);
-  const heroSentinel = useRef<HTMLDivElement>(null);
 
-  // Track when user scrolls past the hero area
-  useEffect(() => {
-    const el = heroSentinel.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setPastHero(!entry.isIntersecting),
-      { threshold: 0 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+
 
   const state = location.state as LocationState | undefined;
 
@@ -193,31 +181,14 @@ const CityDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Invisible sentinel – once it scrolls out of view, pastHero = true */}
-      <div ref={heroSentinel} className="h-0" />
+
+
       <Header rightContent={`${city.city}, ${city.country}`} />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="sticky top-[65px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
-          {/* Book this trip bar – visible when past hero and NOT on flights/stays tabs */}
-          {pastHero && activeTab !== "flights" && activeTab !== "stays" && (
-            <div className="border-b border-border/30 bg-background/90 backdrop-blur-sm">
-              <div className="page-container flex items-center justify-between py-2.5">
-                <span className="text-sm font-semibold text-foreground truncate mr-4">
-                  {city.city}, {city.country}
-                </span>
-                <button
-                  onClick={() => handleTabChange("flights")}
-                  className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all flex items-center gap-1"
-                >
-                  See flights
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          )}
-          <div className="page-container overflow-x-auto">
-            <TabsList className="h-12 bg-transparent gap-0 p-0 w-max">
+          <div className="page-container overflow-x-auto flex items-center">
+            <TabsList className="h-12 bg-transparent gap-0 p-0 flex-1 w-max">
               <TabsTrigger
                 value="highlights"
                 className="px-4 h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent whitespace-nowrap"
@@ -269,6 +240,15 @@ const CityDetail = () => {
                 </TabsTrigger>
               )}
             </TabsList>
+            {activeTab !== "flights" && activeTab !== "stays" && (
+              <button
+                onClick={() => handleTabChange("flights")}
+                className="shrink-0 ml-auto px-3.5 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all flex items-center gap-1 whitespace-nowrap"
+              >
+                See flights
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
 
