@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import { useSeasonalHighlights } from "@/hooks/useCityData";
-import { SeasonalEventCard } from "./SeasonalEventCard";
+import { SeasonalEventCard, SeasonalHeroCard } from "./SeasonalEventCard";
 import { DataFreshness } from "@/components/shared/DataFreshness";
 import { SeasonalHighlight, SeasonalSection } from "@/types/seasonalHighlights";
-import { Loader2, Sparkles, PartyPopper, Utensils, Sun, ArrowRight } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SeasonalTabProps {
@@ -23,25 +23,27 @@ const MONTH_DISPLAY: Record<string, string> = {
   flexible: "your visit",
 };
 
-const SECTION_CONFIG: Record<SeasonalSection, { title: string; icon: React.ReactNode; description: string }> = {
-  festivals_cultural: {
-    title: "Festivals & Cultural Moments",
-    icon: <PartyPopper className="w-5 h-5" />,
-    description: "Celebrations, traditions, and cultural events happening now",
-  },
-  food_traditions: {
-    title: "Seasonal Food & Local Traditions",
-    icon: <Utensils className="w-5 h-5" />,
-    description: "Flavors and customs unique to this time of year",
-  },
-  weather_driven: {
-    title: "Weather-Driven Experiences",
-    icon: <Sun className="w-5 h-5" />,
-    description: "Activities and natural moments at their best right now",
-  },
+const SECTION_TITLES: Record<SeasonalSection, string> = {
+  festivals_cultural: "Festivals & Cultural Moments",
+  food_traditions: "Seasonal Food & Local Traditions",
+  weather_driven: "Weather-Driven Experiences",
 };
 
 const SECTION_ORDER: SeasonalSection[] = ["festivals_cultural", "food_traditions", "weather_driven"];
+
+function extractDomain(url: string): string {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, "");
+    if (hostname.includes("wikipedia")) return "Wikipedia";
+    if (hostname.includes("timeout")) return "Time Out";
+    if (hostname.includes("lonelyplanet")) return "Lonely Planet";
+    if (hostname.includes("tripadvisor")) return "TripAdvisor";
+    const parts = hostname.split(".");
+    return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  } catch {
+    return "Source";
+  }
+}
 
 export const SeasonalTab = ({
   city,
@@ -89,9 +91,7 @@ export const SeasonalTab = ({
     );
   }
 
-  if (!data) {
-    return null;
-  }
+  if (!data) return null;
 
   // Group highlights by section
   const grouped: Record<SeasonalSection, SeasonalHighlight[]> = {
@@ -105,59 +105,56 @@ export const SeasonalTab = ({
     grouped[section].push(h);
   }
 
+  // Collect all source URLs for footnote
+  const sources: { name: string; url: string }[] = [];
+  for (const h of data.highlights) {
+    const url = h.sourceUrl || h.wikipediaUrl;
+    if (url && !sources.find((s) => s.url === url)) {
+      sources.push({ name: h.sourceName || extractDomain(url), url });
+    }
+  }
+
+  // Pick the first highlight overall as the hero
+  const allHighlights = SECTION_ORDER.flatMap((key) => grouped[key]);
+  const heroHighlight = allHighlights[0];
+
   return (
     <div className="page-container pt-7 pb-12">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-display font-semibold text-foreground">
-                What's Happening in {monthDisplay}
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                Verified events and time-sensitive experiences
-              </p>
-            </div>
-          </div>
-          <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
-        </div>
-
-        {/* Opening summary — amber tint, distinct from card callouts */}
-        <div
-          className="rounded-md max-w-3xl"
-          style={{ background: '#FEF3C7', borderLeft: '3px solid #D97706', padding: '12px 16px', borderRadius: '6px' }}
-        >
-          <p className="text-base text-foreground/80 leading-relaxed">
-            {data.openingStatement}
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <h2 className="text-2xl font-display font-semibold text-foreground">
+          What's happening in {monthDisplay}
+        </h2>
+        <DataFreshness isFetching={isFetching && !isLoading} isFromCache={!!isFromCache} />
       </div>
 
-      {/* Grouped sections */}
+      {/* Opening statement — editorial italic, no container */}
+      {data.openingStatement && (
+        <p className="text-lg italic text-muted-foreground leading-relaxed mb-10 max-w-3xl">
+          {data.openingStatement}
+        </p>
+      )}
+
+      {/* Hero card — first event */}
+      {heroHighlight && (
+        <div className="mb-12">
+          <SeasonalHeroCard highlight={heroHighlight} city={city} country={country} />
+        </div>
+      )}
+
+      {/* Grouped sections — remaining events */}
       {SECTION_ORDER.map((sectionKey) => {
-        const items = grouped[sectionKey];
+        // Skip hero highlight from the remaining cards
+        const items = grouped[sectionKey].filter((h) => h !== heroHighlight);
         if (items.length === 0) return null;
-        const config = SECTION_CONFIG[sectionKey];
 
         return (
           <section key={sectionKey} className="mb-12">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="text-primary/70">{config.icon}</div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">{config.title}</h3>
-                <p className="text-sm text-muted-foreground">{config.description}</p>
-              </div>
-            </div>
+            <h3 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-6">
+              {SECTION_TITLES[sectionKey]}
+            </h3>
             {items.length === 1 ? (
-              <div className="flex justify-center">
-                <div className="w-full md:w-[65%]">
-                  <SeasonalEventCard highlight={items[0]} city={city} country={country} />
-                </div>
-              </div>
+              <SeasonalEventCard highlight={items[0]} city={city} country={country} />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {items.map((highlight, index) => (
@@ -188,15 +185,34 @@ export const SeasonalTab = ({
               See how these experiences fit into a day-by-day itinerary.
             </p>
           </div>
-          <Button
-            onClick={() => onSwitchTab?.("itinerary")}
-            className="gap-2 shrink-0"
-          >
+          <Button onClick={() => onSwitchTab?.("itinerary")} className="gap-2 shrink-0">
             Plan your days
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
+
+      {/* Source footnotes */}
+      {sources.length > 0 && (
+        <div className="mt-6 pt-4 border-t border-border/30">
+          <p className="text-xs text-muted-foreground/60">
+            Sources:{" "}
+            {sources.map((s, i) => (
+              <span key={s.url}>
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-muted-foreground transition-colors underline"
+                >
+                  {s.name}
+                </a>
+                {i < sources.length - 1 && ", "}
+              </span>
+            ))}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
