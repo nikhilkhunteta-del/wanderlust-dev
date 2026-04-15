@@ -243,8 +243,7 @@ export const CulturalMomentsQuestion = ({
       {/* Section 2 — Outside travel window, grouped by month */}
       {outByMonth.length > 0 && (
         <>
-
-
+          {outByMonth.map(([monthKey, monthMoments]) => (
             <div key={monthKey} className="space-y-2">
               <div className="px-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
