@@ -65,35 +65,42 @@ export const SeasonalHeroCard = ({ highlight, city, country }: SeasonalHeroCardP
     : highlight.description;
 
   return (
-    <article className="relative w-full overflow-hidden rounded-xl" style={{ height: '55vh', minHeight: 360 }}>
-      <ResolvedImage
-        request={{ type: 'seasonal', city, country, entityName: highlight.title }}
-        alt={highlight.title}
-        className="absolute inset-0 w-full h-full"
-        showAttribution
-        fallbackCategory="cultural"
-      />
-      {/* Dark gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+    <article className="group w-full overflow-hidden bg-card shadow-md">
+      {/* Image with overlay text */}
+      <div className="relative aspect-[3/2] overflow-hidden">
+        <ResolvedImage
+          request={{ type: 'seasonal', city, country, entityName: highlight.title }}
+          alt={highlight.title}
+          className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-500"
+          showAttribution
+          fallbackCategory="cultural"
+        />
+        {/* Dark gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-      {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-        <span
-          className="block mb-2 text-white/70"
-          style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 500 }}
-        >
-          {highlight.timing}
-        </span>
-        <h3 className="text-2xl md:text-3xl font-display font-bold text-white mb-2">
-          {highlight.title}
-        </h3>
-        {highlight.location && (
-          <div className="flex items-center gap-1.5 mb-3">
-            <MapPin className="w-4 h-4 text-white/70 flex-shrink-0" />
-            <span className="text-sm text-white/80">{highlight.location}</span>
-          </div>
-        )}
-        <p className="text-sm text-white/80 leading-relaxed max-w-2xl">
+        {/* Overlay: date, title, location only */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+          <span
+            className="block mb-2 text-white/70"
+            style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 500 }}
+          >
+            {highlight.timing}
+          </span>
+          <h3 className="text-2xl md:text-3xl font-display font-bold text-white mb-1">
+            {highlight.title}
+          </h3>
+          {highlight.location && (
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-white/70 flex-shrink-0" />
+              <span className="text-sm text-white/80">{highlight.location}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Description below image */}
+      <div className="p-6">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           {description}
         </p>
       </div>
