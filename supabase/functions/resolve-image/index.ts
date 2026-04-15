@@ -1321,23 +1321,48 @@ serve(async (req) => {
         if (!image) image = await tryPexels(fallbackQuery);
       }
     } else if (request.type === 'attraction') {
-      // Attraction: Pollinations → Google Places → Unsplash (no Pexels)
-      if (request.entityName) {
-        console.log('Trying Pollinations (attraction)...');
-        image = await tryPollinations(supabase, request.entityName, request.city, {
-          promptSuffix: `${request.country} travel photography atmospheric cinematic landmark`,
-        });
-      }
-      if (!image) {
+      // Determine if entity is a landmark/place or an activity/experience
+      const entityLower = (request.entityName || '').toLowerCase();
+      const LANDMARK_WORDS = /\b(visit|museum|temple|palace|bridge|cathedral|castle|park|monument|mosque|church|basilica|tower|fort|fortress|gate|plaza|square|garden|ruins|tomb|shrine|gallery|library|chapel|citadel|lighthouse|statue|arch|wall|quarter|bazaar|market hall|harbour|harbor|pier|dam|aquarium|zoo|observatory)\b/i;
+      const isLandmark = LANDMARK_WORDS.test(entityLower);
+
+      if (isLandmark) {
+        // Landmark: Google Places → Unsplash → Pollinations
         const gpQuery = request.entityName
           ? `${request.entityName} ${request.city}`
           : searchQuery;
-        console.log(`Trying Google Places (attraction): "${gpQuery}"`);
+        console.log(`Trying Google Places (attraction/landmark): "${gpQuery}"`);
         image = await getGooglePlacesPhoto(supabase, gpQuery);
-      }
-      if (!image) {
-        console.log('Trying Unsplash (attraction)...');
-        image = await tryUnsplash(searchQuery, false);
+
+        if (!image) {
+          console.log('Trying Unsplash (attraction/landmark)...');
+          image = await tryUnsplash(searchQuery, false);
+        }
+        if (!image && request.entityName) {
+          console.log('Trying Pollinations (attraction/landmark fallback)...');
+          image = await tryPollinations(supabase, request.entityName, request.city, {
+            promptSuffix: `${request.country} travel photography atmospheric cinematic landmark`,
+          });
+        }
+      } else {
+        // Activity/experience: Pollinations → Google Places → Unsplash
+        if (request.entityName) {
+          console.log('Trying Pollinations (attraction/activity)...');
+          image = await tryPollinations(supabase, request.entityName, request.city, {
+            promptSuffix: `${request.country} travel photography atmospheric cinematic experience`,
+          });
+        }
+        if (!image) {
+          const gpQuery = request.entityName
+            ? `${request.entityName} ${request.city}`
+            : searchQuery;
+          console.log(`Trying Google Places (attraction/activity): "${gpQuery}"`);
+          image = await getGooglePlacesPhoto(supabase, gpQuery);
+        }
+        if (!image) {
+          console.log('Trying Unsplash (attraction/activity)...');
+          image = await tryUnsplash(searchQuery, false);
+        }
       }
     } else if (request.type === 'neighborhood') {
       // Neighborhood: Google Places ("{name} {city} neighbourhood street") → Unsplash → Pexels → Storage
