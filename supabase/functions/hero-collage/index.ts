@@ -9,7 +9,8 @@ const corsHeaders = {
 interface CollageRequest {
   city: string;
   country: string;
-  interests: string[]; // e.g. ["culture-history", "food-culinary"]
+  interests: string[];
+  primaryInterest?: string;
 }
 
 interface CollageImage {
@@ -26,15 +27,24 @@ interface CollageResponse {
   fromCache: boolean;
   landmark?: string;
   landmarks?: string[];
+  places?: string[];
 }
 
-// Use AI to identify the top 6 most iconic landmarks for a city
-async function getIconicLandmarks(city: string, country: string): Promise<string[]> {
+const INTEREST_PLACE_FRAMING: Record<string, string> = {
+  "nature-outdoors": "viewpoints, forests, fjords, natural areas, hiking spots, and scenic trails",
+  "beach-coastal": "beaches, coastal coves, harbours, seafront promenades, and waterfront areas",
+  "food-culinary": "markets, harbour dining areas, food streets, and culinary districts",
+  "culture-history": "historic sites, monuments, old town areas, and heritage buildings",
+  "active-sport": "adventure locations, mountain access points, sports terrain, and outdoor activity centres",
+  "arts-music-nightlife": "creative districts, rooftop bars, gallery neighbourhoods, and live music venues",
+  "shopping-markets": "market halls, artisan districts, bazaars, and shopping streets",
+  "wellness-slow-travel": "parks, lakeside areas, quiet neighbourhoods, and peaceful gardens",
+};
+
+// Use AI to identify the single most iconic landmark for a city (hero image)
+async function getIconicLandmark(city: string, country: string): Promise<string> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) {
-    console.warn("No LOVABLE_API_KEY, falling back to generic queries");
-    return [`${city} landmark`, `${city} monument`, `${city} cathedral`, `${city} museum`, `${city} palace`, `${city} park`];
-  }
+  if (!apiKey) return `${city} landmark`;
 
   try {
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -48,53 +58,91 @@ async function getIconicLandmarks(city: string, country: string): Promise<string
         messages: [
           {
             role: "system",
-            content: "You are a travel expert. Reply with ONLY a numbered list of landmark names, one per line (e.g. '1. Eiffel Tower'). No explanations, no extra text.",
+            content: "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
           },
           {
             role: "user",
-            content: `List the top 6 most iconic, most-photographed landmarks, sights, or attractions in ${city}, ${country}. These should be specific named places a tourist would search for on Google. Return exactly 6, ranked by how iconic they are.`,
+            content: `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
           },
         ],
       }),
     });
 
-    if (!resp.ok) {
-      console.error(`AI landmark lookup failed (${resp.status})`);
-      return [`${city} landmark`];
-    }
-
+    if (!resp.ok) return `${city} landmark`;
     const data = await resp.json();
     const raw = data.choices?.[0]?.message?.content?.trim();
-    if (!raw) return [`${city} landmark`];
+    if (!raw || raw.length > 80) return `${city} landmark`;
+    return raw.replace(/^\d+[\.\)]\s*/, "").trim();
+  } catch {
+    return `${city} landmark`;
+  }
+}
 
-    // Parse numbered list: "1. Name" or "1) Name" or just lines
-    const landmarks = raw
+// Use AI to generate 6 visually compelling places relevant to the user's primary interest
+async function getInterestPlaces(city: string, country: string, primaryInterest: string): Promise<string[]> {
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  const framing = INTEREST_PLACE_FRAMING[primaryInterest] || INTEREST_PLACE_FRAMING["culture-history"];
+  const fallback = [`${city} ${primaryInterest}`, `${city} scenic`, `${city} view`, `${city} neighbourhood`, `${city} waterfront`, `${city} park`];
+
+  if (!apiKey) return fallback;
+
+  try {
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: "You are a travel expert. Reply with ONLY a numbered list of place names, one per line (e.g. '1. Kašjuni Beach'). No explanations, no extra text.",
+          },
+          {
+            role: "user",
+            content: `List exactly 6 specific, named places in or very near ${city}, ${country} that are visually compelling and relevant for someone interested in ${framing}. These should be real, searchable place names that would return good photos on Google — not generic descriptions. Prioritise places that are photogenic and lesser-known over the most famous tourist landmarks.`,
+          },
+        ],
+      }),
+    });
+
+    if (!resp.ok) return fallback;
+    const data = await resp.json();
+    const raw = data.choices?.[0]?.message?.content?.trim();
+    if (!raw) return fallback;
+
+    const places = raw
       .split("\n")
       .map((line: string) => line.replace(/^\d+[\.\)]\s*/, "").trim())
       .filter((name: string) => name.length > 0 && name.length <= 80)
       .slice(0, 6);
 
-    if (landmarks.length === 0) return [`${city} landmark`];
-
-    console.log(`AI identified ${landmarks.length} landmarks for ${city}:`, landmarks);
-    return landmarks;
+    if (places.length === 0) return fallback;
+    console.log(`AI identified ${places.length} interest places for ${city} (${primaryInterest}):`, places);
+    return places;
   } catch (err) {
-    console.error("AI landmark lookup error:", err);
-    return [`${city} landmark`];
+    console.error("AI interest places lookup error:", err);
+    return fallback;
   }
 }
 
 // Build 3 search queries for the asymmetric collage
-async function buildQueries(city: string, country: string, interests: string[]): Promise<{ queries: string[]; landmarks: string[] }> {
-  const landmarks = await getIconicLandmarks(city, country);
+async function buildQueries(city: string, country: string, primaryInterest: string): Promise<{ queries: string[]; landmark: string; places: string[] }> {
+  const [landmark, places] = await Promise.all([
+    getIconicLandmark(city, country),
+    getInterestPlaces(city, country, primaryInterest),
+  ]);
 
   return {
     queries: [
-      landmarks[0], // Hero image uses the #1 landmark
+      landmark,
       `${city} street neighbourhood`,
       `${city} ${country} tourism`,
     ],
-    landmarks,
+    landmark,
+    places,
   };
 }
 
@@ -108,7 +156,6 @@ async function fetchGooglePlacesImage(
   if (!apiKey) return null;
 
   try {
-    // Step 1: Text search for place photos
     const searchResp = await fetch(
       "https://places.googleapis.com/v1/places:searchText",
       {
@@ -122,19 +169,12 @@ async function fetchGooglePlacesImage(
       }
     );
 
-    if (!searchResp.ok) {
-      console.error(`Google Places search failed (${searchResp.status}) for: ${query}`);
-      return null;
-    }
+    if (!searchResp.ok) return null;
 
     const searchData = await searchResp.json();
     const photoName = searchData?.places?.[0]?.photos?.[0]?.name;
-    if (!photoName) {
-      console.log(`No Google Places photos for: ${query}`);
-      return null;
-    }
+    if (!photoName) return null;
 
-    // Step 2: Get media URI (skipHttpRedirect=true returns JSON with photoUri)
     const mediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidthPx}&key=${apiKey}&skipHttpRedirect=true`;
     const mediaResp = await fetch(mediaUrl);
     if (!mediaResp.ok) return null;
@@ -143,7 +183,6 @@ async function fetchGooglePlacesImage(
     const photoUri = mediaData?.photoUri;
     if (!photoUri) return null;
 
-    // Step 3: Download image bytes
     const imgResp = await fetch(photoUri);
     if (!imgResp.ok) return null;
 
@@ -151,7 +190,6 @@ async function fetchGooglePlacesImage(
     const imgBuffer = await imgResp.arrayBuffer();
     const ext = contentType.includes("png") ? "png" : "jpg";
 
-    // Step 4: Upload to Supabase Storage for a permanent URL
     const slug = query.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 80);
     const storagePath = `google-places/collage-${slug}-${maxWidthPx}.${ext}`;
 
@@ -168,7 +206,6 @@ async function fetchGooglePlacesImage(
     const permanentUrl = pubData?.publicUrl;
     if (!permanentUrl) return null;
 
-    // Step 5: Also get a smaller version for thumbnails
     let smallUrl = permanentUrl;
     try {
       const smallMediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=400&key=${apiKey}&skipHttpRedirect=true`;
@@ -189,8 +226,6 @@ async function fetchGooglePlacesImage(
     } catch {
       // Small version failed, use full size
     }
-
-    console.log(`Google Places image stored: ${permanentUrl}`);
 
     return {
       url: permanentUrl,
@@ -238,7 +273,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { city, country, interests } = (await req.json()) as CollageRequest;
+    const { city, country, interests, primaryInterest } = (await req.json()) as CollageRequest;
 
     if (!city) {
       return new Response(JSON.stringify({ error: "city is required" }), {
@@ -247,12 +282,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    const effectiveInterest = primaryInterest || (interests || [])[0] || "culture-history";
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check cache first
-    const cacheKey = `hero_collage:${city.toLowerCase()}:${(interests || []).sort().join("-")}`;
+    const cacheKey = `hero_collage:${city.toLowerCase()}:${effectiveInterest}`;
 
     const { data: cached } = await supabase
       .from("image_cache")
@@ -265,13 +302,12 @@ Deno.serve(async (req) => {
     if (cached) {
       try {
         const cachedImages = JSON.parse(cached.entity_name || "[]");
-        // Parse landmarks from source_url (stored as JSON array)
-        let cachedLandmarks: string[] = [];
+        let cachedMeta: { landmarks?: string[]; places?: string[] } = {};
         try {
-          cachedLandmarks = JSON.parse(cached.source_url || "[]");
+          cachedMeta = JSON.parse(cached.source_url || "{}");
         } catch {
-          // Legacy single landmark string
-          if (cached.source_url) cachedLandmarks = [cached.source_url];
+          // Legacy format
+          if (cached.source_url) cachedMeta = { landmarks: [cached.source_url] };
         }
 
         await supabase
@@ -279,12 +315,16 @@ Deno.serve(async (req) => {
           .update({ hit_count: (cached.hit_count || 0) + 1 })
           .eq("id", cached.id);
 
+        const cachedLandmarks = cachedMeta.landmarks || [];
+        const cachedPlaces = cachedMeta.places || [];
+
         return new Response(
           JSON.stringify({
             images: cachedImages,
             fromCache: true,
             landmark: cachedLandmarks[0] || undefined,
             landmarks: cachedLandmarks,
+            places: cachedPlaces,
           } as CollageResponse),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -293,18 +333,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Build queries and get landmark
-    const { queries, landmarks } = await buildQueries(city, country || city, interests || []);
+    // Build queries and get landmark + places
+    const { queries, landmark, places } = await buildQueries(city, country || city, effectiveInterest);
     const images: (CollageImage | null)[] = [];
 
-    // Fetch all 3 in parallel: Google Places primary, Unsplash fallback
+    // Fetch all 3 in parallel
     const results = await Promise.allSettled(
       queries.map(async (query): Promise<CollageImage | null> => {
-        // Try Google Places first
         const gpImage = await fetchGooglePlacesImage(supabase, query);
         if (gpImage) return gpImage;
-
-        // Fall back to Unsplash
         console.log(`Google Places failed for "${query}", falling back to Unsplash`);
         return await fetchUnsplashImage(query);
       })
@@ -314,7 +351,7 @@ Deno.serve(async (req) => {
       images.push(r.status === "fulfilled" ? r.value : null);
     }
 
-    // Fill any null slots by reusing a successfully fetched image
+    // Fill any null slots
     const firstValid = images.find((img) => img !== null) || null;
     for (let i = 0; i < images.length; i++) {
       if (images[i] === null && firstValid) {
@@ -322,12 +359,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Determine primary source for cache metadata
     const primarySource = images[0]?.source || "google_places";
 
-    // Cache the results (90 days)
+    // Cache (90 days)
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 90);
+
+    const landmarks = [landmark];
 
     await supabase.from("image_cache").upsert(
       {
@@ -339,7 +377,7 @@ Deno.serve(async (req) => {
         image_url: images[0]?.url || "",
         small_url: images[0]?.smallUrl || "",
         source: primarySource,
-        source_url: JSON.stringify(landmarks),
+        source_url: JSON.stringify({ landmarks, places }),
         photographer: images[0]?.photographer || null,
         photographer_url: images[0]?.photographerUrl || null,
         attribution_required: true,
@@ -350,7 +388,7 @@ Deno.serve(async (req) => {
     );
 
     return new Response(
-      JSON.stringify({ images, fromCache: false, landmark: landmarks[0], landmarks } as CollageResponse),
+      JSON.stringify({ images, fromCache: false, landmark, landmarks, places } as CollageResponse),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

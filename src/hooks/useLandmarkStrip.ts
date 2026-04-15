@@ -6,7 +6,9 @@ export interface LandmarkStripImage {
   smallUrl: string;
   photographer: string;
   photographerUrl: string;
-  landmark: string;
+  placeName: string;
+  // Legacy compat
+  landmark?: string;
   source: string;
 }
 
@@ -18,16 +20,16 @@ interface StripResponse {
 export function useLandmarkStrip(
   city: string | null,
   country: string | null,
-  landmarks: string[] // expects landmarks #2-#6
+  places: string[]
 ) {
   return useQuery({
-    queryKey: ["landmark-strip", city, landmarks.join(",")],
+    queryKey: ["landmark-strip", city, places.join(",")],
     queryFn: async (): Promise<(LandmarkStripImage | null)[]> => {
-      if (!city || !country || landmarks.length === 0) return [];
+      if (!city || !country || places.length === 0) return [];
 
       const { data, error } = await supabase.functions.invoke<StripResponse>(
         "landmark-strip",
-        { body: { city, country, landmarks } }
+        { body: { city, country, places } }
       );
 
       if (error) {
@@ -35,9 +37,16 @@ export function useLandmarkStrip(
         return [];
       }
 
-      return data?.images ?? [];
+      // Normalize: ensure placeName is populated (handle legacy 'landmark' field)
+      return (data?.images ?? []).map(img => {
+        if (!img) return img;
+        return {
+          ...img,
+          placeName: img.placeName || img.landmark || "",
+        };
+      });
     },
-    enabled: !!city && !!country && landmarks.length > 0,
+    enabled: !!city && !!country && places.length > 0,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   });

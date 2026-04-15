@@ -9,7 +9,7 @@ const corsHeaders = {
 interface StripRequest {
   city: string;
   country: string;
-  landmarks: string[]; // landmarks #2-#6
+  places: string[];
 }
 
 interface StripImage {
@@ -17,20 +17,20 @@ interface StripImage {
   smallUrl: string;
   photographer: string;
   photographerUrl: string;
-  landmark: string;
+  placeName: string;
   source: string;
 }
 
 // ── Google Places ──────────────────────────────────────────
 async function fetchGooglePlaces(
   supabase: any,
-  landmark: string,
+  place: string,
   city: string
 ): Promise<StripImage | null> {
   const apiKey = Deno.env.get("GOOGLE_PLACES_API_KEY");
   if (!apiKey) return null;
 
-  const query = `${landmark} ${city}`;
+  const query = `${place} ${city}`;
   try {
     const searchResp = await fetch(
       "https://places.googleapis.com/v1/places:searchText",
@@ -50,7 +50,6 @@ async function fetchGooglePlaces(
     const photoName = searchData?.places?.[0]?.photos?.[0]?.name;
     if (!photoName) return null;
 
-    // Get full-size
     const mediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=800&key=${apiKey}&skipHttpRedirect=true`;
     const mediaResp = await fetch(mediaUrl);
     if (!mediaResp.ok) return null;
@@ -58,13 +57,12 @@ async function fetchGooglePlaces(
     const photoUri = mediaData?.photoUri;
     if (!photoUri) return null;
 
-    // Download and store
     const imgResp = await fetch(photoUri);
     if (!imgResp.ok) return null;
     const contentType = imgResp.headers.get("content-type") || "image/jpeg";
     const imgBuffer = await imgResp.arrayBuffer();
     const ext = contentType.includes("png") ? "png" : "jpg";
-    const slug = landmark.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 60);
+    const slug = place.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 60);
     const storagePath = `google-places/strip-${slug}-800.${ext}`;
 
     await supabase.storage
@@ -77,7 +75,6 @@ async function fetchGooglePlaces(
     const permanentUrl = pubData?.publicUrl;
     if (!permanentUrl) return null;
 
-    // Small version
     let smallUrl = permanentUrl;
     try {
       const smallMediaUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=400&key=${apiKey}&skipHttpRedirect=true`;
@@ -97,20 +94,20 @@ async function fetchGooglePlaces(
       }
     } catch { /* ignore */ }
 
-    return { url: permanentUrl, smallUrl, photographer: "Google", photographerUrl: "", landmark, source: "google_places" };
+    return { url: permanentUrl, smallUrl, photographer: "Google", photographerUrl: "", placeName: place, source: "google_places" };
   } catch (err) {
-    console.error(`Google Places strip error for "${landmark}":`, err);
+    console.error(`Google Places strip error for "${place}":`, err);
     return null;
   }
 }
 
 // ── Pexels fallback ────────────────────────────────────────
-async function fetchPexels(landmark: string, city: string): Promise<StripImage | null> {
+async function fetchPexels(place: string, city: string): Promise<StripImage | null> {
   const key = Deno.env.get("PEXELS_API_KEY");
   if (!key) return null;
 
   try {
-    const query = `${landmark} ${city}`;
+    const query = `${place} ${city}`;
     const res = await fetch(
       `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
       { headers: { Authorization: key } }
@@ -125,7 +122,7 @@ async function fetchPexels(landmark: string, city: string): Promise<StripImage |
       smallUrl: photo.src?.medium || photo.src?.small,
       photographer: photo.photographer || "Unknown",
       photographerUrl: photo.photographer_url || "",
-      landmark,
+      placeName: place,
       source: "pexels",
     };
   } catch {
@@ -134,12 +131,12 @@ async function fetchPexels(landmark: string, city: string): Promise<StripImage |
 }
 
 // ── Unsplash fallback ──────────────────────────────────────
-async function fetchUnsplash(landmark: string, city: string): Promise<StripImage | null> {
+async function fetchUnsplash(place: string, city: string): Promise<StripImage | null> {
   const key = Deno.env.get("UNSPLASH_ACCESS_KEY");
   if (!key) return null;
 
   try {
-    const query = `${landmark} ${city}`;
+    const query = `${place} ${city}`;
     const res = await fetch(
       `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape&client_id=${key}`
     );
@@ -153,7 +150,7 @@ async function fetchUnsplash(landmark: string, city: string): Promise<StripImage
       smallUrl: photo.urls?.small || photo.urls?.thumb,
       photographer: photo.user?.name || "Unknown",
       photographerUrl: photo.user?.links?.html || "",
-      landmark,
+      placeName: place,
       source: "unsplash",
     };
   } catch {
@@ -168,9 +165,14 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { city, country, landmarks } = (await req.json()) as StripRequest;
-    if (!city || !landmarks?.length) {
-      return new Response(JSON.stringify({ error: "city and landmarks required" }), {
+    const body = await req.json();
+    const city = body.city as string;
+    const country = body.country as string;
+    // Support both new 'places' and legacy 'landmarks' field
+    const places: string[] = body.places || body.landmarks || [];
+
+    if (!city || !places.length) {
+      return new Response(JSON.stringify({ error: "city and places required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -181,7 +183,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check cache
-    const cacheKey = `landmark_strip:${city.toLowerCase()}:${landmarks.map(l => l.toLowerCase()).join("|")}`;
+    const cacheKey = `landmark_strip:${city.toLowerCase()}:${places.map(l => l.toLowerCase()).join("|")}`;
 
     const { data: cached } = await supabase
       .from("image_cache")
@@ -206,19 +208,18 @@ Deno.serve(async (req) => {
       } catch { /* bad cache, refetch */ }
     }
 
-    // Fetch all landmarks in parallel
+    // Fetch all places in parallel
     const results = await Promise.allSettled(
-      landmarks.slice(0, 5).map(async (landmark): Promise<StripImage | null> => {
-        // Google Places → Pexels → Unsplash
-        const gp = await fetchGooglePlaces(supabase, landmark, city);
+      places.slice(0, 6).map(async (place): Promise<StripImage | null> => {
+        const gp = await fetchGooglePlaces(supabase, place, city);
         if (gp) return gp;
 
-        console.log(`GP failed for "${landmark}", trying Pexels`);
-        const px = await fetchPexels(landmark, city);
+        console.log(`GP failed for "${place}", trying Pexels`);
+        const px = await fetchPexels(place, city);
         if (px) return px;
 
-        console.log(`Pexels failed for "${landmark}", trying Unsplash`);
-        return await fetchUnsplash(landmark, city);
+        console.log(`Pexels failed for "${place}", trying Unsplash`);
+        return await fetchUnsplash(place, city);
       })
     );
 
@@ -240,7 +241,7 @@ Deno.serve(async (req) => {
         image_url: images[0]?.url || "",
         small_url: images[0]?.smallUrl || "",
         source: images[0]?.source || "google_places",
-        source_url: JSON.stringify(landmarks),
+        source_url: JSON.stringify(places),
         attribution_required: true,
         expires_at: expiresAt.toISOString(),
         hit_count: 1,
