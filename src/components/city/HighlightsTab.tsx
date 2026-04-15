@@ -7,6 +7,7 @@ import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { InsiderMissedSection } from "./InsiderMissedSection";
 import { LandmarkStrip } from "./LandmarkStrip";
+import { CityStatsStrip } from "./CityStatsStrip";
 
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
