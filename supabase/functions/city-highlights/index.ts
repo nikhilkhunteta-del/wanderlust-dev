@@ -6,6 +6,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const INTEREST_LABELS: Record<string, string> = {
+  "culture-history": "Culture & History",
+  "nature-outdoors": "Nature & Outdoors",
+  "beach-coastal": "Beach & Coastal",
+  "food-culinary": "Food & Culinary",
+  "arts-music-nightlife": "Arts, Music & Nightlife",
+  "active-sport": "Active & Sport",
+  "shopping-markets": "Shopping & Markets",
+  "wellness-slow-travel": "Wellness & Slow Travel",
+};
+
 interface CityHighlightsRequest {
   city: string;
   country: string;
