@@ -260,7 +260,7 @@ Deno.serve(async (req) => {
           .eq("id", cached.id);
 
         return new Response(
-          JSON.stringify({ images: cachedImages, fromCache: true } as CollageResponse),
+          JSON.stringify({ images: cachedImages, fromCache: true, landmark: cached.source_url || undefined } as CollageResponse),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch {
