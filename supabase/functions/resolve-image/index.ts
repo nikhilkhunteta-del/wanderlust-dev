@@ -1327,7 +1327,7 @@ serve(async (req) => {
       const isLandmark = LANDMARK_WORDS.test(entityLower);
 
       if (isLandmark) {
-        // Landmark: Google Places → Unsplash → Pollinations
+        // Landmark/named place: Google Places → Unsplash only (no AI generation)
         const gpQuery = request.entityName
           ? `${request.entityName} ${request.city}`
           : searchQuery;
@@ -1337,12 +1337,6 @@ serve(async (req) => {
         if (!image) {
           console.log('Trying Unsplash (attraction/landmark)...');
           image = await tryUnsplash(searchQuery, false);
-        }
-        if (!image && request.entityName) {
-          console.log('Trying Pollinations (attraction/landmark fallback)...');
-          image = await tryPollinations(supabase, request.entityName, request.city, {
-            promptSuffix: `${request.country} travel photography atmospheric cinematic landmark`,
-          });
         }
       } else {
         // Activity/experience: Pollinations → Google Places → Unsplash
