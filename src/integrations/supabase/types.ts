@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      city_stats_cache: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          fetched_at: string
+          id: string
+          interest: string
+          stats_json: Json
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          interest: string
+          stats_json?: Json
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          interest?: string
+          stats_json?: Json
+        }
+        Relationships: []
+      }
       ground_cache: {
         Row: {
           city: string

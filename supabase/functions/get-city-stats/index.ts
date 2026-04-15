@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -49,6 +51,28 @@ Deno.serve(async (req) => {
       });
     }
 
+    const interest = primaryInterest || "culture-history";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check cache first
+    const { data: cached } = await supabase
+      .from("city_stats_cache")
+      .select("stats_json")
+      .eq("city", city.toLowerCase())
+      .eq("country", country.toLowerCase())
+      .eq("interest", interest)
+      .maybeSingle();
+
+    if (cached?.stats_json) {
+      console.log(`Cache hit for ${city} / ${interest}`);
+      return new Response(JSON.stringify({ stats: cached.stats_json, fromCache: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // No cache — make AI call
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "AI gateway not configured" }), {
@@ -57,7 +81,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const interestGuide = INTEREST_GUIDELINES[primaryInterest] || INTEREST_GUIDELINES["culture-history"];
+    const interestGuide = INTEREST_GUIDELINES[interest] || INTEREST_GUIDELINES["culture-history"];
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -161,7 +185,21 @@ Deno.serve(async (req) => {
     // Ensure exactly 3
     stats = stats.slice(0, 3);
 
-    return new Response(JSON.stringify({ stats }), {
+    // Cache the results
+    if (stats.length > 0) {
+      await supabase.from("city_stats_cache").upsert(
+        {
+          city: city.toLowerCase(),
+          country: country.toLowerCase(),
+          interest,
+          stats_json: stats,
+        },
+        { onConflict: "city,country,interest" }
+      );
+      console.log(`Cached stats for ${city} / ${interest}`);
+    }
+
+    return new Response(JSON.stringify({ stats, fromCache: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
