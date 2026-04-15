@@ -6,11 +6,11 @@ import { useLandmarkStrip, LandmarkStripImage } from "@/hooks/useLandmarkStrip";
 interface LandmarkStripProps {
   city: string;
   country: string;
-  landmarks: string[]; // landmarks #2-#6
+  places: string[];
 }
 
-export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) => {
-  const { data: images, isLoading } = useLandmarkStrip(city, country, landmarks);
+export const LandmarkStrip = ({ city, country, places }: LandmarkStripProps) => {
+  const { data: images, isLoading } = useLandmarkStrip(city, country, places);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -103,6 +103,8 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 
+  const displayName = image.placeName || image.landmark || "";
+
   return (
     <div
       data-strip-card
@@ -115,7 +117,7 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
         {!failed ? (
           <img
             src={image.url}
-            alt={image.landmark}
+            alt={displayName}
             className={cn(
               "w-full h-full object-cover transition-opacity duration-500",
               loaded ? "opacity-100" : "opacity-0"
@@ -126,7 +128,7 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <span className="text-muted-foreground text-sm">{image.landmark}</span>
+            <span className="text-muted-foreground text-sm">{displayName}</span>
           </div>
         )}
 
@@ -143,7 +145,7 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
         )}
       </div>
 
-      {/* Landmark name */}
+      {/* Place name */}
       <p
         className="mt-2 px-3 text-muted-foreground"
         style={{
@@ -152,7 +154,7 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
           letterSpacing: "0.05em",
         }}
       >
-        {image.landmark}
+        {displayName}
       </p>
     </div>
   );

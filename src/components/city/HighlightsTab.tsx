@@ -38,8 +38,9 @@ export const HighlightsTab = ({
 }: HighlightsTabProps) => {
   const scrollRef = useScrollFade<HTMLDivElement>();
   const { isSaved, toggle } = useSavedExperiences(city, country);
-  const { data: heroData } = useHeroCollage(city, country, profile?.interests ?? []);
-  const stripLandmarks = (heroData?.landmarks ?? []).slice(1, 6);
+  const primaryInterest = profile?.primaryInterest || "culture-history";
+  const { data: heroData } = useHeroCollage(city, country, profile?.interests ?? [], primaryInterest);
+  const stripPlaces = heroData?.places ?? [];
 
   if (isLoading) {
     return (
@@ -96,10 +97,10 @@ export const HighlightsTab = ({
         </section>
       </div>
 
-      {/* Landmark photo strip — full bleed */}
-      {stripLandmarks.length > 0 && (
+      {/* Interest-driven photo strip — full bleed */}
+      {stripPlaces.length > 0 && (
         <div className="mb-14">
-          <LandmarkStrip city={city} country={country} landmarks={stripLandmarks} />
+          <LandmarkStrip city={city} country={country} places={stripPlaces} />
         </div>
       )}
 
