@@ -55,8 +55,7 @@ export const PerfectDayStrip = ({
 
   return (
     <section className="mb-14">
-      <h2 className="text-[20px] font-display font-medium text-foreground mb-5 flex items-center gap-2.5">
-        <Sunrise className="w-5 h-5 text-[#EA580C]" />
+      <h2 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-5">
         A perfect day in {city} for you
       </h2>
 

@@ -90,8 +90,8 @@ export const HighlightsTab = ({
 
         {/* City Vibe */}
         <section>
-          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
-            City Vibe
+          <h2 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-4">
+            City vibe
           </h2>
           <VibeStrip tags={highlights.vibeTags} />
         </section>
