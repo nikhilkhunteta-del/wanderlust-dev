@@ -1,7 +1,7 @@
 import { CityHighlights } from "@/types/cityHighlights";
 import { PersonalMatchSection } from "./PersonalMatchSection";
 import { PerfectDayStrip } from "./PerfectDayStrip";
-import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
+import { ExperienceCard } from "./ExperienceCard";
 import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { InsiderMissedSection } from "./InsiderMissedSection";
@@ -116,13 +116,20 @@ export const HighlightsTab = ({
 
         {/* 3. Featured experience */}
         {featuredExperience && (
-          <FeaturedExperienceCard
-            experience={featuredExperience}
-            city={city}
-            country={country}
-            isSaved={isSaved(featuredExperience.title)}
-            onToggleSave={toggle}
-          />
+          <section className="mb-14">
+            <h2 className="text-xl md:text-2xl font-display font-semibold mb-6 text-foreground">
+              Made for you
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <ExperienceCard
+                experience={featuredExperience}
+                city={city}
+                country={country}
+                isSaved={isSaved(featuredExperience.title)}
+                onToggleSave={toggle}
+              />
+            </div>
+          </section>
         )}
 
         {/* 4. Themed experiences */}
