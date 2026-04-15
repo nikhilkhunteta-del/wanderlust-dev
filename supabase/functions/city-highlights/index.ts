@@ -76,21 +76,21 @@ RULES:
 - Avoid clichés and tourist trap recommendations
 - Keep descriptions concise and evocative
 - EVERGREEN ONLY: All experiences must be year-round — places, activities, and encounters available regardless of travel month. Do NOT include seasonal festivals, time-limited events, or month-specific occurrences. Every experience should be something the traveller could do on any visit.
-- personalMatchReasons: Write exactly 3 bullet points. Each bullet must make a completely distinct point — no two bullets may cover the same theme or repeat the same interest. Each bullet must name a specific place, experience, or characteristic of the city that connects to the user's interest — not a general statement. Every bullet must be a grammatically complete sentence. Tone: confident, human, never salesy.
+- personalMatchReasons: Return exactly 3 objects, each with "placeName" and "reason" fields. "placeName" is a short, punchy place name or experience label (2-5 words, e.g. "Bene Beach", "Ferry to Šolta Island", "Riva Promenade") — NOT a full sentence. "reason" is one grammatically complete sentence explaining why this place connects to the user's interest. Each object must make a completely distinct point — no two may cover the same theme or repeat the same interest. Tone: confident, human, never salesy.
 
 CRITICAL — MATCH REASON FORMATTING:
-Write each personalMatchReasons entry as plain prose with the interest name naturally embedded in the sentence. Never use bold formatting (**), brackets, template variables, or placeholder syntax. The interest name must appear as readable English words within the sentence.
+Write the "reason" field as plain prose with the interest name naturally embedded. Never use bold formatting (**), brackets, template variables, or placeholder syntax. The interest name must appear as readable English words within the sentence.
+IMPORTANT: Write the interest naturally into the sentence — never use bold formatting, brackets, or placeholder variables. For example write: Your love of nature is perfectly matched by Bergen's fjords — NOT: Your interest in [blank] is matched.
 
 GOOD examples:
-- "Your love of nature and the outdoors is perfectly matched by Bergen's dramatic fjord trails and mist-wrapped mountain paths"
-- "The street food universe of Chandni Chowk maps perfectly to your culinary curiosity"
-- "Your passion for arts and nightlife connects directly to Berlin's warehouse club scene and gallery district"
+- {"placeName": "Bene Beach", "reason": "Your love of beach and coastal escapes finds its match in Bene Beach's crystal-clear waters and pine-shaded shores within Marjan Forest Park."}
+- {"placeName": "Chandni Chowk", "reason": "The street food universe of Chandni Chowk — paratha, jalebi, chaat — maps perfectly to your culinary curiosity."}
+- {"placeName": "Humayun's Tomb Gardens", "reason": "Your preference for warm, golden-light evenings aligns with the sunset views from Humayun's Tomb gardens."}
 
 BAD examples (NEVER produce these):
-- "Your interest in will be captivated by..."
-- "Your love of **Nature & Outdoors** finds its match..."
-- "Your appreciation for [interest] connects to..."
-- Any sentence where the interest name is missing, blank, wrapped in **, or in brackets
+- placeName that is a full sentence — it must be SHORT (2-5 words)
+- placeName that is an interest category like "Beach & Coastal" — it must be a PLACE
+- Any reason where the interest name is missing, blank, wrapped in **, or in brackets
 - perfectDayTimeline: An array of exactly 4 objects with "time" and "activity" fields. Times must be "Morning", "Midday", "Evening", "Night". Each activity is one specific sentence tailored to the travel month — if hot, Morning is early and active, Midday is indoors/shade, Evening catches cool air; if monsoon, weave rain atmosphere. Reflect the traveller's interests. No generic tourism language. Each activity must name a specific place or experience in the city.
 - perfectDayNarrative: DEPRECATED but still required for backwards compatibility. Write a single paragraph version of the timeline above, 3-4 sentences, morning→evening.
 - featuredExperienceIndex: index (0-based) of the experience that best matches the user's top interests.
