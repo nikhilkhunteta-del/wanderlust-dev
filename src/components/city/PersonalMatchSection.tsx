@@ -1,37 +1,23 @@
 import { Sparkles } from "lucide-react";
 
+interface MatchReason {
+  placeName: string;
+  reason: string;
+}
+
 interface PersonalMatchSectionProps {
   city: string;
-  reasons: string[];
+  reasons: (string | MatchReason)[];
 }
 
-const TAG_LABELS: Record<string, string> = {
-  'culture-history': 'Culture & History',
-  'nature-outdoors': 'Nature & Outdoors',
-  'beach-coastal': 'Beach & Coastal',
-  'food-culinary': 'Food & Culinary',
-  'arts-music-nightlife': 'Arts, Music & Nightlife',
-  'active-sport': 'Active & Sport',
-  'shopping-markets': 'Shopping & Markets',
-  'wellness-slow-travel': 'Wellness & Slow Travel',
-};
-
-function humanizeLabel(label: string): string {
-  if (TAG_LABELS[label.toLowerCase()]) return TAG_LABELS[label.toLowerCase()];
-  // Also handle labels that may already be partially readable
-  const dashFixed = label.replace(/-/g, ' ');
-  if (TAG_LABELS[dashFixed.toLowerCase()]) return TAG_LABELS[dashFixed.toLowerCase()];
-  // Title case fallback
-  return dashFixed.replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function extractLabel(reason: string): { label: string; description: string } {
-  // Strip any residual bold markers the model might still produce
-  const cleaned = reason.replace(/\*\*/g, "");
-  // Use the first clause (before the first dash, comma, or period) as the label
-  const clauseMatch = cleaned.match(/^(.*?)(?:\s[—–\-]\s|,\s|\.)/);
-  const label = clauseMatch ? clauseMatch[1].trim() : cleaned.split(" ").slice(0, 6).join(" ");
-  return { label, description: cleaned };
+function normalizeReason(r: string | MatchReason): MatchReason {
+  if (typeof r === "object" && r.placeName && r.reason) return r;
+  // Legacy string format: extract a short label from the sentence
+  const text = (typeof r === "string" ? r : "").replace(/\*\*/g, "");
+  // Try to find a proper noun / place name pattern
+  const clauseMatch = text.match(/^(.*?)(?:\s[—–\-]\s|,\s|\.)/);
+  const label = clauseMatch ? clauseMatch[1].trim() : text.split(" ").slice(0, 5).join(" ");
+  return { placeName: label, reason: text };
 }
 
 function limitToTwoSentences(text: string): string {
@@ -43,7 +29,7 @@ function limitToTwoSentences(text: string): string {
 export const PersonalMatchSection = ({ city, reasons }: PersonalMatchSectionProps) => {
   if (!reasons || reasons.length === 0) return null;
 
-  const cards = reasons.slice(0, 3);
+  const cards = reasons.slice(0, 3).map(normalizeReason);
 
   return (
     <section className="mb-14">
@@ -52,25 +38,22 @@ export const PersonalMatchSection = ({ city, reasons }: PersonalMatchSectionProp
         Why {city} matches your travel style
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {cards.map((reason, i) => {
-          const { label, description } = extractLabel(reason);
-          return (
-            <div
-              key={i}
-              className="p-5 rounded-xl bg-card shadow-sm"
+        {cards.map((card, i) => (
+          <div
+            key={i}
+            className="p-5 rounded-xl bg-card shadow-sm"
+          >
+            <p
+              className="font-semibold text-foreground leading-tight mb-2"
+              style={{ fontSize: 18 }}
             >
-              <p
-                className="font-semibold text-foreground leading-tight mb-2"
-                style={{ fontSize: 18 }}
-              >
-                {label}
-              </p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {limitToTwoSentences(description)}
-              </p>
-            </div>
-          );
-        })}
+              {card.placeName}
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {limitToTwoSentences(card.reason)}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );

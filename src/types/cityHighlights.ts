@@ -12,7 +12,7 @@ export interface CityHighlights {
   experiences: SignatureExperience[];
   vibeTags: string[];
   heroImageQuery: string;
-  personalMatchReasons?: string[];
+  personalMatchReasons?: (string | { placeName: string; reason: string })[];
   perfectDayNarrative?: string;
   perfectDayTimeline?: { time: string; activity: string }[];
   insiderMissed?: string;
