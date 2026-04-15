@@ -17,8 +17,8 @@ export const HighlightsHero = ({
   matchStatement,
   interests = [],
 }: HighlightsHeroProps) => {
-  const { data: images } = useHeroCollage(city, country, interests);
-  const heroImage = images?.[0] ?? null;
+  const { data } = useHeroCollage(city, country, interests);
+  const heroImage = data?.images?.[0] ?? null;
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 
