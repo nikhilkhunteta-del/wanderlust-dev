@@ -100,7 +100,7 @@ BAD examples (NEVER produce these):
 Respond with ONLY valid JSON in this exact format:
 {
   "matchStatement": "STRICT: Exactly 2 sentences, no more than 35 words total. Explain why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
-  "personalMatchReasons": ["Your love of historical depth finds its match in Delhi's 7 successive cities, each layered over the last", "The street food universe of Chandni Chowk alone — paratha, jalebi, chaat — maps perfectly to your culinary curiosity", "Your preference for warm, golden-light evenings aligns with the sunset views from Humayun's Tomb gardens in your travel month"],
+  "personalMatchReasons": [{"placeName": "Bene Beach", "reason": "Your love of beach and coastal escapes finds its match in Bene Beach's crystal-clear waters within Marjan Forest Park."}, {"placeName": "Ferry to Šolta Island", "reason": "The tranquil fishing villages and hidden coves of Šolta Island are perfectly suited to your desire for relaxed coastal exploration."}, {"placeName": "Riva Promenade", "reason": "Your preference for warm, golden-light evenings aligns with the sunset atmosphere along the Riva promenade."}],
   "perfectDayTimeline": [
     {"time": "Morning", "activity": "Beat the heat with an early walk through Lodhi Gardens..."},
     {"time": "Midday", "activity": "Escape into the cool marble halls of the National Museum..."},
