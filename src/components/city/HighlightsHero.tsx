@@ -23,7 +23,7 @@ export const HighlightsHero = ({
   const [failed, setFailed] = useState(false);
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: 500 }}>
+    <section className="relative w-full overflow-hidden h-[70vh] md:h-screen">
       {/* Background: image or gradient fallback */}
       {heroImage && !failed ? (
         <>
@@ -64,7 +64,7 @@ export const HighlightsHero = ({
       />
 
       {/* Text overlay — bottom-left */}
-      <div className="absolute inset-0 flex flex-col justify-end pointer-events-none" style={{ padding: 40 }}>
+      <div className="absolute inset-0 flex flex-col justify-end pointer-events-none p-6 md:p-10">
         <div className="max-w-xl">
           <span
             className="block text-white font-medium mb-2"
@@ -73,8 +73,8 @@ export const HighlightsHero = ({
             {country}
           </span>
           <h1
-            className="font-display font-bold text-white mb-3"
-            style={{ fontSize: 56, lineHeight: 1.1 }}
+            className="font-display font-bold text-white mb-3 text-[48px] md:text-[80px]"
+            style={{ lineHeight: 1.05 }}
           >
             {city}
           </h1>
