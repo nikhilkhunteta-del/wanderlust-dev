@@ -21,12 +21,12 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
 
   if (isLoading) {
     return (
-      <section className="mb-14">
-        <div className="flex gap-4 overflow-hidden">
+      <section>
+        <div className="flex overflow-hidden">
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-full md:w-[calc(50%-8px)] rounded-xl bg-muted animate-pulse"
+              className="flex-shrink-0 w-full md:w-1/2 bg-muted animate-pulse"
               style={{ height: 500 }}
             />
           ))}
