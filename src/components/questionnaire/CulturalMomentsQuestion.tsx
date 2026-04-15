@@ -165,8 +165,17 @@ export const CulturalMomentsQuestion = ({
             </div>
             <p className="text-xs text-foreground">{moment.location}</p>
             <p className="text-xs text-muted-foreground">{moment.description}</p>
-
-
+            {moment.wikiUrl && (
+              <a
+                href={moment.wikiUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[11px] font-medium text-primary hover:text-primary/80 transition-colors mt-0.5"
+              >
+                Learn more ↗
+              </a>
+            )}
           </div>
         </motion.button>
 
@@ -243,6 +252,15 @@ export const CulturalMomentsQuestion = ({
       {/* Section 2 — Outside travel window, grouped by month */}
       {outByMonth.length > 0 && (
         <>
+          <div className="mt-8">
+            <div className="relative flex items-center py-2">
+              <div className="flex-1 h-[2px] bg-border" />
+              <span className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                Outside your travel window
+              </span>
+              <div className="flex-1 h-[2px] bg-border" />
+            </div>
+          </div>
           {outByMonth.map(([monthKey, monthMoments]) => (
             <div key={monthKey} className="space-y-2">
               <div className="px-1">
