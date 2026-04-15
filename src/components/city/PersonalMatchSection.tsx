@@ -26,18 +26,12 @@ function humanizeLabel(label: string): string {
 }
 
 function extractLabel(reason: string): { label: string; description: string } {
-  const boldMatch = reason.match(/\*\*(.*?)\*\*/);
-  if (boldMatch) {
-    const rawLabel = boldMatch[1];
-    const label = humanizeLabel(rawLabel);
-    const description = reason.replace(/\*\*.*?\*\*\s*[-–:.]?\s*/, "").trim();
-    return { label, description: description || reason.replace(/\*\*.*?\*\*/g, "").trim() };
-  }
-  const words = reason.split(" ");
-  return {
-    label: humanizeLabel(words.slice(0, 3).join(" ")),
-    description: reason,
-  };
+  // Strip any residual bold markers the model might still produce
+  const cleaned = reason.replace(/\*\*/g, "");
+  // Use the first clause (before the first dash, comma, or period) as the label
+  const clauseMatch = cleaned.match(/^(.*?)(?:\s[—–\-]\s|,\s|\.)/);
+  const label = clauseMatch ? clauseMatch[1].trim() : cleaned.split(" ").slice(0, 6).join(" ");
+  return { label, description: cleaned };
 }
 
 function limitToTwoSentences(text: string): string {
