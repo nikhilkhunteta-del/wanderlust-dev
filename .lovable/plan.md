@@ -1,24 +1,43 @@
 
 
-## Fix: City Stats Always Showing Culture-History Data
+## Update city-highlights prompt to prevent placeholder-style match reasons
 
 ### Problem
-`CityStatsStrip` receives `profile?.interests?.[0]` as its `primaryInterest` prop, but `TravelProfile` has no `interests` array field. This always evaluates to `undefined`, falling back to `"culture-history"` regardless of what the user selected.
+The AI model sometimes outputs match reasons like "Your interest in will be captivated" — with the interest name missing or treated as a placeholder variable, despite existing instructions.
 
-### Fix
-**File:** `src/components/city/HighlightsTab.tsx`, line 79
+### Changes
 
-Change:
-```tsx
-primaryInterest={profile?.interests?.[0] || "culture-history"}
+**File:** `supabase/functions/city-highlights/index.ts`
+
+**1. Add a new rule block after line 84** (after the childNote rule, before "Respond with ONLY valid JSON"):
+
 ```
-To:
-```tsx
-primaryInterest={profile?.primaryInterest || "culture-history"}
+CRITICAL — MATCH REASON FORMATTING:
+Write each personalMatchReasons entry as plain prose with the interest name naturally embedded in the sentence. Never use bold formatting, brackets, template variables, or placeholder syntax. The interest name must appear as readable English words within the sentence.
+
+GOOD examples:
+- "Your love of nature and the outdoors is perfectly matched by Bergen's dramatic fjord trails and mist-wrapped mountain paths"
+- "The street food universe of Chandni Chowk maps perfectly to your culinary curiosity"
+- "Your passion for arts and nightlife connects directly to Berlin's warehouse club scene and gallery district"
+
+BAD examples (NEVER produce these):
+- "Your interest in will be captivated by..."
+- "Your love of **Nature & Outdoors** finds its match..."
+- "Your appreciation for [interest] connects to..."
+- Any sentence where the interest name is missing, blank, wrapped in **, or in brackets
 ```
 
-This single-line change ensures the correct slug (e.g. `"nature-outdoors"`) is passed to the edge function, matching the `INTEREST_GUIDELINES` keys exactly.
+**2. Update the JSON example on line 89** to remove `**bold**` formatting from the example values, showing plain prose instead:
 
-### Cache Cleanup
-Optionally clear stale stats from `city_stats_cache` where `interest = 'culture-history'` that were generated for users who actually had a different primary interest. Since stats are cached per city+country+interest triplet, correct requests will simply generate and cache the right data on next visit — no manual cleanup strictly required.
+```json
+"personalMatchReasons": [
+  "Your love of historical depth finds its match in Delhi's 7 successive cities, each layered over the last",
+  "The street food universe of Chandni Chowk alone — paratha, jalebi, chaat — maps perfectly to your culinary curiosity",
+  "Your preference for warm, golden-light evenings aligns with the sunset views from Humayun's Tomb gardens in your travel month"
+]
+```
+
+**3. Update the user prompt section** (around line 155) — remove the instruction that says "Format: one **bold** key phrase followed by a grammatically complete sentence" and replace with: "Write each reason as a plain prose sentence with the interest name naturally embedded — no bold, no brackets, no placeholders."
+
+This removes conflicting instructions (the system prompt previously asked for `**bold**` formatting while also saying not to leave it blank) and gives the model unambiguous plain-prose examples to follow.
 
