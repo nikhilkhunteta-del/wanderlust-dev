@@ -38,6 +38,8 @@ export const HighlightsTab = ({
 }: HighlightsTabProps) => {
   const scrollRef = useScrollFade<HTMLDivElement>();
   const { isSaved, toggle } = useSavedExperiences(city, country);
+  const { data: heroData } = useHeroCollage(city, country, profile?.interests ?? []);
+  const stripLandmarks = (heroData?.landmarks ?? []).slice(1, 6);
 
   if (isLoading) {
     return (
