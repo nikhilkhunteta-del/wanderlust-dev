@@ -81,7 +81,7 @@ export const HighlightsTab = ({
       />
 
       {/* Main Content */}
-      <div className="page-container py-12 space-y-0">
+      <div className="page-container py-12 space-y-12">
         {/* 1. Personal match reasons */}
         <PersonalMatchSection
           city={city}
@@ -89,7 +89,7 @@ export const HighlightsTab = ({
         />
 
         {/* City Vibe */}
-        <section className="mb-14">
+        <section>
           <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
             City Vibe
           </h2>
@@ -99,12 +99,12 @@ export const HighlightsTab = ({
 
       {/* Interest-driven photo strip — full bleed */}
       {stripPlaces.length > 0 && (
-        <div className="mb-14">
+        <div className="mb-12">
           <LandmarkStrip city={city} country={country} places={stripPlaces} primaryInterest={primaryInterest} />
         </div>
       )}
 
-      <div className="page-container space-y-0">
+      <div className="page-container space-y-12">
 
         {/* 2. Perfect day narrative */}
         <PerfectDayStrip
@@ -117,7 +117,7 @@ export const HighlightsTab = ({
 
         {/* 3. Featured experience */}
         {featuredExperience && (
-          <section className="mb-14">
+          <section>
             <h2 className="text-xl md:text-2xl font-display font-semibold mb-6 text-foreground">
               Made for you
             </h2>

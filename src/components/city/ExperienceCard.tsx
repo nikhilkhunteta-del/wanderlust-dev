@@ -43,7 +43,7 @@ export const ExperienceCard = ({ experience, city, country, isSaved, onToggleSav
       </div>
 
       {/* Content */}
-      <div className="p-5">
+      <div className="p-6">
         <h3 className="text-lg font-semibold mb-2 text-foreground">
           {experience.title}
         </h3>

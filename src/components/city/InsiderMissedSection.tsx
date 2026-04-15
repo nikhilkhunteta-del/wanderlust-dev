@@ -7,7 +7,7 @@ export const InsiderMissedSection = ({ city, content }: InsiderMissedSectionProp
   if (!content) return null;
 
   return (
-    <section className="mb-14" data-scroll-fade>
+    <section data-scroll-fade>
       <h2
         className="font-display font-semibold text-foreground mb-5"
         style={{ fontSize: '20px' }}
