@@ -12,6 +12,8 @@ export interface CollageImage {
 interface CollageResponse {
   images: (CollageImage | null)[];
   fromCache: boolean;
+  landmark?: string;
+  landmarks?: string[];
 }
 
 export function useHeroCollage(
