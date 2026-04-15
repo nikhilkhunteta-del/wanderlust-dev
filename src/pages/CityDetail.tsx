@@ -5,6 +5,7 @@ import { CityRecommendation } from "@/types/recommendations";
 import { useCityHighlights, useHealthData } from "@/hooks/useCityData";
 import { useTabPrefetch } from "@/hooks/useTabPrefetch";
 import { Header } from "@/components/shared/Header";
+import { HighlightsHero } from "@/components/city/HighlightsHero";
 import { HighlightsTab } from "@/components/city/HighlightsTab";
 import { SeasonalTab } from "@/components/seasonal/SeasonalTab";
 import { WeatherTab } from "@/components/weather/WeatherTab";
@@ -184,6 +185,15 @@ const CityDetail = () => {
 
 
       <Header rightContent={`${city.city}, ${city.country}`} />
+
+      <HighlightsHero
+        city={city.city}
+        country={city.country}
+        matchStatement={highlights?.matchStatement ?? city.rationale}
+        interests={Object.entries(profile.interestScores as Record<string, number>)
+          .filter(([_, score]) => score > 0)
+          .map(([interest]) => interest)}
+      />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="sticky top-[65px] z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
