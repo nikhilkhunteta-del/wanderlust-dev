@@ -1266,37 +1266,69 @@ serve(async (req) => {
 
     // Resolution order depends on image type
     if (request.type === 'seasonal') {
-      // Seasonal: Wikimedia (with non-photo filter) → Pollinations → Unsplash
-      const NON_PHOTO_PATTERNS = /\.(svg|SVG)|manuscript|painting|score|sheet_music|artwork|illustration|drawing|engraving|lithograph/i;
-      if (request.entityName) {
-        console.log('Trying Wikimedia Commons (seasonal)...');
-        image = await tryWikimedia(searchQuery, request.entityName, request.city);
-        if (image && NON_PHOTO_PATTERNS.test(image.url)) {
-          console.log(`Wikimedia result appears non-photographic (${image.url}), skipping`);
-          image = null;
-        }
-      }
-      if (!image && request.entityName) {
-        console.log('Trying Pollinations (seasonal fallback)...');
+      // Seasonal: For festivals/events, prefer Pollinations with atmosphere prompt first
+      // Only use Wikimedia for non-event entities (e.g. natural phenomena, locations)
+      const entityName = request.entityName || '';
+      const isFestival = isFestivalEntity(entityName);
+      const isEventLike = /\b(festival|concert|event|race|match|tournament|show|exhibition|fair|regatta|marathon|competition|parade|party|gathering|ultra|summit|week)\b/i.test(entityName);
+
+      if (isFestival || isEventLike) {
+        // Events/festivals: Pollinations first with atmospheric event prompt
+        console.log(`Seasonal event detected: "${entityName}" — using Pollinations first`);
         const eventType = (() => {
-          const name = (request.entityName || '').toLowerCase();
-          if (/concert|recital|opera|symphony|philharmonic|orchestra|music|choir|choral|fest\b|festival/i.test(name)) return 'music festival';
-          if (/parade|march|pride|carnival/i.test(name)) return 'parade celebration';
-          if (/feast|saint|religious|holy|easter|christmas/i.test(name)) return 'religious celebration';
-          if (/food|culinary|gastro|tasting|market/i.test(name)) return 'food festival';
-          return 'cultural event';
+          const name = entityName.toLowerCase();
+          if (/ultra|edm|electronic|dj|techno|rave|dance music/i.test(name)) return 'massive electronic music festival with stage lights laser show and crowd';
+          if (/concert|recital|opera|symphony|philharmonic|orchestra|music|choir|choral|fest\b|festival/i.test(name)) return 'live music festival performance with crowd and stage';
+          if (/parade|march|pride|carnival/i.test(name)) return 'vibrant parade celebration with people in costumes';
+          if (/feast|saint|religious|holy|easter|christmas/i.test(name)) return 'atmospheric religious celebration ceremony';
+          if (/food|culinary|gastro|tasting|market/i.test(name)) return 'bustling food festival with stalls and people eating';
+          if (/race|marathon|regatta|competition|tournament/i.test(name)) return 'exciting sports competition with athletes and spectators';
+          if (/fair|exhibition|show/i.test(name)) return 'lively cultural fair with people and colorful displays';
+          return 'vibrant cultural event celebration with people and atmosphere';
         })();
-        image = await tryPollinations(supabase, request.entityName, request.city, {
-          promptSuffix: `${eventType} atmospheric photography`,
-          width: 800,
-          height: 600,
+        image = await tryPollinations(supabase, entityName, request.city, {
+          promptSuffix: `${eventType} atmospheric photography crowd energy`,
+          width: 1200,
+          height: 800,
           imageType: "seasonal",
         });
-      }
-      // Fallback to Unsplash if Pollinations also fails (e.g. 402 quota exceeded)
-      if (!image && request.entityName) {
-        console.log('Trying Unsplash (seasonal fallback)...');
-        image = await tryUnsplash(`${request.entityName} ${request.city}`, false);
+        // Fallback to Unsplash if Pollinations fails
+        if (!image) {
+          console.log('Trying Unsplash (seasonal event fallback)...');
+          image = await tryUnsplash(`${entityName} ${request.city} festival event`, false);
+        }
+      } else {
+        // Non-event seasonal content (natural phenomena, seasons, etc.): Wikimedia → Pollinations → Unsplash
+        const NON_PHOTO_PATTERNS = /\.(svg|SVG)|manuscript|painting|score|sheet_music|artwork|illustration|drawing|engraving|lithograph/i;
+        if (entityName) {
+          console.log('Trying Wikimedia Commons (seasonal non-event)...');
+          image = await tryWikimedia(searchQuery, entityName, request.city);
+          if (image && NON_PHOTO_PATTERNS.test(image.url)) {
+            console.log(`Wikimedia result appears non-photographic (${image.url}), skipping`);
+            image = null;
+          }
+        }
+        if (!image && entityName) {
+          console.log('Trying Pollinations (seasonal fallback)...');
+          const eventType = (() => {
+            const name = entityName.toLowerCase();
+            if (/concert|recital|opera|symphony|philharmonic|orchestra|music|choir|choral|fest\b|festival/i.test(name)) return 'music festival';
+            if (/parade|march|pride|carnival/i.test(name)) return 'parade celebration';
+            if (/feast|saint|religious|holy|easter|christmas/i.test(name)) return 'religious celebration';
+            if (/food|culinary|gastro|tasting|market/i.test(name)) return 'food festival';
+            return 'atmospheric seasonal scene';
+          })();
+          image = await tryPollinations(supabase, entityName, request.city, {
+            promptSuffix: `${eventType} atmospheric photography`,
+            width: 800,
+            height: 600,
+            imageType: "seasonal",
+          });
+        }
+        if (!image && entityName) {
+          console.log('Trying Unsplash (seasonal fallback)...');
+          image = await tryUnsplash(`${entityName} ${request.city}`, false);
+        }
       }
     } else if (request.type === 'city_hero') {
       // City Hero: Google Places ("{city} {country} cityscape") → Unsplash → Pexels → monument fallback → Storage

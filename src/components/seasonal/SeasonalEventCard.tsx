@@ -65,7 +65,7 @@ export const SeasonalHeroCard = ({ highlight, city, country }: SeasonalHeroCardP
     : highlight.description;
 
   return (
-    <article className="relative w-full overflow-hidden rounded-xl" style={{ height: '50vh', minHeight: 320 }}>
+    <article className="relative w-full overflow-hidden rounded-xl" style={{ height: '55vh', minHeight: 360 }}>
       <ResolvedImage
         request={{ type: 'seasonal', city, country, entityName: highlight.title }}
         alt={highlight.title}
