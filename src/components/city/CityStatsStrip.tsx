@@ -87,7 +87,7 @@ export const CityStatsStrip = ({ city, country, primaryInterest }: CityStatsStri
       cancelAnimationFrame(raf);
       (el as any).__io?.disconnect();
     };
-  }, []);
+  }, [stats]);
 
   if (isLoading) {
     return (
