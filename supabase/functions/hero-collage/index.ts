@@ -268,7 +268,7 @@ Deno.serve(async (req) => {
     }
 
     // Build 4 queries
-    const queries = buildQueries(city, interests || []);
+    const queries = await buildQueries(city, country || city, interests || []);
     const images: (CollageImage | null)[] = [];
 
     // Fetch all 3 in parallel: Google Places primary, Unsplash fallback
