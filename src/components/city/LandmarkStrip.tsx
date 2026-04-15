@@ -3,13 +3,25 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLandmarkStrip, LandmarkStripImage } from "@/hooks/useLandmarkStrip";
 
+const INTEREST_LENS: Record<string, string> = {
+  "nature-outdoors": "nature lover's lens",
+  "beach-coastal": "coastal lens",
+  "culture-history": "historical lens",
+  "food-culinary": "culinary lens",
+  "arts-music-nightlife": "creative lens",
+  "active-sport": "adventurer's lens",
+  "shopping-markets": "local's lens",
+  "wellness-slow-travel": "slower lens",
+};
+
 interface LandmarkStripProps {
   city: string;
   country: string;
   places: string[];
+  primaryInterest?: string;
 }
 
-export const LandmarkStrip = ({ city, country, places }: LandmarkStripProps) => {
+export const LandmarkStrip = ({ city, country, places, primaryInterest }: LandmarkStripProps) => {
   const { data: images, isLoading } = useLandmarkStrip(city, country, places);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -59,7 +71,7 @@ export const LandmarkStrip = ({ city, country, places }: LandmarkStripProps) => 
   return (
     <section className="relative group">
       <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4 px-6 md:px-12">
-        Explore {city}
+        {city} through a {INTEREST_LENS[primaryInterest || "culture-history"] || "traveller's lens"}
       </h2>
       {/* Scroll container */}
       <div

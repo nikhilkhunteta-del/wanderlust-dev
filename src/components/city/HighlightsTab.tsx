@@ -100,7 +100,7 @@ export const HighlightsTab = ({
       {/* Interest-driven photo strip — full bleed */}
       {stripPlaces.length > 0 && (
         <div className="mb-14">
-          <LandmarkStrip city={city} country={country} places={stripPlaces} />
+          <LandmarkStrip city={city} country={country} places={stripPlaces} primaryInterest={primaryInterest} />
         </div>
       )}
 
