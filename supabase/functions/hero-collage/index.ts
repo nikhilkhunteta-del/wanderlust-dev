@@ -25,14 +25,15 @@ interface CollageResponse {
   images: (CollageImage | null)[];
   fromCache: boolean;
   landmark?: string;
+  landmarks?: string[];
 }
 
-// Use AI to identify the single most iconic landmark for a city
-async function getIconicLandmark(city: string, country: string): Promise<string> {
+// Use AI to identify the top 6 most iconic landmarks for a city
+async function getIconicLandmarks(city: string, country: string): Promise<string[]> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) {
-    console.warn("No LOVABLE_API_KEY, falling back to generic query");
-    return `${city} landmark`;
+    console.warn("No LOVABLE_API_KEY, falling back to generic queries");
+    return [`${city} landmark`, `${city} monument`, `${city} cathedral`, `${city} museum`, `${city} palace`, `${city} park`];
   }
 
   try {
@@ -47,11 +48,11 @@ async function getIconicLandmark(city: string, country: string): Promise<string>
         messages: [
           {
             role: "system",
-            content: "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No explanation, no punctuation, no quotes.",
+            content: "You are a travel expert. Reply with ONLY a numbered list of landmark names, one per line (e.g. '1. Eiffel Tower'). No explanations, no extra text.",
           },
           {
             role: "user",
-            content: `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Give me just the landmark name that a tourist would search for on Google.`,
+            content: `List the top 6 most iconic, most-photographed landmarks, sights, or attractions in ${city}, ${country}. These should be specific named places a tourist would search for on Google. Return exactly 6, ranked by how iconic they are.`,
           },
         ],
       }),
@@ -59,34 +60,41 @@ async function getIconicLandmark(city: string, country: string): Promise<string>
 
     if (!resp.ok) {
       console.error(`AI landmark lookup failed (${resp.status})`);
-      return `${city} landmark`;
+      return [`${city} landmark`];
     }
 
     const data = await resp.json();
-    const landmark = data.choices?.[0]?.message?.content?.trim();
-    if (!landmark || landmark.length > 80) {
-      return `${city} landmark`;
-    }
+    const raw = data.choices?.[0]?.message?.content?.trim();
+    if (!raw) return [`${city} landmark`];
 
-    console.log(`AI identified iconic landmark for ${city}: ${landmark}`);
-    return landmark;
+    // Parse numbered list: "1. Name" or "1) Name" or just lines
+    const landmarks = raw
+      .split("\n")
+      .map((line: string) => line.replace(/^\d+[\.\)]\s*/, "").trim())
+      .filter((name: string) => name.length > 0 && name.length <= 80)
+      .slice(0, 6);
+
+    if (landmarks.length === 0) return [`${city} landmark`];
+
+    console.log(`AI identified ${landmarks.length} landmarks for ${city}:`, landmarks);
+    return landmarks;
   } catch (err) {
     console.error("AI landmark lookup error:", err);
-    return `${city} landmark`;
+    return [`${city} landmark`];
   }
 }
 
 // Build 3 search queries for the asymmetric collage
-async function buildQueries(city: string, country: string, interests: string[]): Promise<{ queries: string[]; landmark: string }> {
-  const landmark = await getIconicLandmark(city, country);
+async function buildQueries(city: string, country: string, interests: string[]): Promise<{ queries: string[]; landmarks: string[] }> {
+  const landmarks = await getIconicLandmarks(city, country);
 
   return {
     queries: [
-      landmark,
+      landmarks[0], // Hero image uses the #1 landmark
       `${city} street neighbourhood`,
       `${city} ${country} tourism`,
     ],
-    landmark,
+    landmarks,
   };
 }
 
@@ -257,13 +265,27 @@ Deno.serve(async (req) => {
     if (cached) {
       try {
         const cachedImages = JSON.parse(cached.entity_name || "[]");
+        // Parse landmarks from source_url (stored as JSON array)
+        let cachedLandmarks: string[] = [];
+        try {
+          cachedLandmarks = JSON.parse(cached.source_url || "[]");
+        } catch {
+          // Legacy single landmark string
+          if (cached.source_url) cachedLandmarks = [cached.source_url];
+        }
+
         await supabase
           .from("image_cache")
           .update({ hit_count: (cached.hit_count || 0) + 1 })
           .eq("id", cached.id);
 
         return new Response(
-          JSON.stringify({ images: cachedImages, fromCache: true, landmark: cached.source_url || undefined } as CollageResponse),
+          JSON.stringify({
+            images: cachedImages,
+            fromCache: true,
+            landmark: cachedLandmarks[0] || undefined,
+            landmarks: cachedLandmarks,
+          } as CollageResponse),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch {
@@ -272,7 +294,7 @@ Deno.serve(async (req) => {
     }
 
     // Build queries and get landmark
-    const { queries, landmark } = await buildQueries(city, country || city, interests || []);
+    const { queries, landmarks } = await buildQueries(city, country || city, interests || []);
     const images: (CollageImage | null)[] = [];
 
     // Fetch all 3 in parallel: Google Places primary, Unsplash fallback
@@ -317,7 +339,7 @@ Deno.serve(async (req) => {
         image_url: images[0]?.url || "",
         small_url: images[0]?.smallUrl || "",
         source: primarySource,
-        source_url: landmark,
+        source_url: JSON.stringify(landmarks),
         photographer: images[0]?.photographer || null,
         photographer_url: images[0]?.photographerUrl || null,
         attribution_required: true,
@@ -328,7 +350,7 @@ Deno.serve(async (req) => {
     );
 
     return new Response(
-      JSON.stringify({ images, fromCache: false, landmark } as CollageResponse),
+      JSON.stringify({ images, fromCache: false, landmark: landmarks[0], landmarks } as CollageResponse),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

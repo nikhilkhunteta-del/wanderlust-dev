@@ -12,6 +12,8 @@ export interface CollageImage {
 interface CollageResponse {
   images: (CollageImage | null)[];
   fromCache: boolean;
+  landmark?: string;
+  landmarks?: string[];
 }
 
 export function useHeroCollage(
@@ -21,8 +23,8 @@ export function useHeroCollage(
 ) {
   return useQuery({
     queryKey: ["hero-collage", city, country, interests.sort().join(",")],
-    queryFn: async (): Promise<(CollageImage | null)[]> => {
-      if (!city || !country) return [null, null, null];
+    queryFn: async (): Promise<{ images: (CollageImage | null)[]; landmarks: string[] }> => {
+      if (!city || !country) return { images: [null, null, null], landmarks: [] };
 
       const { data, error } = await supabase.functions.invoke<CollageResponse>(
         "hero-collage",
@@ -31,10 +33,13 @@ export function useHeroCollage(
 
       if (error) {
         console.error("hero-collage error:", error);
-        return [null, null, null];
+        return { images: [null, null, null], landmarks: [] };
       }
 
-      return data?.images ?? [null, null, null];
+      return {
+        images: data?.images ?? [null, null, null],
+        landmarks: data?.landmarks ?? (data?.landmark ? [data.landmark] : []),
+      };
     },
     enabled: !!city && !!country,
     staleTime: 30 * 60 * 1000,

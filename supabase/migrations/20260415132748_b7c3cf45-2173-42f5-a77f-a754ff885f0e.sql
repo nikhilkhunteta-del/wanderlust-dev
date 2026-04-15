@@ -1,0 +1,1 @@
+DELETE FROM image_cache WHERE image_type = 'hero_collage' OR cache_key LIKE 'hero_collage:%';
