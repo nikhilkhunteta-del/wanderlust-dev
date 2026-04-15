@@ -106,9 +106,9 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
   return (
     <div
       data-strip-card
-      className="flex-shrink-0 w-[85vw] md:w-[calc(50%-8px)] snap-start"
+      className="flex-shrink-0 w-full md:w-1/2 snap-start"
     >
-      <div className="relative rounded-xl overflow-hidden bg-muted" style={{ height: 500 }}>
+      <div className="relative overflow-hidden bg-muted" style={{ height: 500 }}>
         {!loaded && !failed && (
           <div className="absolute inset-0 animate-pulse bg-muted" />
         )}
