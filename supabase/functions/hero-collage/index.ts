@@ -28,12 +28,12 @@ interface CollageResponse {
   landmarks?: string[];
 }
 
-// Use AI to identify the single most iconic landmark for a city
-async function getIconicLandmark(city: string, country: string): Promise<string> {
+// Use AI to identify the top 6 most iconic landmarks for a city
+async function getIconicLandmarks(city: string, country: string): Promise<string[]> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) {
-    console.warn("No LOVABLE_API_KEY, falling back to generic query");
-    return `${city} landmark`;
+    console.warn("No LOVABLE_API_KEY, falling back to generic queries");
+    return [`${city} landmark`, `${city} monument`, `${city} cathedral`, `${city} museum`, `${city} palace`, `${city} park`];
   }
 
   try {
@@ -48,11 +48,11 @@ async function getIconicLandmark(city: string, country: string): Promise<string>
         messages: [
           {
             role: "system",
-            content: "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No explanation, no punctuation, no quotes.",
+            content: "You are a travel expert. Reply with ONLY a numbered list of landmark names, one per line (e.g. '1. Eiffel Tower'). No explanations, no extra text.",
           },
           {
             role: "user",
-            content: `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Give me just the landmark name that a tourist would search for on Google.`,
+            content: `List the top 6 most iconic, most-photographed landmarks, sights, or attractions in ${city}, ${country}. These should be specific named places a tourist would search for on Google. Return exactly 6, ranked by how iconic they are.`,
           },
         ],
       }),
@@ -60,20 +60,27 @@ async function getIconicLandmark(city: string, country: string): Promise<string>
 
     if (!resp.ok) {
       console.error(`AI landmark lookup failed (${resp.status})`);
-      return `${city} landmark`;
+      return [`${city} landmark`];
     }
 
     const data = await resp.json();
-    const landmark = data.choices?.[0]?.message?.content?.trim();
-    if (!landmark || landmark.length > 80) {
-      return `${city} landmark`;
-    }
+    const raw = data.choices?.[0]?.message?.content?.trim();
+    if (!raw) return [`${city} landmark`];
 
-    console.log(`AI identified iconic landmark for ${city}: ${landmark}`);
-    return landmark;
+    // Parse numbered list: "1. Name" or "1) Name" or just lines
+    const landmarks = raw
+      .split("\n")
+      .map((line: string) => line.replace(/^\d+[\.\)]\s*/, "").trim())
+      .filter((name: string) => name.length > 0 && name.length <= 80)
+      .slice(0, 6);
+
+    if (landmarks.length === 0) return [`${city} landmark`];
+
+    console.log(`AI identified ${landmarks.length} landmarks for ${city}:`, landmarks);
+    return landmarks;
   } catch (err) {
     console.error("AI landmark lookup error:", err);
-    return `${city} landmark`;
+    return [`${city} landmark`];
   }
 }
 
