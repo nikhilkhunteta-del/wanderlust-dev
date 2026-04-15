@@ -52,20 +52,8 @@ const CityDetail = () => {
   const navigate = useNavigate();
   const { cityName } = useParams<{ cityName: string }>();
   const [activeTab, setActiveTab] = useState("highlights");
-  const [pastHero, setPastHero] = useState(false);
-  const heroSentinel = useRef<HTMLDivElement>(null);
 
-  // Track when user scrolls past the hero area
-  useEffect(() => {
-    const el = heroSentinel.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setPastHero(!entry.isIntersecting),
-      { threshold: 0 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+
 
   const state = location.state as LocationState | undefined;
 
@@ -193,8 +181,8 @@ const CityDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Invisible sentinel – once it scrolls out of view, pastHero = true */}
-      <div ref={heroSentinel} className="h-0" />
+
+
       <Header rightContent={`${city.city}, ${city.country}`} />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
