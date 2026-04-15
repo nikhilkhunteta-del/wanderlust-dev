@@ -339,7 +339,7 @@ Deno.serve(async (req) => {
         image_url: images[0]?.url || "",
         small_url: images[0]?.smallUrl || "",
         source: primarySource,
-        source_url: landmark,
+        source_url: JSON.stringify(landmarks),
         photographer: images[0]?.photographer || null,
         photographer_url: images[0]?.photographerUrl || null,
         attribution_required: true,
