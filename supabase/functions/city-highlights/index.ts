@@ -74,7 +74,7 @@ RULES:
 
 Respond with ONLY valid JSON in this exact format:
 {
-  "matchStatement": "2-3 sentences explaining why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
+  "matchStatement": "STRICT: Exactly 2 sentences, no more than 35 words total. Explain why this city fits the user's interests and travel timing. Reference at least two of their interests. Informative and inspiring tone.",
   "personalMatchReasons": ["Your love of **historical depth** finds its match in Delhi's 7 successive cities, each layered over the last", "The **street food universe** of Chandni Chowk alone — paratha, jalebi, chaat — maps perfectly to your culinary curiosity", "Your preference for **warm, golden-light evenings** aligns with the sunset views from Humayun's Tomb gardens in your travel month"],
   "perfectDayTimeline": [
     {"time": "Morning", "activity": "Beat the heat with an early walk through Lodhi Gardens..."},
