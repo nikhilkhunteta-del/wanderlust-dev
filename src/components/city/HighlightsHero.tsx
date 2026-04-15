@@ -23,7 +23,7 @@ export const HighlightsHero = ({
   const [failed, setFailed] = useState(false);
 
   return (
-    <section className="relative w-full overflow-hidden h-[70vh] md:h-screen">
+    <section className="relative w-full overflow-hidden h-[70vh] md:h-[100vh]">
       {/* Background: image or gradient fallback */}
       {heroImage && !failed ? (
         <>
