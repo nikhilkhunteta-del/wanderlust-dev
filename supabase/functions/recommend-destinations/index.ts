@@ -34,6 +34,44 @@ interface CityRecommendation {
   bestMonths?: string;
 }
 
+function extractRecommendations(content: string): CityRecommendation[] | null {
+  let parsed: { recommendations: CityRecommendation[] };
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    let cleaned = content
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+
+    const jsonStart = cleaned.indexOf("{");
+    const jsonEnd = cleaned.lastIndexOf("}");
+
+    if (jsonStart === -1 || jsonEnd === -1) {
+      console.error("No JSON found in AI response");
+      return null;
+    }
+
+    cleaned = cleaned.substring(jsonStart, jsonEnd + 1)
+      .replace(/,\s*}/g, "}")
+      .replace(/,\s*]/g, "]")
+      .replace(/[\x00-\x1F\x7F]/g, "");
+
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      console.error("Failed to parse cleaned JSON");
+      return null;
+    }
+  }
+
+  if (parsed.recommendations && parsed.recommendations.length === 3) {
+    return parsed.recommendations;
+  }
+  console.warn(`Got ${parsed.recommendations?.length ?? 0} recommendations instead of 3`);
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -115,6 +153,8 @@ When one or more slots are locked by cultural moments that conflict with the use
 RESPONSE PROCESS:
 Process your response in two internal steps: first, select the 3 cities based purely on signal matching without considering how easy they are to write about. Second, write the rationale for each. Do not let the ease of writing a compelling rationale influence which city you select.
 
+CRITICAL: You MUST return exactly 3 recommendations in the JSON array. Not 1, not 2 — exactly 3. If you return fewer than 3, the request will fail.
+
 Respond with ONLY valid JSON in this exact format:
 {
   "recommendations": [
@@ -178,96 +218,77 @@ DISCOVERY STYLE: ${noveltyDesc}
 STYLE TAGS (inferred travel personality traits e.g. "cultural-explorer", "thrill-seeker", "slow-traveller", "foodie", "beach-lover" — use to fine-tune city vibe matching): ${profile.styleTags.length > 0 ? profile.styleTags.join(", ") : "none inferred"}
 
 IMPORTANT: For "off-beaten-path" or "surprise" discovery styles, prioritise cities with lower mainstream tourist footfall over world-famous hotspots.
-Remember: Return exactly 3 cities from different countries, matched by interests, experience style, and discovery preference.${excludedLine}${previousCitiesLine}`;
+Remember: Return EXACTLY 3 cities from different countries, matched by interests, experience style, and discovery preference. The response MUST contain exactly 3 objects in the recommendations array.${excludedLine}${previousCitiesLine}`;
 
     console.log("Sending prompt to AI gateway...");
 
     const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-    let response: Response | null = null;
+    const MAX_ATTEMPTS = 3;
+    let recommendations: CityRecommendation[] | null = null;
 
-    for (const model of models) {
-      console.log("Trying model:", model);
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          response_format: { type: "json_object" },
-        }),
-      });
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      for (const model of models) {
+        console.log(`Attempt ${attempt + 1}, trying model: ${model}`);
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            response_format: { type: "json_object" },
+            max_tokens: 2048,
+          }),
+        });
 
-      if (response.ok) break;
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`AI gateway error with ${model}:`, response.status, errorText);
 
-      const errorText = await response.text();
-      console.error(`AI gateway error with ${model}:`, response.status, errorText);
+          if (response.status === 429) {
+            return new Response(
+              JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+              { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          if (response.status === 402) {
+            return new Response(
+              JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
+              { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          continue;
+        }
 
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
+        const aiResponse = await response.json();
+        console.log("AI response received from", model);
 
-    if (!response || !response.ok) {
-      throw new Error("AI gateway returned 500");
-    }
+        const content = aiResponse.choices?.[0]?.message?.content;
+        if (!content) {
+          console.error(`Attempt ${attempt + 1}/${model}: No content in AI response`);
+          continue;
+        }
 
-    const aiResponse = await response.json();
-    console.log("AI response received:", JSON.stringify(aiResponse, null, 2));
-
-    const content = aiResponse.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content in AI response");
-    }
-
-    // Robust JSON extraction
-    let parsed: { recommendations: CityRecommendation[] };
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      // Try extracting JSON object from mixed content
-      let cleaned = content
-        .replace(/```json\s*/gi, "")
-        .replace(/```\s*/g, "")
-        .trim();
-
-      const jsonStart = cleaned.indexOf("{");
-      const jsonEnd = cleaned.lastIndexOf("}");
-
-      if (jsonStart === -1 || jsonEnd === -1) {
-        console.error("No JSON found in AI response:", content.substring(0, 500));
-        throw new Error("Could not parse JSON from AI response");
+        recommendations = extractRecommendations(content);
+        if (recommendations) break;
       }
 
-      cleaned = cleaned.substring(jsonStart, jsonEnd + 1)
-        .replace(/,\s*}/g, "}")
-        .replace(/,\s*]/g, "]")
-        .replace(/[\x00-\x1F\x7F]/g, "");
-
-      parsed = JSON.parse(cleaned);
+      if (recommendations) break;
+      console.warn(`Attempt ${attempt + 1} failed to produce 3 recommendations, retrying...`);
     }
 
-    if (!parsed.recommendations || parsed.recommendations.length !== 3) {
-      throw new Error("AI did not return exactly 3 recommendations");
+    if (!recommendations) {
+      throw new Error("Failed to generate exactly 3 recommendations after multiple attempts. Please try again.");
     }
 
-    console.log("Recommendations parsed successfully:", parsed.recommendations);
+    console.log("Recommendations parsed successfully:", recommendations);
 
-    return new Response(JSON.stringify({ recommendations: parsed.recommendations }), {
+    return new Response(JSON.stringify({ recommendations }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
