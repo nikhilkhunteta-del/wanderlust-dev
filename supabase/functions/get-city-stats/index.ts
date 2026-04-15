@@ -86,12 +86,11 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are a travel data expert. Return ONLY a valid JSON array with exactly 3 objects. Each object has two keys: 'stat' (a short number or figure, e.g. '3', '800+', '12km') and 'description' (a concise label, max 6 words). No markdown, no explanation, no extra text.",
+            content: `You are a travel data specialist. For the given city and travel interest, generate exactly 3 compelling, specific, and accurate statistics. Each stat must be directly relevant to the stated interest and genuinely impressive. Use real, verifiable numbers where possible. Focus on: ${interestGuide}. Return ONLY a valid JSON array with no preamble, no markdown, no backticks, in exactly this format: [{"stat": "3", "description": "UNESCO World Heritage Sites"}, {"stat": "120km", "description": "of pristine coastline"}, {"stat": "2,000+", "description": "years of recorded history"}]`,
           },
           {
             role: "user",
-            content: `Give me 3 impressive, specific, factual statistics about ${city}, ${country} that a traveler would find compelling. ${interestGuide} The stats should be real and verifiable. Return as JSON array: [{"stat":"...","description":"..."}]`,
+            content: `City: ${city}, Country: ${country}. Primary travel interest: ${interest}. Generate 3 statistics for this specific city.`,
           },
         ],
         tools: [
