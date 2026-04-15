@@ -350,7 +350,7 @@ Deno.serve(async (req) => {
     );
 
     return new Response(
-      JSON.stringify({ images, fromCache: false, landmark } as CollageResponse),
+      JSON.stringify({ images, fromCache: false, landmark: landmarks[0], landmarks } as CollageResponse),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
