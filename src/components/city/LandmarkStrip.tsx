@@ -21,12 +21,12 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
 
   if (isLoading) {
     return (
-      <section className="mb-14">
-        <div className="flex gap-4 overflow-hidden">
+      <section>
+        <div className="flex overflow-hidden">
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-full md:w-[calc(50%-8px)] rounded-xl bg-muted animate-pulse"
+              className="flex-shrink-0 w-full md:w-1/2 bg-muted animate-pulse"
               style={{ height: 500 }}
             />
           ))}
@@ -57,15 +57,15 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
   };
 
   return (
-    <section className="mb-14 relative group">
-      <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
+    <section className="relative group">
+      <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4 px-6 md:px-12">
         Explore {city}
       </h2>
       {/* Scroll container */}
       <div
         ref={scrollRef}
         onScroll={updateScrollButtons}
-        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar"
+        className="flex gap-0 overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {validImages.map((img, idx) => (
@@ -106,9 +106,9 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
   return (
     <div
       data-strip-card
-      className="flex-shrink-0 w-[85vw] md:w-[calc(50%-8px)] snap-start"
+      className="flex-shrink-0 w-full md:w-1/2 snap-start"
     >
-      <div className="relative rounded-xl overflow-hidden bg-muted" style={{ height: 500 }}>
+      <div className="relative overflow-hidden bg-muted" style={{ height: 500 }}>
         {!loaded && !failed && (
           <div className="absolute inset-0 animate-pulse bg-muted" />
         )}
@@ -145,7 +145,7 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
 
       {/* Landmark name */}
       <p
-        className="mt-2 text-muted-foreground"
+        className="mt-2 px-3 text-muted-foreground"
         style={{
           fontSize: 12,
           fontVariant: "small-caps",

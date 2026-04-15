@@ -95,12 +95,16 @@ export const HighlightsTab = ({
           </h2>
           <VibeStrip tags={highlights.vibeTags} />
         </section>
+      </div>
 
-        {/* Landmark photo strip */}
-        {stripLandmarks.length > 0 && (
+      {/* Landmark photo strip — full bleed */}
+      {stripLandmarks.length > 0 && (
+        <div className="mb-14">
           <LandmarkStrip city={city} country={country} landmarks={stripLandmarks} />
-        )}
+        </div>
+      )}
 
+      <div className="page-container space-y-0">
         {/* Tension callout */}
         {highlights.tensionNote && (
           <div className="flex gap-3 items-start p-4 rounded-xl border-l-[3px] border-amber-500 bg-amber-50 dark:bg-amber-950/30 mb-14">
