@@ -24,6 +24,7 @@ interface CollageImage {
 interface CollageResponse {
   images: (CollageImage | null)[];
   fromCache: boolean;
+  landmark?: string;
 }
 
 // Use AI to identify the single most iconic landmark for a city
@@ -76,14 +77,17 @@ async function getIconicLandmark(city: string, country: string): Promise<string>
 }
 
 // Build 3 search queries for the asymmetric collage
-async function buildQueries(city: string, country: string, interests: string[]): Promise<string[]> {
+async function buildQueries(city: string, country: string, interests: string[]): Promise<{ queries: string[]; landmark: string }> {
   const landmark = await getIconicLandmark(city, country);
 
-  return [
+  return {
+    queries: [
+      landmark,
+      `${city} street neighbourhood`,
+      `${city} ${country} tourism`,
+    ],
     landmark,
-    `${city} street neighbourhood`,
-    `${city} ${country} tourism`,
-  ];
+  };
 }
 
 // Fetch a photo via Google Places API (New), store in Supabase Storage, return permanent URL
@@ -259,7 +263,7 @@ Deno.serve(async (req) => {
           .eq("id", cached.id);
 
         return new Response(
-          JSON.stringify({ images: cachedImages, fromCache: true } as CollageResponse),
+          JSON.stringify({ images: cachedImages, fromCache: true, landmark: cached.source_url || undefined } as CollageResponse),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch {
@@ -267,8 +271,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Build 4 queries
-    const queries = await buildQueries(city, country || city, interests || []);
+    // Build queries and get landmark
+    const { queries, landmark } = await buildQueries(city, country || city, interests || []);
     const images: (CollageImage | null)[] = [];
 
     // Fetch all 3 in parallel: Google Places primary, Unsplash fallback
@@ -313,6 +317,7 @@ Deno.serve(async (req) => {
         image_url: images[0]?.url || "",
         small_url: images[0]?.smallUrl || "",
         source: primarySource,
+        source_url: landmark,
         photographer: images[0]?.photographer || null,
         photographer_url: images[0]?.photographerUrl || null,
         attribution_required: true,
@@ -323,7 +328,7 @@ Deno.serve(async (req) => {
     );
 
     return new Response(
-      JSON.stringify({ images, fromCache: false } as CollageResponse),
+      JSON.stringify({ images, fromCache: false, landmark } as CollageResponse),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
