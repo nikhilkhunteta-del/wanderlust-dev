@@ -1,4 +1,3 @@
-import { AlertTriangle } from "lucide-react";
 import { CityHighlights } from "@/types/cityHighlights";
 import { PersonalMatchSection } from "./PersonalMatchSection";
 import { PerfectDayStrip } from "./PerfectDayStrip";
@@ -105,15 +104,6 @@ export const HighlightsTab = ({
       )}
 
       <div className="page-container space-y-0">
-        {/* Tension callout */}
-        {highlights.tensionNote && (
-          <div className="flex gap-3 items-start p-4 rounded-xl border-l-[3px] border-amber-500 bg-amber-50 dark:bg-amber-950/30 mb-14">
-            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
-              {highlights.tensionNote}
-            </p>
-          </div>
-        )}
 
         {/* 2. Perfect day narrative */}
         <PerfectDayStrip
