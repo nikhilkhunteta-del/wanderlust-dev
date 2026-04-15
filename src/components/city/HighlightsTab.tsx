@@ -88,6 +88,14 @@ export const HighlightsTab = ({
           reasons={highlights.personalMatchReasons ?? []}
         />
 
+        {/* City Vibe */}
+        <section className="mb-14">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
+            City Vibe
+          </h2>
+          <VibeStrip tags={highlights.vibeTags} />
+        </section>
+
         {/* Landmark photo strip */}
         {stripLandmarks.length > 0 && (
           <LandmarkStrip city={city} country={country} landmarks={stripLandmarks} />
@@ -111,14 +119,6 @@ export const HighlightsTab = ({
           travelMonth={travelMonth}
           onSwitchTab={onSwitchTab}
         />
-
-        {/* City Vibe */}
-        <section className="mb-14">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
-            City Vibe
-          </h2>
-          <VibeStrip tags={highlights.vibeTags} />
-        </section>
 
         {/* 3. Featured experience */}
         {featuredExperience && (
