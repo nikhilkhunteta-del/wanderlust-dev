@@ -57,15 +57,15 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
   };
 
   return (
-    <section className="mb-14 relative group">
-      <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
+    <section className="relative group">
+      <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4 px-6 md:px-12">
         Explore {city}
       </h2>
       {/* Scroll container */}
       <div
         ref={scrollRef}
         onScroll={updateScrollButtons}
-        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar"
+        className="flex gap-0 overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {validImages.map((img, idx) => (
