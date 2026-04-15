@@ -12,7 +12,14 @@ import NotFound from "./pages/NotFound";
 import PlanCity from "./pages/PlanCity";
 import ItineraryBuilder from "./pages/ItineraryBuilder";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
