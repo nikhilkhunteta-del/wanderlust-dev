@@ -80,6 +80,11 @@ export const HighlightsTab = ({
           reasons={highlights.personalMatchReasons ?? []}
         />
 
+        {/* Landmark photo strip */}
+        {stripLandmarks.length > 0 && (
+          <LandmarkStrip city={city} country={country} landmarks={stripLandmarks} />
+        )}
+
         {/* Tension callout */}
         {highlights.tensionNote && (
           <div className="flex gap-3 items-start p-4 rounded-xl border-l-[3px] border-amber-500 bg-amber-50 dark:bg-amber-950/30 mb-14">
