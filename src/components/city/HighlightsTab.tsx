@@ -7,6 +7,7 @@ import { ThemedExperienceSection } from "./ThemedExperienceSection";
 import { VibeStrip } from "./VibeStrip";
 import { InsiderMissedSection } from "./InsiderMissedSection";
 import { LandmarkStrip } from "./LandmarkStrip";
+import { CityStatsStrip } from "./CityStatsStrip";
 
 import { Loader2 } from "lucide-react";
 import { useScrollFade } from "@/hooks/useScrollFade";
@@ -72,6 +73,13 @@ export const HighlightsTab = ({
 
   return (
     <div ref={scrollRef}>
+      {/* Stats strip */}
+      <CityStatsStrip
+        city={city}
+        country={country}
+        primaryInterest={profile?.interests?.[0] || "culture-history"}
+      />
+
       {/* Main Content */}
       <div className="page-container py-12 space-y-0">
         {/* 1. Personal match reasons */}
