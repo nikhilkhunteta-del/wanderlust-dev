@@ -145,7 +145,7 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
 
       {/* Landmark name */}
       <p
-        className="mt-2 text-muted-foreground"
+        className="mt-2 px-3 text-muted-foreground"
         style={{
           fontSize: 12,
           fontVariant: "small-caps",
