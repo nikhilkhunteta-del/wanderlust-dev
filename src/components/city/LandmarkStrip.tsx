@@ -48,7 +48,7 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
     const el = scrollRef.current;
     if (!el) return;
     const cardWidth = el.querySelector("[data-strip-card]")?.clientWidth ?? el.clientWidth / 2;
-    const gap = 16;
+    const gap = 12;
     el.scrollBy({
       left: direction === "left" ? -(cardWidth + gap) : cardWidth + gap,
       behavior: "smooth",
@@ -65,8 +65,8 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
       <div
         ref={scrollRef}
         onScroll={updateScrollButtons}
-        className="flex gap-0 overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        className="flex overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none", gap: 12 }}
       >
         {validImages.map((img, idx) => (
           <StripCard key={idx} image={img} />
