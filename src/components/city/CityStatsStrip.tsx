@@ -70,18 +70,29 @@ export const CityStatsStrip = ({ city, country, primaryInterest }: CityStatsStri
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const observer = new IntersectionObserver(handleIntersect, { threshold: 0.3 });
-    observer.observe(el);
 
-    // Check immediately in case element is already in viewport on mount
-    const rect = el.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-    if (rect.top < viewportHeight && rect.bottom > 0) {
-      setHasAnimated(true);
-    }
+    // Use rAF to ensure element is laid out before checking visibility
+    const raf = requestAnimationFrame(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            setHasAnimated(true);
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(el);
 
-    return () => observer.disconnect();
-  }, [handleIntersect]);
+      // Store for cleanup
+      (el as any).__io = observer;
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      (el as any).__io?.disconnect();
+    };
+  }, []);
 
   if (isLoading) {
     return (
