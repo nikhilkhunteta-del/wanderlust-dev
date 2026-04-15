@@ -58,6 +58,9 @@ export const LandmarkStrip = ({ city, country, landmarks }: LandmarkStripProps) 
 
   return (
     <section className="mb-14 relative group">
+      <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
+        Explore {city}
+      </h2>
       {/* Scroll container */}
       <div
         ref={scrollRef}
