@@ -18,22 +18,14 @@ interface CityStat {
 }
 
 const INTEREST_GUIDELINES: Record<string, string> = {
-  "culture-history":
-    "Focus on UNESCO sites, centuries of history, number of museums, ancient ruins, or historical landmarks.",
-  "nature-outdoors":
-    "Focus on national parks, hiking trails, nature reserves, endemic species, or elevation/geography stats.",
-  "beach-coastal":
-    "Focus on number of beaches, coastline length, average water temperature, or marine life diversity.",
-  "food-culinary":
-    "Focus on Michelin-starred restaurants, local food markets, signature dishes, or culinary traditions.",
-  "arts-music-nightlife":
-    "Focus on galleries, live music venues, annual festivals, street art scenes, or nightlife districts.",
-  "active-sport":
-    "Focus on adventure sports available, marathon events, cycling routes, dive sites, or surf spots.",
-  "shopping-markets":
-    "Focus on bazaars, artisan workshops, luxury shopping districts, or famous local crafts.",
-  "wellness-slow-travel":
-    "Focus on thermal springs, yoga retreats, spa traditions, average sunshine hours, or walkability score.",
+  "culture-history": "UNESCO sites, years of history, museums/monuments count",
+  "nature-outdoors": "national parks, hiking trails km, endemic species or natural wonders",
+  "beach-coastal": "km of coastline, sea temperature, number of beaches or marine reserves",
+  "food-culinary": "Michelin stars, signature dishes, market or street food stalls",
+  "arts-music-nightlife": "music venues, festivals per year, galleries or creative districts",
+  "active-sport": "adventure activities available, world rankings, terrain statistics",
+  "shopping-markets": "market age in years, artisan stalls, unique craft traditions",
+  "wellness-slow-travel": "spas or hammams, walkability ranking, average pace or retreat options",
 };
 
 Deno.serve(async (req) => {
@@ -94,12 +86,11 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are a travel data expert. Return ONLY a valid JSON array with exactly 3 objects. Each object has two keys: 'stat' (a short number or figure, e.g. '3', '800+', '12km') and 'description' (a concise label, max 6 words). No markdown, no explanation, no extra text.",
+            content: `You are a travel data specialist. For the given city and travel interest, generate exactly 3 compelling, specific, and accurate statistics. Each stat must be directly relevant to the stated interest and genuinely impressive. Use real, verifiable numbers where possible. Focus on: ${interestGuide}. Return ONLY a valid JSON array with no preamble, no markdown, no backticks, in exactly this format: [{"stat": "3", "description": "UNESCO World Heritage Sites"}, {"stat": "120km", "description": "of pristine coastline"}, {"stat": "2,000+", "description": "years of recorded history"}]`,
           },
           {
             role: "user",
-            content: `Give me 3 impressive, specific, factual statistics about ${city}, ${country} that a traveler would find compelling. ${interestGuide} The stats should be real and verifiable. Return as JSON array: [{"stat":"...","description":"..."}]`,
+            content: `City: ${city}, Country: ${country}. Primary travel interest: ${interest}. Generate 3 statistics for this specific city.`,
           },
         ],
         tools: [
