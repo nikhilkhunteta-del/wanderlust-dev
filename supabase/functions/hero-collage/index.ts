@@ -24,6 +24,7 @@ interface CollageImage {
 interface CollageResponse {
   images: (CollageImage | null)[];
   fromCache: boolean;
+  landmark?: string;
 }
 
 // Use AI to identify the single most iconic landmark for a city
