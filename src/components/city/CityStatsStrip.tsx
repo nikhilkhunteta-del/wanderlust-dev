@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useCityStats } from "@/hooks/useCityStats";
 
 interface CityStatsStripProps {
