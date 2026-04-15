@@ -18,22 +18,14 @@ interface CityStat {
 }
 
 const INTEREST_GUIDELINES: Record<string, string> = {
-  "culture-history":
-    "Focus on UNESCO sites, centuries of history, number of museums, ancient ruins, or historical landmarks.",
-  "nature-outdoors":
-    "Focus on national parks, hiking trails, nature reserves, endemic species, or elevation/geography stats.",
-  "beach-coastal":
-    "Focus on number of beaches, coastline length, average water temperature, or marine life diversity.",
-  "food-culinary":
-    "Focus on Michelin-starred restaurants, local food markets, signature dishes, or culinary traditions.",
-  "arts-music-nightlife":
-    "Focus on galleries, live music venues, annual festivals, street art scenes, or nightlife districts.",
-  "active-sport":
-    "Focus on adventure sports available, marathon events, cycling routes, dive sites, or surf spots.",
-  "shopping-markets":
-    "Focus on bazaars, artisan workshops, luxury shopping districts, or famous local crafts.",
-  "wellness-slow-travel":
-    "Focus on thermal springs, yoga retreats, spa traditions, average sunshine hours, or walkability score.",
+  "culture-history": "UNESCO sites, years of history, museums/monuments count",
+  "nature-outdoors": "national parks, hiking trails km, endemic species or natural wonders",
+  "beach-coastal": "km of coastline, sea temperature, number of beaches or marine reserves",
+  "food-culinary": "Michelin stars, signature dishes, market or street food stalls",
+  "arts-music-nightlife": "music venues, festivals per year, galleries or creative districts",
+  "active-sport": "adventure activities available, world rankings, terrain statistics",
+  "shopping-markets": "market age in years, artisan stalls, unique craft traditions",
+  "wellness-slow-travel": "spas or hammams, walkability ranking, average pace or retreat options",
 };
 
 Deno.serve(async (req) => {
