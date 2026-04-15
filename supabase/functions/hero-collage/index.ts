@@ -294,7 +294,7 @@ Deno.serve(async (req) => {
     }
 
     // Build queries and get landmark
-    const { queries, landmark } = await buildQueries(city, country || city, interests || []);
+    const { queries, landmarks } = await buildQueries(city, country || city, interests || []);
     const images: (CollageImage | null)[] = [];
 
     // Fetch all 3 in parallel: Google Places primary, Unsplash fallback
