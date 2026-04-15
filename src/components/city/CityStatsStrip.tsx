@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useCityStats } from "@/hooks/useCityStats";
 
 interface CityStatsStripProps {
@@ -61,19 +61,33 @@ export const CityStatsStrip = ({ city, country, primaryInterest }: CityStatsStri
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
 
-  const handleIntersect = useCallback((entries: IntersectionObserverEntry[]) => {
-    if (entries[0]?.isIntersecting && !hasAnimated) {
-      setHasAnimated(true);
-    }
-  }, [hasAnimated]);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const observer = new IntersectionObserver(handleIntersect, { threshold: 0.3 });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [handleIntersect]);
+
+    // Use rAF to ensure element is laid out before checking visibility
+    const raf = requestAnimationFrame(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            setHasAnimated(true);
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(el);
+
+      // Store for cleanup
+      (el as any).__io = observer;
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      (el as any).__io?.disconnect();
+    };
+  }, [stats]);
 
   if (isLoading) {
     return (
