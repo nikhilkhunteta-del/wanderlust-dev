@@ -1,6 +1,5 @@
 import { AlertTriangle } from "lucide-react";
 import { CityHighlights } from "@/types/cityHighlights";
-import { HighlightsHero } from "./HighlightsHero";
 import { PersonalMatchSection } from "./PersonalMatchSection";
 import { PerfectDayStrip } from "./PerfectDayStrip";
 import { FeaturedExperienceCard } from "./FeaturedExperienceCard";
@@ -69,14 +68,6 @@ export const HighlightsTab = ({
 
   return (
     <div ref={scrollRef}>
-      {/* Hero Section */}
-      <HighlightsHero
-        city={city}
-        country={country}
-        matchStatement={highlights.matchStatement}
-        interests={profile?.interests ?? []}
-      />
-
       {/* Main Content */}
       <div className="page-container py-12 space-y-0">
         {/* 1. Personal match reasons */}
