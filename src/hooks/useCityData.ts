@@ -16,9 +16,9 @@ import { FlightInsightsRequest } from "@/types/flightInsights";
 import { ItineraryRequest, CityItinerary } from "@/types/itinerary";
 import { MultiCityItineraryRequest, MultiCityItinerary } from "@/types/multiCity";
 
-// Cache for 10 minutes, consider stale after 5 minutes
-const STALE_TIME = 5 * 60 * 1000;
-const CACHE_TIME = 10 * 60 * 1000;
+// AI-generated content: never refetch automatically
+const STALE_TIME = 30 * 60 * 1000;
+const CACHE_TIME = 60 * 60 * 1000;
 
 export function useCityHighlights(request: CityHighlightsRequest | null) {
   return useQuery({
