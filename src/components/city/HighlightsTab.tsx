@@ -1,4 +1,3 @@
-import { AlertTriangle } from "lucide-react";
 import { CityHighlights } from "@/types/cityHighlights";
 import { PersonalMatchSection } from "./PersonalMatchSection";
 import { PerfectDayStrip } from "./PerfectDayStrip";
