@@ -130,7 +130,7 @@ export const SeasonalTab = ({
 
       {/* Opening statement — editorial italic, no container */}
       {data.openingStatement && (
-        <p className="text-lg italic text-muted-foreground leading-relaxed mb-10 max-w-3xl">
+        <p className="text-lg italic text-muted-foreground leading-relaxed mb-10">
           {data.openingStatement}
         </p>
       )}
