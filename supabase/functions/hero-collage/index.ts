@@ -265,13 +265,27 @@ Deno.serve(async (req) => {
     if (cached) {
       try {
         const cachedImages = JSON.parse(cached.entity_name || "[]");
+        // Parse landmarks from source_url (stored as JSON array)
+        let cachedLandmarks: string[] = [];
+        try {
+          cachedLandmarks = JSON.parse(cached.source_url || "[]");
+        } catch {
+          // Legacy single landmark string
+          if (cached.source_url) cachedLandmarks = [cached.source_url];
+        }
+
         await supabase
           .from("image_cache")
           .update({ hit_count: (cached.hit_count || 0) + 1 })
           .eq("id", cached.id);
 
         return new Response(
-          JSON.stringify({ images: cachedImages, fromCache: true, landmark: cached.source_url || undefined } as CollageResponse),
+          JSON.stringify({
+            images: cachedImages,
+            fromCache: true,
+            landmark: cachedLandmarks[0] || undefined,
+            landmarks: cachedLandmarks,
+          } as CollageResponse),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch {
