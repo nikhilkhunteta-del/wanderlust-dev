@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     const city = (body.city || "").replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
     const country = body.country || "";
     const travelMonth = body.travelMonth || "";
+    const primaryInterest = (body.primaryInterest || "").toString().toLowerCase();
     console.log(`Fetching weather data for ${city}, ${country} in ${travelMonth}`);
 
     // Step 1: Geocode
@@ -166,6 +167,11 @@ Deno.serve(async (req) => {
     const weatherRisks = generateWeatherRisks(avgHighTemp, avgLowTemp, totalRainfall, rainyDays, sunshineHours);
     const sensoryNarrative = generateSensoryNarrative(avgHighTemp, avgLowTemp, sunshineHours, totalRainfall, monthFull);
     const chartSummary = generateChartSummary(weeklyData, dailyData, sunshineHours, avgHighTemp, totalRainfall, monthFull, city);
+    const usefulInsights = generateUsefulInsights({
+      city, monthFull, primaryInterest,
+      dailyData, weeklyData, avgHighTemp, avgLowTemp,
+      totalRainfall, sunshineHours, rainyDays, latitude: location.latitude,
+    });
 
     const result = {
       verdict,
@@ -184,6 +190,7 @@ Deno.serve(async (req) => {
       bestTimeToVisit,
       packingTips,
       notNeeded,
+      usefulInsights,
     };
 
     console.log(`Weather data processed: avgHigh=${avgHighTemp}°C, rating=${monthRanking.rating}`);
