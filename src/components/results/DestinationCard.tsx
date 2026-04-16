@@ -25,7 +25,40 @@ interface DestinationCardProps {
   recommendation: CityRecommendation;
   onExplore: () => void;
   departureCity?: string;
+  userInterests?: string[];
 }
+
+// Map of related interests — used to allow at most one closely related secondary chip
+const RELATED_INTERESTS: Record<string, string[]> = {
+  'active-sport': ['nature-outdoors'],
+  'nature-outdoors': ['active-sport', 'wellness-slow-travel'],
+  'beach-coastal': ['wellness-slow-travel', 'nature-outdoors'],
+  'culture-history': ['arts-music-nightlife'],
+  'arts-music-nightlife': ['culture-history'],
+  'food-culinary': ['shopping-markets', 'culture-history'],
+  'shopping-markets': ['food-culinary'],
+  'wellness-slow-travel': ['nature-outdoors', 'beach-coastal'],
+};
+
+const filterRelevantTags = (tags: string[], userInterests?: string[]): string[] => {
+  if (!userInterests || userInterests.length === 0) return tags;
+  const selected = new Set(userInterests.map(i => i.toLowerCase()));
+  const allowedSecondary = new Set<string>();
+  userInterests.forEach(i => {
+    (RELATED_INTERESTS[i.toLowerCase()] || []).forEach(r => allowedSecondary.add(r));
+  });
+
+  const primary: string[] = [];
+  const secondary: string[] = [];
+  tags.forEach(tag => {
+    const lower = tag.toLowerCase();
+    if (selected.has(lower)) primary.push(tag);
+    else if (allowedSecondary.has(lower)) secondary.push(tag);
+  });
+
+  // Show all selected matches + at most 1 closely related secondary
+  return [...primary, ...secondary.slice(0, primary.length > 0 ? 1 : 0)];
+};
 
 const formatFlightTime = (hours: number): string => {
   const h = Math.floor(hours);
@@ -34,7 +67,8 @@ const formatFlightTime = (hours: number): string => {
   return `${h}h ${m}m`;
 };
 
-export const DestinationCard = ({ recommendation, onExplore, departureCity }: DestinationCardProps) => {
+export const DestinationCard = ({ recommendation, onExplore, departureCity, userInterests }: DestinationCardProps) => {
+  const visibleTags = filterRelevantTags(recommendation.tags, userInterests);
   return (
     <article className="group bg-card rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
       {/* Hero Image using new image system */}
@@ -84,17 +118,19 @@ export const DestinationCard = ({ recommendation, onExplore, departureCity }: De
           {stripMarkdown(recommendation.rationale)}
         </p>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {recommendation.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
-            >
-              {humanizeTag(tag)}
-            </span>
-          ))}
-        </div>
+        {/* Tags — only those matching the user's selected interests (+ at most one closely related) */}
+        {visibleTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {visibleTags.map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
+              >
+                {humanizeTag(tag)}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* CTA Button */}
         <Button

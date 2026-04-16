@@ -146,6 +146,7 @@ const Results = () => {
                 recommendation={rec}
                 onExplore={() => handleExploreCity(rec)}
                 departureCity={profile?.departureCity}
+                userInterests={userInterests}
               />
               <button
                 type="button"
