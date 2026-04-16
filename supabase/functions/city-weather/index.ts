@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     const city = (body.city || "").replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
     const country = body.country || "";
     const travelMonth = body.travelMonth || "";
+    const primaryInterest = (body.primaryInterest || "").toString().toLowerCase();
     console.log(`Fetching weather data for ${city}, ${country} in ${travelMonth}`);
 
     // Step 1: Geocode
@@ -166,6 +167,11 @@ Deno.serve(async (req) => {
     const weatherRisks = generateWeatherRisks(avgHighTemp, avgLowTemp, totalRainfall, rainyDays, sunshineHours);
     const sensoryNarrative = generateSensoryNarrative(avgHighTemp, avgLowTemp, sunshineHours, totalRainfall, monthFull);
     const chartSummary = generateChartSummary(weeklyData, dailyData, sunshineHours, avgHighTemp, totalRainfall, monthFull, city);
+    const usefulInsights = generateUsefulInsights({
+      city, monthFull, primaryInterest,
+      dailyData, weeklyData, avgHighTemp, avgLowTemp,
+      totalRainfall, sunshineHours, rainyDays, latitude: location.latitude,
+    });
 
     const result = {
       verdict,
@@ -184,6 +190,7 @@ Deno.serve(async (req) => {
       bestTimeToVisit,
       packingTips,
       notNeeded,
+      usefulInsights,
     };
 
     console.log(`Weather data processed: avgHigh=${avgHighTemp}°C, rating=${monthRanking.rating}`);
@@ -500,4 +507,204 @@ function generateNotNeeded(avgHigh: number, avgLow: number, rainfall: number): s
   if (avgLow > 15) items.push("Thermal base layers");
   if (avgHigh < 30 && avgLow > 5) items.push("Extreme weather gear");
   return items.slice(0, 3);
+}
+
+interface UsefulInsightInput {
+  city: string;
+  monthFull: string;
+  primaryInterest: string;
+  dailyData: { day: number; high: number; low: number; rainfall: number }[];
+  weeklyData: WeekData[];
+  avgHighTemp: number;
+  avgLowTemp: number;
+  totalRainfall: number;
+  sunshineHours: number;
+  rainyDays: number;
+  latitude: number;
+}
+
+function generateUsefulInsights(input: UsefulInsightInput): { label: string; body: string }[] {
+  const { city, monthFull, primaryInterest, dailyData, weeklyData, avgHighTemp, avgLowTemp, totalRainfall, sunshineHours, rainyDays, latitude } = input;
+  const days = dailyData.length || 30;
+
+  // Rainfall distribution analysis (real data)
+  const rainfallSorted = [...dailyData].map(d => d.rainfall).sort((a, b) => b - a);
+  const heavyDays = dailyData.filter(d => d.rainfall >= 10).length;
+  const moderateDays = dailyData.filter(d => d.rainfall >= 3 && d.rainfall < 10).length;
+  const lightDays = dailyData.filter(d => d.rainfall >= 1 && d.rainfall < 3).length;
+  const dryDays = days - heavyDays - moderateDays - lightDays;
+  const dryDaysPct = Math.round((dryDays / days) * 100);
+  const avgRainOnRainyDay = rainyDays > 0
+    ? Math.round((totalRainfall / rainyDays) * 10) / 10
+    : 0;
+
+  let rainPatternDesc: string;
+  if (rainyDays === 0) {
+    rainPatternDesc = "essentially no rain to plan around";
+  } else if (heavyDays >= rainyDays * 0.5 && heavyDays >= 3) {
+    rainPatternDesc = "prolonged downpours rather than passing showers";
+  } else if (lightDays > moderateDays && lightDays > heavyDays) {
+    rainPatternDesc = "mostly light drizzle that rarely halts plans";
+  } else if (avgRainOnRainyDay < 5) {
+    rainPatternDesc = "short, passing showers";
+  } else {
+    rainPatternDesc = "moderate showers that come and go";
+  }
+
+  // Daylight calc — astronomical estimate from latitude + day-of-year (mid-month)
+  const monthIdx = getMonthIndex(monthFull);
+  const dayOfYear = Math.round((monthIdx + 0.5) * 30.4);
+  const declination = 23.44 * Math.sin(((360 / 365) * (dayOfYear - 81)) * Math.PI / 180);
+  const latRad = latitude * Math.PI / 180;
+  const decRad = declination * Math.PI / 180;
+  let cosH = -Math.tan(latRad) * Math.tan(decRad);
+  cosH = Math.max(-1, Math.min(1, cosH));
+  const daylightHours = Math.round(((Math.acos(cosH) * 180 / Math.PI) * 2 / 15) * 10) / 10;
+  const daylightHoursInt = Math.round(daylightHours);
+
+  // Best week (real data)
+  const weeklyScored = weeklyData.map(w => {
+    let s = 0;
+    if (w.avgHigh >= 18 && w.avgHigh <= 28) s += 3; else if (w.avgHigh >= 12 && w.avgHigh <= 32) s += 2; else s += 1;
+    s -= w.totalRainfall * 0.05;
+    return { ...w, score: s };
+  });
+  const bestWeek = [...weeklyScored].sort((a, b) => b.score - a.score)[0];
+  const ordinals = ["first", "second", "third", "fourth"];
+  const bestWeekOrd = ordinals[(bestWeek?.week ?? 1) - 1] || "first";
+
+  // Temp range
+  const range = avgHighTemp - avgLowTemp;
+
+  // Card 1 — interest-aware, derived from temp/rain/sun pattern
+  const hot = avgHighTemp >= 30;
+  const warm = avgHighTemp >= 22 && avgHighTemp < 30;
+  const mild = avgHighTemp >= 14 && avgHighTemp < 22;
+  const cool = avgHighTemp < 14;
+  const coolMornings = avgLowTemp < 15;
+  const wetAfternoons = heavyDays + moderateDays >= rainyDays * 0.6 && rainyDays >= 4;
+
+  let interestLabel = "Best for activity";
+  let interestBody = "";
+  const morningSlot = `mornings (before ${hot ? "10am" : "11am"})`;
+  const eveningSlot = `evenings after ${hot ? "5pm" : "4pm"}`;
+
+  switch (primaryInterest) {
+    case "active-sport":
+      interestLabel = "Best for outdoor activity";
+      interestBody = hot
+        ? `With highs around ${avgHighTemp}°C, save runs, rides and outdoor sport for ${morningSlot} or ${eveningSlot} — midday heat will sap energy fast.`
+        : cool
+        ? `Daytime highs of ${avgHighTemp}°C make late mornings and early afternoons the warmest, most workable window for outdoor sport.`
+        : `Conditions support outdoor activity through most of the day; aim for late morning to early afternoon when ${avgHighTemp}°C highs feel most comfortable${wetAfternoons ? " and rain is least likely" : ""}.`;
+      break;
+    case "beach-coastal":
+      interestLabel = "Best for beach time";
+      interestBody = hot || warm
+        ? `Beach hours peak between 10am and 4pm with ${avgHighTemp}°C highs and ${sunshineHours}h of daily sunshine${rainyDays > 6 ? `, though ${rainyDays} days see rain so check the forecast each morning` : ""}.`
+        : `Sea and air temperatures sit on the cool side this month — expect comfortable coastal walks rather than long swims, with the warmest stretch typically 12pm–3pm.`;
+      break;
+    case "food-culinary":
+      interestLabel = "Best for outdoor dining and markets";
+      interestBody = warm || (mild && sunshineHours >= 5)
+        ? `Outdoor terraces and markets are at their best from late morning into early evening; ${avgLowTemp}°C nights mean a light layer for late dinners outside.`
+        : hot
+        ? `Markets feel best in early ${morningSlot} before the heat builds; long outdoor dinners come into their own once temperatures drop after 6pm.`
+        : `Cooler ${avgHighTemp}°C days favour covered markets and indoor dining rooms — outdoor seating works at midday only when the sun is out.`;
+      break;
+    case "culture-history":
+      interestLabel = "Best for sightseeing";
+      interestBody = hot
+        ? `Plan walking tours, monuments and open-air sites for ${morningSlot} or ${eveningSlot}; reserve museums and galleries for the ${avgHighTemp}°C midday peak.`
+        : cool
+        ? `Sightseeing is most comfortable from late morning through early afternoon when temperatures climb to around ${avgHighTemp}°C — earlier than that, ${avgLowTemp}°C mornings can feel raw.`
+        : `Comfortable ${avgHighTemp}°C days make full sightseeing schedules realistic${rainyDays >= 5 ? `, though slotting an indoor museum into your day covers the ${rainyDays} rainier days` : ""}.`;
+      break;
+    case "nature-outdoors":
+      interestLabel = "Best for hikes and nature";
+      interestBody = hot
+        ? `Start trails at sunrise — by midday ${avgHighTemp}°C heat makes longer hikes punishing. Visibility is usually best in the first few hours of the day.`
+        : cool
+        ? `Aim for hikes between late morning and mid-afternoon when temperatures peak around ${avgHighTemp}°C; ${avgLowTemp}°C mornings need proper layers.`
+        : `Mild ${avgHighTemp}°C highs and ${sunshineHours}h of sunshine make full-day hikes very doable${heavyDays >= 3 ? `, though heavier rain on roughly ${heavyDays} days can muddy trails — check conditions before you set off` : ""}.`;
+      break;
+    case "arts-music-nightlife":
+      interestLabel = "Best for evenings out";
+      interestBody = avgLowTemp >= 18
+        ? `Evenings stay warm at around ${avgLowTemp}°C — rooftop bars, outdoor venues and late-night strolls all work without a jacket.`
+        : avgLowTemp >= 10
+        ? `After dark settles at around ${avgLowTemp}°C — comfortable for walking between venues with a light layer; outdoor seating is borderline once the sun goes down.`
+        : `Nights drop to around ${avgLowTemp}°C, so plan around indoor venues and quick taxi hops between bars rather than long outdoor evenings.`;
+      break;
+    case "shopping-markets":
+      interestLabel = "Best for shopping and markets";
+      interestBody = hot
+        ? `Open-air markets feel best in ${morningSlot}; reserve afternoons for air-conditioned malls and covered souks when ${avgHighTemp}°C heat peaks.`
+        : rainyDays >= 7
+        ? `With rain on roughly ${rainyDays} of ${days} days, lean towards covered arcades and indoor markets — open-air browsing works best on the drier ${dryDays} days, ideally midday.`
+        : `Comfortable ${avgHighTemp}°C days make outdoor markets and street browsing easy throughout the day; the busiest, best-stocked window is usually 10am–2pm.`;
+      break;
+    case "wellness-slow-travel":
+      interestLabel = "Best for slow mornings and walks";
+      interestBody = hot
+        ? `Slow mornings outside work beautifully until around 10am while temperatures sit near ${avgLowTemp}°C; long walks return as the day cools after 5pm.`
+        : mild || warm
+        ? `Soft mornings around ${avgLowTemp}°C and afternoons up to ${avgHighTemp}°C suit unhurried walks, café terraces and outdoor reading through most of the day.`
+        : `Cool ${avgHighTemp}°C days make late-morning to early-afternoon the most inviting window for outdoor walks; mornings reward a slow indoor start with a warm drink.`;
+      break;
+    default:
+      interestLabel = "Best window for your day";
+      interestBody = hot
+        ? `Plan outdoor time for ${morningSlot} or ${eveningSlot}; the ${avgHighTemp}°C midday peak is best spent indoors or in the shade.`
+        : cool
+        ? `Late morning to early afternoon is the most comfortable stretch, with highs reaching around ${avgHighTemp}°C.`
+        : `Comfortable ${avgHighTemp}°C days mean you can build full outdoor schedules; just keep an eye on the sky on the ${rainyDays} expected rainy days.`;
+  }
+
+  // Card 2 — Best week
+  const bestWeekRain = bestWeek?.totalRainfall ?? 0;
+  const bestWeekHigh = bestWeek?.avgHigh ?? avgHighTemp;
+  const bestWeekBody = `The ${bestWeekOrd} week looks strongest — highs averaging ${bestWeekHigh}°C with ${bestWeekRain}mm of rain across the week, the most reliable balance of warmth and dry days in ${monthFull}.`;
+
+  // Card 3 — Rain reality check
+  const rainBody = rainyDays === 0
+    ? `Effectively dry — no measurable rain across the month, so you can plan outdoor activities without a backup.`
+    : `Around ${rainyDays} of ${days} days see measurable rain — typically ${rainPatternDesc}${heavyDays > 0 ? `, with about ${heavyDays} day${heavyDays === 1 ? "" : "s"} of heavier rainfall` : ""}. ${dryDaysPct >= 60 ? `${dryDaysPct}% of days stay dry, so most plans hold` : `Build flexibility into outdoor plans and keep an indoor option in your back pocket`}.`;
+
+  // Card 4 — Daylight
+  const daylightUnlock = daylightHours >= 14
+    ? `dinners outside still in daylight, late golden-hour walks, and full multi-stop days without rushing`
+    : daylightHours >= 11
+    ? `comfortable full days of sightseeing with time for an unhurried evening before sunset`
+    : daylightHours >= 9
+    ? `compact daytime plans — front-load outdoor sights and lean into atmospheric early evenings`
+    : `short days that suit cosy interiors, museum afternoons, and early dinners as the city lights come on`;
+  const daylightBody = `Roughly ${daylightHoursInt} hours of daylight — enough for ${daylightUnlock}.`;
+
+  // Card 5 — Temperature range / packing
+  const packBody = range >= 14
+    ? `Big swing of ${range}°C between ${avgHighTemp}°C afternoons and ${avgLowTemp}°C mornings — pack layers you can shed and add through the day, plus a light jumper for after sunset.`
+    : range >= 9
+    ? `A ${range}°C gap between ${avgHighTemp}°C days and ${avgLowTemp}°C nights — daytime stays comfortable in light clothing, but you'll want a layer for evenings out.`
+    : range >= 5
+    ? `Steady conditions with only a ${range}°C swing between day and night — what you wear in the afternoon mostly works for the evening too.`
+    : `Very stable temperatures — daytime ${avgHighTemp}°C and night ${avgLowTemp}°C feel similar, so a single thoughtful outfit covers most of the day.`;
+
+  // Card 6 — Month context (one sentence, no judgement)
+  const contextBody = sunshineHours >= 8 && rainyDays <= 5
+    ? `${monthFull} is one of the brighter, drier months locally — useful context as you plan around daylight and outdoor time.`
+    : sunshineHours >= 6
+    ? `${monthFull} sits in the city's mid-range for sunshine and rainfall, with conditions that broadly match the seasonal averages travellers expect.`
+    : rainyDays >= 10
+    ? `${monthFull} tends to be one of the wetter months in ${city}, which is helpful to know when you're sequencing outdoor and indoor plans.`
+    : `${monthFull} brings characteristically ${cool ? "cool" : warm ? "warm" : "mild"} conditions for ${city}, useful context as you decide how to pace your days.`;
+
+  return [
+    { label: interestLabel, body: interestBody },
+    { label: "Best week", body: bestWeekBody },
+    { label: "Rain pattern", body: rainBody },
+    { label: "Daylight", body: daylightBody },
+    { label: "What to pack", body: packBody },
+    { label: "Month context", body: contextBody },
+  ];
 }
