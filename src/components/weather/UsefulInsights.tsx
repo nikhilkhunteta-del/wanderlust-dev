@@ -19,7 +19,7 @@ export const UsefulInsights = ({ insights }: UsefulInsightsProps) => {
               key={i}
               className="grid grid-cols-[140px_1fr] border-b border-border/60"
             >
-              <div className="bg-muted/40 px-4 py-5 flex flex-col justify-center">
+              <div className="bg-secondary/60 px-4 py-5 flex flex-col justify-center border-r border-border/60">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {insight.label}
                 </p>

@@ -48,7 +48,7 @@ export function useSeasonalHighlights(
 
 export function useCityWeather(city: string, country: string, travelMonth: string, primaryInterest?: string) {
   return useQuery({
-    queryKey: ["city-weather", city, country, travelMonth, primaryInterest],
+    queryKey: ["city-weather", "v2-stats", city, country, travelMonth, primaryInterest],
     queryFn: () => getCityWeather({ city, country, travelMonth, primaryInterest }),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
