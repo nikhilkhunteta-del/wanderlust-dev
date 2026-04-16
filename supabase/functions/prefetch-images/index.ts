@@ -13,24 +13,48 @@ interface PrefetchRequest {
     city: string;
     country: string;
   }>;
-  userInterests: string[];
+  userInterests?: string[];
 }
 
-// Category mappings for common travel interests
-const INTEREST_CATEGORIES: Record<string, string[]> = {
-  'food': ['local cuisine', 'restaurants', 'street food', 'food market', 'cafe'],
-  'culture': ['museum', 'historic architecture', 'art gallery', 'cultural landmark', 'heritage site'],
-  'nature': ['park', 'garden', 'scenic view', 'nature trail', 'waterfront'],
-  'adventure': ['outdoor activity', 'hiking', 'adventure sport', 'exploration'],
-  'nightlife': ['nightlife', 'bar district', 'entertainment venue'],
-  'shopping': ['market', 'shopping street', 'boutique', 'local crafts'],
-  'beach': ['beach', 'coastline', 'seaside', 'waterfront'],
-  'history': ['historic site', 'ancient ruins', 'monument', 'old town'],
-  'art': ['art gallery', 'street art', 'mural', 'art museum'],
-  'architecture': ['architecture', 'building', 'skyline', 'landmark'],
-  'relaxation': ['spa', 'wellness', 'peaceful garden', 'retreat'],
-  'photography': ['scenic viewpoint', 'photogenic spot', 'panorama'],
-};
+// Ask the AI to identify the single most iconic landmark for a city.
+// Mirrors the approach used by the hero-collage edge function so prefetch
+// queries hit Google Places with a real, searchable place name.
+async function getIconicLandmark(city: string, country: string): Promise<string> {
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) return `${city} landmark`;
+
+  try {
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
+          },
+          {
+            role: "user",
+            content: `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
+          },
+        ],
+      }),
+    });
+
+    if (!resp.ok) return `${city} landmark`;
+    const data = await resp.json();
+    const raw = data.choices?.[0]?.message?.content?.trim();
+    if (!raw || raw.length > 80) return `${city} landmark`;
+    return raw.replace(/^\d+[\.\)]\s*/, "").trim();
+  } catch {
+    return `${city} landmark`;
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -39,7 +63,7 @@ serve(async (req) => {
 
   try {
     const request: PrefetchRequest = await req.json();
-    
+
     if (!request.cities?.length) {
       return new Response(
         JSON.stringify({ error: "cities array is required" }),
@@ -47,9 +71,8 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Prefetching images for ${request.cities.length} cities`);
+    console.log(`Prefetching 1 city_hero for ${request.cities.length} cities`);
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -57,66 +80,37 @@ serve(async (req) => {
     let cached = 0;
     let errors = 0;
 
-    // Process each city
     for (const cityInfo of request.cities) {
       const { city, country } = cityInfo;
-      
-      // 1. Prefetch 3 city hero images (with variations)
-      const heroQueries = [
-        { type: 'city_hero' as const, city, country },
-        { type: 'city_hero' as const, city, country, entityName: `${city} skyline` },
-        { type: 'city_hero' as const, city, country, entityName: `${city} landmark` },
-      ];
 
-      for (const query of heroQueries) {
-        try {
-          const response = await supabase.functions.invoke('resolve-image', {
-            body: query,
-          });
-          
-          if (response.data?.image) {
-            cached++;
-          } else if (response.data?.error) {
-            errors++;
-          }
-        } catch (e) {
-          console.error(`Error prefetching hero for ${city}:`, e);
+      try {
+        const landmark = await getIconicLandmark(city, country);
+        console.log(`[${city}] iconic landmark: "${landmark}"`);
+
+        const response = await supabase.functions.invoke("resolve-image", {
+          body: {
+            type: "city_hero",
+            city,
+            country,
+            entityName: landmark,
+          },
+        });
+
+        if (response.data?.image) {
+          cached++;
+        } else {
           errors++;
-        }
-      }
-
-      // 2. Prefetch category images based on user interests
-      const interestsToFetch = request.userInterests?.slice(0, 5) || ['culture', 'food', 'nature'];
-      
-      for (const interest of interestsToFetch) {
-        const categoryKeywords = INTEREST_CATEGORIES[interest.toLowerCase()] || [interest];
-        
-        // Fetch 2 images per interest category
-        for (let i = 0; i < Math.min(2, categoryKeywords.length); i++) {
-          try {
-            const response = await supabase.functions.invoke('resolve-image', {
-              body: {
-                type: 'category',
-                city,
-                country,
-                interestTags: [categoryKeywords[i]],
-              },
-            });
-            
-            if (response.data?.image) {
-              cached++;
-            } else if (response.data?.error) {
-              errors++;
-            }
-          } catch (e) {
-            console.error(`Error prefetching category for ${city}/${interest}:`, e);
-            errors++;
+          if (response.data?.error) {
+            console.error(`[${city}] resolve-image error:`, response.data.error);
           }
         }
+      } catch (e) {
+        console.error(`[${city}] prefetch error:`, e);
+        errors++;
       }
 
       // Small delay between cities to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
     console.log(`Prefetch complete: ${cached} cached, ${errors} errors`);
@@ -125,7 +119,7 @@ serve(async (req) => {
       JSON.stringify({
         cached,
         errors,
-        message: `Prefetched images for ${request.cities.length} cities: ${cached} cached, ${errors} errors`,
+        message: `Prefetched ${cached}/${request.cities.length} city heroes (${errors} errors)`,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
