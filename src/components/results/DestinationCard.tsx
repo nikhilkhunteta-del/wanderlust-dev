@@ -25,7 +25,40 @@ interface DestinationCardProps {
   recommendation: CityRecommendation;
   onExplore: () => void;
   departureCity?: string;
+  userInterests?: string[];
 }
+
+// Map of related interests — used to allow at most one closely related secondary chip
+const RELATED_INTERESTS: Record<string, string[]> = {
+  'active-sport': ['nature-outdoors'],
+  'nature-outdoors': ['active-sport', 'wellness-slow-travel'],
+  'beach-coastal': ['wellness-slow-travel', 'nature-outdoors'],
+  'culture-history': ['arts-music-nightlife'],
+  'arts-music-nightlife': ['culture-history'],
+  'food-culinary': ['shopping-markets', 'culture-history'],
+  'shopping-markets': ['food-culinary'],
+  'wellness-slow-travel': ['nature-outdoors', 'beach-coastal'],
+};
+
+const filterRelevantTags = (tags: string[], userInterests?: string[]): string[] => {
+  if (!userInterests || userInterests.length === 0) return tags;
+  const selected = new Set(userInterests.map(i => i.toLowerCase()));
+  const allowedSecondary = new Set<string>();
+  userInterests.forEach(i => {
+    (RELATED_INTERESTS[i.toLowerCase()] || []).forEach(r => allowedSecondary.add(r));
+  });
+
+  const primary: string[] = [];
+  const secondary: string[] = [];
+  tags.forEach(tag => {
+    const lower = tag.toLowerCase();
+    if (selected.has(lower)) primary.push(tag);
+    else if (allowedSecondary.has(lower)) secondary.push(tag);
+  });
+
+  // Show all selected matches + at most 1 closely related secondary
+  return [...primary, ...secondary.slice(0, primary.length > 0 ? 1 : 0)];
+};
 
 const formatFlightTime = (hours: number): string => {
   const h = Math.floor(hours);
