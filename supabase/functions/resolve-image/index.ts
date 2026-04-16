@@ -1370,18 +1370,31 @@ serve(async (req) => {
         }
       }
     } else if (request.type === 'city_hero') {
-      // City Hero: Google Places ("{city} {country} cityscape") → Unsplash → Pexels → monument fallback → Storage
-      const heroQuery = `${request.city} ${request.country} cityscape`;
+      // City Hero: AI-identified iconic landmark → Google Places → Unsplash → Pexels → monument fallback
+      // Google Places can't resolve abstract descriptors like "{City} cityscape", so we ask the AI
+      // for a real, recognisable landmark name and search for that instead.
+      let landmark = request.entityName;
+      if (!landmark) {
+        const aiLandmark = await getIconicLandmarkForCity(request.city, request.country);
+        if (aiLandmark) {
+          landmark = aiLandmark;
+          console.log(`[city_hero] AI iconic landmark for ${request.city}: "${landmark}"`);
+        }
+      }
+
+      const heroQuery = landmark
+        ? `${landmark} ${request.city}`
+        : `${request.city} ${request.country}`;
       console.log(`Trying Google Places (city_hero): "${heroQuery}"`);
       image = await getGooglePlacesPhoto(supabase, heroQuery);
 
       if (!image) {
         console.log('Trying Unsplash (city_hero)...');
-        image = await tryUnsplash(searchQuery, true);
+        image = await tryUnsplash(landmark ? `${landmark} ${request.city}` : searchQuery, true);
       }
       if (!image) {
         console.log('Trying Pexels (city_hero)...');
-        image = await tryPexels(searchQuery);
+        image = await tryPexels(landmark ? `${landmark} ${request.city}` : searchQuery);
       }
       // Hero fallback: monument-focused query
       if (!image) {
