@@ -72,21 +72,21 @@ export const WeatherTab = ({ city, country, travelMonth, onSwitchTab }: WeatherT
       {/* Sensory narrative */}
       <SensoryNarrative periods={weather.sensoryNarrative} month={travelMonth} />
 
-      {/* Charts + Sidebar grid */}
-      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-        <div className="lg:col-span-2">
-          <WeatherCharts
-            dailyData={weather.dailyData}
-            weeklyData={weather.weeklyData}
-            month={travelMonth}
-            unit={tempUnit}
-            chartSummary={weather.chartSummary}
-          />
-        </div>
-        <div className="space-y-6">
-          <WeeklyInsights insights={weather.insights} bestTimeToVisit={weather.bestTimeToVisit} />
-          <MonthComparison monthRanking={weather.monthRanking} month={travelMonth} />
-        </div>
+      {/* Charts — full width, stacked, generous spacing */}
+      <div className="py-4">
+        <WeatherCharts
+          dailyData={weather.dailyData}
+          weeklyData={weather.weeklyData}
+          month={travelMonth}
+          unit={tempUnit}
+          chartSummary={weather.chartSummary}
+        />
+      </div>
+
+      {/* Weekly insights + month comparison — below charts */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <WeeklyInsights insights={weather.insights} bestTimeToVisit={weather.bestTimeToVisit} />
+        <MonthComparison monthRanking={weather.monthRanking} month={travelMonth} />
       </div>
 
       {/* Weather Watch */}
