@@ -12,7 +12,7 @@ interface ExperienceCardProps {
 
 export const ExperienceCard = ({ experience, city, country, isSaved, onToggleSave }: ExperienceCardProps) => {
   return (
-    <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 relative">
+    <article className="group bg-card rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 relative w-full">
       {/* Save button */}
       {onToggleSave && (
         <button
@@ -27,7 +27,7 @@ export const ExperienceCard = ({ experience, city, country, isSaved, onToggleSav
       )}
 
       {/* Image */}
-      <div className="aspect-[3/2] overflow-hidden">
+      <div className="w-full aspect-[3/2] overflow-hidden">
         <ResolvedImage
           request={{
             type: 'attraction',
@@ -36,7 +36,7 @@ export const ExperienceCard = ({ experience, city, country, isSaved, onToggleSav
             entityName: experience.title,
           }}
           alt={experience.title}
-          className="w-full h-full group-hover:scale-105 transition-transform duration-500"
+          className="block w-full h-full group-hover:scale-105 transition-transform duration-500"
           showAttribution
           fallbackCategory="culture"
         />
