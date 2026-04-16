@@ -12,7 +12,7 @@ export const WeatherVerdict = ({ verdict, month, city, monthRanking }: WeatherVe
   const displayMonth = formatMonthName(month);
 
   return (
-    <div className="space-y-3 max-w-3xl">
+    <div className="space-y-3 w-full">
       <h2 className="text-2xl md:text-3xl font-display font-semibold text-foreground leading-snug">
         {displayMonth} in {city}: {verdict}
       </h2>
