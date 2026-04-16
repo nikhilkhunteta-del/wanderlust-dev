@@ -28,36 +28,42 @@ interface DestinationCardProps {
   userInterests?: string[];
 }
 
-// Map of related interests — used to allow at most one closely related secondary chip
+// Tightly-related secondary interests — only used when AI explicitly tagged the city
+// with one of these AND the user did not already select it.
 const RELATED_INTERESTS: Record<string, string[]> = {
   'active-sport': ['nature-outdoors'],
-  'nature-outdoors': ['active-sport', 'wellness-slow-travel'],
-  'beach-coastal': ['wellness-slow-travel', 'nature-outdoors'],
+  'nature-outdoors': ['active-sport'],
+  'beach-coastal': ['wellness-slow-travel'],
   'culture-history': ['arts-music-nightlife'],
   'arts-music-nightlife': ['culture-history'],
-  'food-culinary': ['shopping-markets', 'culture-history'],
+  'food-culinary': ['culture-history'],
   'shopping-markets': ['food-culinary'],
-  'wellness-slow-travel': ['nature-outdoors', 'beach-coastal'],
+  'wellness-slow-travel': ['nature-outdoors'],
 };
 
+// Show only the user's selected interests that the AI tagged for this city,
+// plus at most one closely related secondary the AI also tagged. Hard cap: 2 chips.
 const filterRelevantTags = (tags: string[], userInterests?: string[]): string[] => {
-  if (!userInterests || userInterests.length === 0) return tags;
-  const selected = new Set(userInterests.map(i => i.toLowerCase()));
+  if (!userInterests || userInterests.length === 0) return tags.slice(0, 2);
+  const selected = userInterests.map(i => i.toLowerCase());
+  const selectedSet = new Set(selected);
+  const tagSet = new Set(tags.map(t => t.toLowerCase()));
+
+  // Primary chips: user's selected interests the AI also tagged (in user's order)
+  const primary = selected.filter(i => tagSet.has(i));
+
+  // At most ONE closely related secondary the AI tagged (and user did not select)
   const allowedSecondary = new Set<string>();
-  userInterests.forEach(i => {
-    (RELATED_INTERESTS[i.toLowerCase()] || []).forEach(r => allowedSecondary.add(r));
+  selected.forEach(i => {
+    (RELATED_INTERESTS[i] || []).forEach(r => {
+      if (!selectedSet.has(r)) allowedSecondary.add(r);
+    });
   });
+  const secondary = tags.map(t => t.toLowerCase()).find(t => allowedSecondary.has(t));
 
-  const primary: string[] = [];
-  const secondary: string[] = [];
-  tags.forEach(tag => {
-    const lower = tag.toLowerCase();
-    if (selected.has(lower)) primary.push(tag);
-    else if (allowedSecondary.has(lower)) secondary.push(tag);
-  });
-
-  // Show all selected matches + at most 1 closely related secondary
-  return [...primary, ...secondary.slice(0, primary.length > 0 ? 1 : 0)];
+  const result = [...primary];
+  if (secondary && result.length < 2) result.push(secondary);
+  return result.slice(0, 2);
 };
 
 const formatFlightTime = (hours: number): string => {
