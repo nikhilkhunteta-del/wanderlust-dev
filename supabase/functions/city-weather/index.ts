@@ -699,12 +699,24 @@ function generateUsefulInsights(input: UsefulInsightInput): { label: string; bod
     ? `${monthFull} tends to be one of the wetter months in ${city}, which is helpful to know when you're sequencing outdoor and indoor plans.`
     : `${monthFull} brings characteristically ${cool ? "cool" : warm ? "warm" : "mild"} conditions for ${city}, useful context as you decide how to pace your days.`;
 
+  // Stats for left panel — short, glanceable
+  const interestStat = hot
+    ? "AM/PM"
+    : cool
+    ? "Midday"
+    : `${avgHighTemp}°C`;
+  const bestWeekStat = `Wk ${bestWeek?.week ?? 1}`;
+  const rainStat = rainyDays === 0 ? "0 days" : `${rainyDays}/${days}`;
+  const daylightStat = `${daylightHoursInt}h`;
+  const packStat = `${range}°C`;
+  const contextStat = `${sunshineHours}h sun`;
+
   return [
-    { label: interestLabel, body: interestBody },
-    { label: "Best week", body: bestWeekBody },
-    { label: "Rain pattern", body: rainBody },
-    { label: "Daylight", body: daylightBody },
-    { label: "What to pack", body: packBody },
-    { label: "Month context", body: contextBody },
+    { label: interestLabel, stat: interestStat, body: interestBody },
+    { label: "Best week", stat: bestWeekStat, body: bestWeekBody },
+    { label: "Rain pattern", stat: rainStat, body: rainBody },
+    { label: "Daylight", stat: daylightStat, body: daylightBody },
+    { label: "What to pack", stat: packStat, body: packBody },
+    { label: "Month context", stat: contextStat, body: contextBody },
   ];
 }
