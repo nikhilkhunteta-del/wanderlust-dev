@@ -1101,12 +1101,15 @@ async function tryPollinations(
       return null;
     }
 
-    const suffix = options?.promptSuffix ?? "atmospheric travel photography cinematic";
+    const suffix = options?.promptSuffix ?? "travel photography";
     const width = options?.width ?? 1200;
     const height = options?.height ?? 800;
-    const prompt = `${entityName} ${city} ${suffix}`;
+    // Global brightness directives — applied to every Pollinations prompt to avoid dark cinematic defaults
+    const BRIGHT_DIRECTIVES = "bright daylight, vibrant colours, golden hour or midday light, high clarity, travel photography style";
+    const NEGATIVE_DIRECTIVES = "no dark moody lighting, no night shots, no dramatic shadows";
+    const prompt = `${entityName} ${city} ${suffix}, ${BRIGHT_DIRECTIVES} -- ${NEGATIVE_DIRECTIVES}`;
     const seed = stableCharCodeSum(entityName);
-    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=true&key=${apiKey}`;
+    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=true&enhance=true&key=${apiKey}`;
 
     console.log(`Pollinations: fetching image for "${entityName}" in ${city} (${width}x${height}, seed=${seed})`);
 
