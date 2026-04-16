@@ -75,13 +75,8 @@ Deno.serve(async (req) => {
 
     const interestGuide = INTEREST_GUIDELINES[interest] || INTEREST_GUIDELINES["culture-history"];
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const callGateway = async (): Promise<Response> => {
+      const body = JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
           {
@@ -124,28 +119,32 @@ Deno.serve(async (req) => {
           },
         ],
         tool_choice: { type: "function", function: { name: "return_stats" } },
-      }),
-    });
+      });
+      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+    };
+
+    // Retry with exponential backoff on 429
+    let resp = await callGateway();
+    for (let attempt = 0; attempt < 2 && resp.status === 429; attempt++) {
+      await new Promise((r) => setTimeout(r, 600 * Math.pow(2, attempt)));
+      resp = await callGateway();
+    }
 
     if (!resp.ok) {
       const status = resp.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required, please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       console.error(`AI gateway error: ${status}`);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // Return 200 with empty stats so UI degrades gracefully (no blank screen)
+      return new Response(
+        JSON.stringify({ stats: [], fromCache: false, degraded: true, reason: status === 429 ? "rate_limited" : "gateway_error" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const data = await resp.json();
