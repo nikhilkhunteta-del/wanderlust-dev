@@ -1329,7 +1329,7 @@ serve(async (req) => {
           return 'vibrant cultural event celebration with people and atmosphere';
         })();
         image = await tryPollinations(supabase, entityName, request.city, {
-          promptSuffix: `${eventType} atmospheric photography crowd energy`,
+          promptSuffix: `${eventType} crowd energy daytime celebration`,
           width: 1200,
           height: 800,
           imageType: "seasonal",
