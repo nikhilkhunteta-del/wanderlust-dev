@@ -6,6 +6,7 @@ import {
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { TemperatureUnit, formatTempValue } from "./TemperatureToggle";
+import { Lightbulb, MapPin, Thermometer, ThermometerSnowflake, CloudRain, Sun } from "lucide-react";
 import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherChartsProps {
@@ -87,6 +88,54 @@ export const WeatherCharts = ({ dailyData, weeklyData, month, unit, chartSummary
         </CardContent>
       </Card>
 
+      {/* #5 Chart Summary — 2×2 card grid */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Lightbulb className="w-4 h-4 text-amber-500" />
+          <h4 className="text-base font-semibold">What the Data Tells Us</h4>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 flex items-start gap-3">
+            <Thermometer className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-muted-foreground leading-relaxed">{chartSummary.warmestWeek}</p>
+          </div>
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 flex items-start gap-3">
+            <ThermometerSnowflake className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-muted-foreground leading-relaxed">{chartSummary.coolestMornings}</p>
+          </div>
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 flex items-start gap-3">
+            <CloudRain className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-muted-foreground leading-relaxed">{chartSummary.rainLikelihood}</p>
+          </div>
+          <div className="rounded-xl border border-[hsl(220,13%,91%)] bg-card p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Sun className="w-4 h-4 text-amber-500 shrink-0" />
+              <span className="text-sm text-muted-foreground">Outdoor comfort:</span>
+              <div className="flex gap-0.5">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2.5 h-2.5 rounded-full ${i < chartSummary.outdoorComfortScore ? "bg-primary" : "bg-muted-foreground/20"}`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">{chartSummary.outdoorComfortScore}/10</span>
+            </div>
+            <p className="text-xs text-muted-foreground/70">Outdoor comfort for a typical tourist (1 = very challenging, 10 = ideal)</p>
+            {chartSummary.outdoorComfortExplanation && (
+              <p className="text-xs text-muted-foreground italic">{chartSummary.outdoorComfortExplanation}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Planning note */}
+        {chartSummary.planningNote && (
+          <div className="flex items-start gap-2 p-4 rounded-xl border border-primary/20 bg-primary/5">
+            <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-foreground">{chartSummary.planningNote}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
