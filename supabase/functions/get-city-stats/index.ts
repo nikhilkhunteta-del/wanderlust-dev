@@ -75,13 +75,8 @@ Deno.serve(async (req) => {
 
     const interestGuide = INTEREST_GUIDELINES[interest] || INTEREST_GUIDELINES["culture-history"];
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const callGateway = async (): Promise<Response> => {
+      const body = JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
           {
