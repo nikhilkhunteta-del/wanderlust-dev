@@ -6,7 +6,6 @@ import {
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { TemperatureUnit, formatTempValue } from "./TemperatureToggle";
-import { Lightbulb, MapPin, Thermometer, ThermometerSnowflake, CloudRain, Sun } from "lucide-react";
 import { formatMonthName } from "@/lib/formatMonth";
 
 interface WeatherChartsProps {
