@@ -65,6 +65,7 @@ export interface MonthRanking {
 
 export interface UsefulInsight {
   label: string;
+  stat: string;
   body: string;
 }
 

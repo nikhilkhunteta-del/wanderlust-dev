@@ -6,23 +6,39 @@ interface UsefulInsightsProps {
 
 export const UsefulInsights = ({ insights }: UsefulInsightsProps) => {
   if (!insights || insights.length === 0) return null;
-  const cards = insights.slice(0, 6);
+  const rows = insights.slice(0, 6);
 
   return (
     <div className="space-y-6">
       <h3 className="text-2xl font-semibold tracking-tight">Useful insights for your trip</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {cards.map((insight, i) => (
-          <div
-            key={i}
-            className="rounded-xl border border-border/60 bg-card/60 p-5"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-2">
-              {insight.label}
-            </p>
-            <p className="text-[15px] text-foreground leading-relaxed">{insight.body}</p>
-          </div>
-        ))}
+      <div className="border-t border-border/60">
+        {rows.map((insight, i) => {
+          const isFirst = i === 0;
+          return (
+            <div
+              key={i}
+              className="grid grid-cols-[140px_1fr] border-b border-border/60"
+            >
+              <div className="bg-muted/40 px-4 py-5 flex flex-col justify-center">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {insight.label}
+                </p>
+                <p
+                  className={`mt-1 text-2xl font-semibold leading-tight ${
+                    isFirst ? "text-primary" : "text-foreground"
+                  }`}
+                >
+                  {insight.stat}
+                </p>
+              </div>
+              <div className="px-5 py-5 flex items-center">
+                <p className="text-[15px] text-muted-foreground leading-relaxed">
+                  {insight.body}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
