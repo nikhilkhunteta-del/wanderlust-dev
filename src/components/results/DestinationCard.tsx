@@ -67,7 +67,8 @@ const formatFlightTime = (hours: number): string => {
   return `${h}h ${m}m`;
 };
 
-export const DestinationCard = ({ recommendation, onExplore, departureCity }: DestinationCardProps) => {
+export const DestinationCard = ({ recommendation, onExplore, departureCity, userInterests }: DestinationCardProps) => {
+  const visibleTags = filterRelevantTags(recommendation.tags, userInterests);
   return (
     <article className="group bg-card rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
       {/* Hero Image using new image system */}
