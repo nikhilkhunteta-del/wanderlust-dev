@@ -63,7 +63,13 @@ export interface MonthRanking {
   rankingInsight: string;
 }
 
+export interface UsefulInsight {
+  label: string;
+  body: string;
+}
+
 export interface CityWeather {
+  usefulInsights: UsefulInsight[];
   verdict: string;
   monthRanking: MonthRanking;
   stats: WeatherStats;
@@ -82,4 +88,5 @@ export interface WeatherRequest {
   city: string;
   country: string;
   travelMonth: string;
+  primaryInterest?: string;
 }
