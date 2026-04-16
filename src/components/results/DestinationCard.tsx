@@ -118,17 +118,19 @@ export const DestinationCard = ({ recommendation, onExplore, departureCity, user
           {stripMarkdown(recommendation.rationale)}
         </p>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {recommendation.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
-            >
-              {humanizeTag(tag)}
-            </span>
-          ))}
-        </div>
+        {/* Tags — only those matching the user's selected interests (+ at most one closely related) */}
+        {visibleTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {visibleTags.map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
+              >
+                {humanizeTag(tag)}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* CTA Button */}
         <Button
