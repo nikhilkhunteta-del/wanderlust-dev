@@ -1,0 +1,1 @@
+DELETE FROM public.image_cache WHERE image_type = 'city_hero' AND lower(city) IN ('copenhagen','amsterdam');
