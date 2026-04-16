@@ -266,10 +266,22 @@ function generateMonthRanking(avgHigh: number, avgLow: number, rainfall: number,
   else if (avgHigh < 5) avoidMonths = "Deep winter months may be too cold for comfortable sightseeing";
   else avoidMonths = "No months are strongly discouraged, but shoulder seasons offer the best balance";
 
-  // Generate ranking insight
-  const primaryReason = avgHigh > 35 ? "intense heat" : avgHigh < 10 ? "cold temperatures" : rainfall > 100 ? "heavy rainfall" : rainfall > 50 ? "moderate rainfall" : sunshine < 4 ? "limited sunshine" : "mixed conditions";
-  const bestMonthSuggestion = avgHigh > 30 ? "October–February" : avgHigh < 15 ? "April–June" : rainfall > 100 ? "November–March" : "March–May and September–November";
-  const rankingInsight = `${month} ranks #${rank} because of ${primaryReason}. The best months to visit ${city} for weather are ${bestMonthSuggestion}.`;
+  // Forward-looking briefing — what to expect this month, not how it ranks
+  const tempPhrase = avgHigh > 32 ? "hot afternoons that demand shade and hydration"
+    : avgHigh > 26 ? "warm, comfortable days"
+    : avgHigh >= 18 ? "mild, pleasant temperatures"
+    : avgHigh >= 10 ? "cool days that suit layers"
+    : "cold days that need proper winter gear";
+  const lightPhrase = sunshine >= 8 ? "long stretches of daylight"
+    : sunshine >= 6 ? "plenty of daylight hours"
+    : sunshine >= 4 ? "shorter but usable daylight"
+    : "limited daylight and overcast skies";
+  const rainPhrase = rainfall > 150 ? "frequent heavy downpours — a proper waterproof is essential"
+    : rainfall > 80 ? "regular showers — pack a waterproof layer"
+    : rainfall > 40 ? "occasional afternoon showers — a light waterproof is your only essential"
+    : rainyDays > 5 ? "the odd passing shower — a packable layer covers you"
+    : "mostly dry conditions with minimal rain to plan around";
+  const rankingInsight = `Expect ${tempPhrase}, ${lightPhrase}, and ${rainPhrase}.`;
 
   return { rank, totalMonths: 12, rating, dataYears, avoidMonths, rankingInsight };
 }
