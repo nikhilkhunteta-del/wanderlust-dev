@@ -15,27 +15,17 @@ export const UsefulInsights = ({ insights }: UsefulInsightsProps) => {
         {rows.map((insight, i) => {
           const isFirst = i === 0;
           return (
-            <div
-              key={i}
-              className="grid grid-cols-[140px_1fr] border-b border-border/60"
-            >
-              <div className="bg-secondary/60 px-4 py-5 flex flex-col justify-center border-r border-border/60">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {insight.label}
-                </p>
-                <p
-                  className={`mt-1 text-2xl font-semibold leading-tight ${
-                    isFirst ? "text-primary" : "text-foreground"
-                  }`}
-                >
-                  {insight.stat}
-                </p>
-              </div>
-              <div className="px-5 py-5 flex items-center">
-                <p className="text-[15px] text-muted-foreground leading-relaxed">
-                  {insight.body}
-                </p>
-              </div>
+            <div key={i} className="py-6 border-b border-border/60">
+              <p
+                className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${
+                  isFirst ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {insight.label}
+              </p>
+              <p className="text-[16px] text-foreground leading-relaxed">
+                {insight.body}
+              </p>
             </div>
           );
         })}
