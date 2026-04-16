@@ -90,6 +90,45 @@ function buildHeroFallbackQuery(city: string, country: string): string {
   return `${city} ${country} famous monument architecture`;
 }
 
+// Ask the AI to identify the single most iconic, recognisable landmark for a city.
+// Used for city_hero queries when no explicit entityName is provided so Google Places
+// receives a real place name (e.g. "Nyhavn Copenhagen") instead of an abstract
+// descriptor like "{City} cityscape" which Google Places cannot resolve.
+async function getIconicLandmarkForCity(city: string, country: string): Promise<string | null> {
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) return null;
+  try {
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation, no quotes.",
+          },
+          {
+            role: "user",
+            content: `What is the single most visually iconic, most-photographed landmark or location in ${city}, ${country}? Name one specific real place that Google Maps would recognise.`,
+          },
+        ],
+      }),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const raw = data.choices?.[0]?.message?.content?.trim();
+    if (!raw || raw.length > 80) return null;
+    return raw.replace(/^\d+[\.\)]\s*/, "").replace(/^["']|["']$/g, "").trim();
+  } catch {
+    return null;
+  }
+}
+
+
 // Keywords that indicate chaotic/undesirable street-level imagery
 const CHAOTIC_IMAGE_KEYWORDS = [
   'wire', 'wires', 'cable', 'cables', 'traffic', 'congestion',
