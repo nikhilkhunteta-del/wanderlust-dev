@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,36 +44,15 @@ const INTEREST_PLACE_FRAMING: Record<string, string> = {
 
 // Use AI to identify the single most iconic landmark for a city (hero image)
 async function getIconicLandmark(city: string, country: string): Promise<string> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) return `${city} landmark`;
-
   try {
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content: "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
-          },
-          {
-            role: "user",
-            content: `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
-          },
-        ],
-      }),
-    });
-
-    if (!resp.ok) return `${city} landmark`;
-    const data = await resp.json();
-    const raw = data.choices?.[0]?.message?.content?.trim();
-    if (!raw || raw.length > 80) return `${city} landmark`;
-    return raw.replace(/^\d+[\.\)]\s*/, "").trim();
+    const raw = await callClaude(
+      "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
+      `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
+      { model: SONNET },
+    );
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed.length > 80) return `${city} landmark`;
+    return trimmed.replace(/^\d+[\.\)]\s*/, "").trim();
   } catch {
     return `${city} landmark`;
   }
@@ -80,40 +60,18 @@ async function getIconicLandmark(city: string, country: string): Promise<string>
 
 // Use AI to generate 6 visually compelling places relevant to the user's primary interest
 async function getInterestPlaces(city: string, country: string, primaryInterest: string): Promise<string[]> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
   const framing = INTEREST_PLACE_FRAMING[primaryInterest] || INTEREST_PLACE_FRAMING["culture-history"];
   const fallback = [`${city} ${primaryInterest}`, `${city} scenic`, `${city} view`, `${city} neighbourhood`, `${city} waterfront`, `${city} park`];
 
-  if (!apiKey) return fallback;
-
   try {
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content: "You are a travel expert. Reply with ONLY a numbered list of place names, one per line (e.g. '1. Kašjuni Beach'). No explanations, no extra text.",
-          },
-          {
-            role: "user",
-            content: `List exactly 6 specific, named places in or very near ${city}, ${country} that are visually compelling and relevant for someone interested in ${framing}. These should be real, searchable place names that would return good photos on Google — not generic descriptions. Prioritise places that are photogenic and lesser-known over the most famous tourist landmarks.`,
-          },
-        ],
-      }),
-    });
-
-    if (!resp.ok) return fallback;
-    const data = await resp.json();
-    const raw = data.choices?.[0]?.message?.content?.trim();
-    if (!raw) return fallback;
+    const raw = await callClaude(
+      "You are a travel expert. Reply with ONLY a numbered list of place names, one per line (e.g. '1. Kašjuni Beach'). No explanations, no extra text.",
+      `List exactly 6 specific, named places in or very near ${city}, ${country} that are visually compelling and relevant for someone interested in ${framing}. These should be real, searchable place names that would return good photos on Google — not generic descriptions. Prioritise places that are photogenic and lesser-known over the most famous tourist landmarks.`,
+      { model: SONNET },
+    );
 
     const places = raw
+      .trim()
       .split("\n")
       .map((line: string) => line.replace(/^\d+[\.\)]\s*/, "").trim())
       .filter((name: string) => name.length > 0 && name.length <= 80)

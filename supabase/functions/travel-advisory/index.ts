@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, extractJson, HAIKU } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,11 +21,6 @@ serve(async (req) => {
     }
 
     const resolvedCountry = country || city;
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
 
     console.log(`Fetching travel advisory for ${city}, ${resolvedCountry}`);
 
@@ -61,44 +57,11 @@ Guidelines:
 
 Return ONLY valid JSON, no markdown or explanation.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: "You are a travel safety data API. Return only valid JSON.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.3,
-      }),
+    const text = await callClaude("You are a travel safety data API. Return only valid JSON.", prompt, {
+      model: HAIKU,
+      temperature: 0.3,
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI Gateway error:", errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
-    }
-
-    const aiData = await response.json();
-    const content = aiData.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No content in AI response");
-    }
-
-    // Parse the JSON response
-    const cleanedContent = content.replace(/```json\n?|\n?```/g, "").trim();
-    const advisory = JSON.parse(cleanedContent);
+    const advisory = extractJson(text) as any;
 
     // Add last updated timestamp
     advisory.lastUpdated = new Date().toISOString().split("T")[0];

@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { callClaude, HAIKU } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -179,45 +180,14 @@ function getEmergencyNumber(country: string): string {
   return "Check local emergency numbers";
 }
 
-// --- AI calls with model fallback ---
+// --- AI calls ---
 
 async function callAI(
-  lovableKey: string,
   systemPrompt: string,
   userPrompt: string
 ): Promise<string> {
-  const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-  let response: Response | null = null;
-
-  for (const model of models) {
-    console.log("AI trying model:", model);
-    response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        ...(model.startsWith("google/") ? { temperature: 0.3 } : {}),
-      }),
-    });
-    if (response.ok) break;
-    const errText = await response.text();
-    console.error(`AI error with ${model}:`, response.status, errText);
-    if (response.status === 429) throw new Error("Rate limits exceeded");
-    if (response.status === 402) throw new Error("Payment required");
-  }
-  if (!response || !response.ok) throw new Error("AI gateway error: all models failed");
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("No content in AI response");
-  return content.replace(/```json\n?|\n?```/g, "").trim();
+  const text = await callClaude(systemPrompt, userPrompt, { model: HAIKU, temperature: 0.3 });
+  return text.replace(/```json\n?|\n?```/g, "").trim();
 }
 
 // --- Main Handler ---
@@ -258,8 +228,6 @@ serve(async (req) => {
     }
     console.log(`Health cache MISS for ${city}, ${resolvedCountry}, ${travelMonth}`);
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
     const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
     if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY is not configured");
 
@@ -281,7 +249,6 @@ serve(async (req) => {
     if (cdcData && cdcData.length > 50) {
       try {
         const vaccineJson = await callAI(
-          LOVABLE_API_KEY,
           "You are a travel health data filter. Return ONLY valid JSON.",
           `Filter this CDC vaccine data for a tourist visiting ${city}, ${resolvedCountry} in ${travelMonth}. Remove vaccines only relevant to: rural or remote travel, long-stay travellers (6+ months), healthcare workers, or areas far from ${city}. Return only vaccines genuinely recommended or required for this specific city and tourist travel context.
 
@@ -305,7 +272,6 @@ Return ONLY valid JSON array.`
     if (vaccines.length === 0) {
       try {
         const vaccineJson = await callAI(
-          LOVABLE_API_KEY,
           "You are a travel health data API. Return ONLY valid JSON.",
           `What vaccines are recommended for a tourist visiting ${city}, ${resolvedCountry} in ${travelMonth}? Only include vaccines genuinely relevant for a short-stay tourist visiting the city. Do NOT include Yellow Fever unless required/recommended for this destination. Do NOT include Rabies unless there is documented high risk. Do NOT include Tick-borne encephalitis for major urban destinations.
 
@@ -327,7 +293,6 @@ Return ONLY valid JSON array.`
       for (const item of whoData.slice(0, 5)) {
         try {
           const result = await callAI(
-            LOVABLE_API_KEY,
             "You are a travel health relevance filter. Return ONLY valid JSON.",
             `Does this WHO outbreak notice genuinely affect tourists visiting ${city} in ${travelMonth}?
 
@@ -397,7 +362,6 @@ Return ONLY valid JSON.`
       };
 
       healthSummary = await callAI(
-        LOVABLE_API_KEY,
         "You are a calm, specific travel health writer. Return ONLY plain text (no JSON, no markdown).",
         `Write a 2-3 sentence health summary for a tourist visiting ${city} in ${travelMonth}. 
 
@@ -420,7 +384,6 @@ Lead with the overall risk level for a typical tourist. Mention active notices O
     if (qualityLevel === "Excellent" || qualityLevel === "Good") {
       try {
         reassuranceLine = await callAI(
-          LOVABLE_API_KEY,
           "You are a calm travel writer. Return ONLY plain text, one sentence, under 20 words.",
           `Write one sentence that reassures a tourist about the healthcare infrastructure in ${city} specifically — mention something concrete like English-speaking staff, proximity to major hospitals, or pharmacy availability. Keep it under 20 words.`
         );

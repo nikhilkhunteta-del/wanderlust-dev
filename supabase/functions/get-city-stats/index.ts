@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, HAIKU } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,111 +66,23 @@ Deno.serve(async (req) => {
     }
 
     // No cache — make AI call
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "AI gateway not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const interestGuide = INTEREST_GUIDELINES[interest] || INTEREST_GUIDELINES["culture-history"];
 
-    const callGateway = async (): Promise<Response> => {
-      const body = JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content: `You are a travel data specialist. For the given city and travel interest, generate exactly 3 compelling, specific, and accurate statistics. Each stat must be directly relevant to the stated interest and genuinely impressive. Use real, verifiable numbers where possible. Focus on: ${interestGuide}. Return ONLY a valid JSON array with no preamble, no markdown, no backticks, in exactly this format: [{"stat": "3", "description": "UNESCO World Heritage Sites"}, {"stat": "120km", "description": "of pristine coastline"}, {"stat": "2,000+", "description": "years of recorded history"}]`,
-          },
-          {
-            role: "user",
-            content: `City: ${city}, Country: ${country}. Primary travel interest: ${interest}. Generate 3 statistics for this specific city.`,
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_stats",
-              description: "Return exactly 3 city statistics",
-              parameters: {
-                type: "object",
-                properties: {
-                  stats: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        stat: { type: "string" },
-                        description: { type: "string" },
-                      },
-                      required: ["stat", "description"],
-                      additionalProperties: false,
-                    },
-                    minItems: 3,
-                    maxItems: 3,
-                  },
-                },
-                required: ["stats"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "return_stats" } },
-      });
-      return await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body,
-      });
-    };
-
-    // Retry with exponential backoff on 429
-    let resp = await callGateway();
-    for (let attempt = 0; attempt < 2 && resp.status === 429; attempt++) {
-      await new Promise((r) => setTimeout(r, 600 * Math.pow(2, attempt)));
-      resp = await callGateway();
-    }
-
-    if (!resp.ok) {
-      const status = resp.status;
-      console.error(`AI gateway error: ${status}`);
-      // Return 200 with empty stats so UI degrades gracefully (no blank screen)
+    let stats: CityStat[] = [];
+    try {
+      const text = await callClaude(
+        `You are a travel data specialist. Generate exactly 3 compelling, specific, accurate statistics. Focus on: ${interestGuide}. Return ONLY a valid JSON array: [{"stat": "3", "description": "UNESCO World Heritage Sites"}, ...]`,
+        `City: ${city}, Country: ${country}. Primary travel interest: ${interest}. Generate 3 statistics.`,
+        { model: HAIKU },
+      );
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) stats = JSON.parse(jsonMatch[0]);
+    } catch (aiErr) {
+      console.error("AI call failed:", aiErr);
       return new Response(
-        JSON.stringify({ stats: [], fromCache: false, degraded: true, reason: status === 429 ? "rate_limited" : "gateway_error" }),
+        JSON.stringify({ stats: [], fromCache: false, degraded: true, reason: "gateway_error" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
-    }
-
-    const data = await resp.json();
-
-    // Extract from tool call response
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let stats: CityStat[] = [];
-
-    if (toolCall?.function?.arguments) {
-      try {
-        const parsed = JSON.parse(toolCall.function.arguments);
-        stats = parsed.stats ?? [];
-      } catch {
-        console.error("Failed to parse tool call arguments");
-      }
-    }
-
-    // Fallback: try parsing content directly
-    if (stats.length === 0) {
-      const content = data.choices?.[0]?.message?.content?.trim();
-      if (content) {
-        try {
-          stats = JSON.parse(content);
-        } catch { /* ignore */ }
-      }
     }
 
     // Ensure exactly 3

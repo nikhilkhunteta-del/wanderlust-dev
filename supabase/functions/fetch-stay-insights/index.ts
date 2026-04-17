@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -253,7 +254,6 @@ serve(async (req) => {
 
     const SERPAPI_KEY = Deno.env.get("SERPAPI_KEY");
     const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!SERPAPI_KEY) throw new Error("SERPAPI_KEY is not configured");
     if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY is not configured");
@@ -361,7 +361,7 @@ serve(async (req) => {
 
     // ── Build personalised recommendation if we have profile data ──
     let personalRecommendation: string | null = neighbourhoodData.personalRecommendation;
-    if (!personalRecommendation && LOVABLE_API_KEY && (groupType || travelCompanions || styleTags?.length)) {
+    if (!personalRecommendation && (groupType || travelCompanions || styleTags?.length)) {
       const profileParts: string[] = [];
       if (groupType || travelCompanions) profileParts.push(`travelling ${groupType === "solo" ? "solo" : `as ${groupType || travelCompanions}`}`);
       if (tripDuration) profileParts.push(`${tripDuration}-day trip`);
@@ -374,24 +374,15 @@ serve(async (req) => {
       const topNeighbourhood = neighbourhoodData.neighbourhoods?.[0]?.name || "the city centre";
 
       try {
-        const recResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [{
-              role: "user",
-              content: `Given a traveller ${profileContext} visiting ${city} in ${monthName}, generate ONE sentence recommending the best accommodation tier and neighbourhood. Be specific — name the tier, name the neighbourhood, and give one reason why. Available neighbourhoods: ${neighbourhoodData.neighbourhoods?.map((n: any) => n.name).join(", ") || topNeighbourhood}. Format: "For [profile], [specific recommendation with reason]." Return only the sentence.`,
-            }],
-          }),
-        });
-        if (recResp.ok) {
-          const recData = await recResp.json();
-          personalRecommendation = recData.choices?.[0]?.message?.content?.trim() || null;
-          // Strip quotes if wrapped
-          if (personalRecommendation?.startsWith('"') && personalRecommendation?.endsWith('"')) {
-            personalRecommendation = personalRecommendation.slice(1, -1);
-          }
+        const recText = await callClaude(
+          "",
+          `Given a traveller ${profileContext} visiting ${city} in ${monthName}, generate ONE sentence recommending the best accommodation tier and neighbourhood. Be specific — name the tier, name the neighbourhood, and give one reason why. Available neighbourhoods: ${neighbourhoodData.neighbourhoods?.map((n: any) => n.name).join(", ") || topNeighbourhood}. Format: "For [profile], [specific recommendation with reason]." Return only the sentence.`,
+          { model: SONNET }
+        );
+        personalRecommendation = recText.trim() || null;
+        // Strip quotes if wrapped
+        if (personalRecommendation?.startsWith('"') && personalRecommendation?.endsWith('"')) {
+          personalRecommendation = personalRecommendation.slice(1, -1);
         }
       } catch (e) {
         console.error("Personal recommendation error:", e);

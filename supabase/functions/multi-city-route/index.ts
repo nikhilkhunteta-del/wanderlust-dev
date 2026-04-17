@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,8 +27,6 @@ serve(async (req) => {
     } = body;
 
     const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     console.log(`Nearby city discovery: ${originCity}, ${originCountry}, ${totalDays} days`);
 
@@ -88,9 +87,9 @@ Return ONLY valid JSON array:
       }
     }
 
-    // ── Fallback: use Lovable AI if Perplexity didn't return results ──
+    // ── Fallback: use Claude if Perplexity didn't return results ──
     if (nearbyCities.length === 0) {
-      const fallbackPrompt = `You are a travel expert. Suggest up to 3 nearby cities that combine well with ${originCity}, ${originCountry} for a ${totalDays}-day trip in ${travelMonth}. Traveler interests: ${userInterests?.join(", ") || "varied"}.${gatewayCity ? ` They arrive via ${gatewayCity}.` : ""}
+      const fallbackPrompt = `Suggest up to 3 nearby cities that combine well with ${originCity}, ${originCountry} for a ${totalDays}-day trip in ${travelMonth}. Traveler interests: ${userInterests?.join(", ") || "varied"}.${gatewayCity ? ` They arrive via ${gatewayCity}.` : ""}
 
 Return ONLY valid JSON array:
 [
@@ -108,28 +107,15 @@ Return ONLY valid JSON array:
   }
 ]`;
 
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [{ role: "user", content: fallbackPrompt }],
-        }),
-      });
-
-      if (aiRes.ok) {
-        const aiData = await aiRes.json();
-        const content = aiData.choices?.[0]?.message?.content;
-        if (content) {
-          const jsonMatch = content.match(/\[[\s\S]*\]/);
-          if (jsonMatch) {
-            nearbyCities = JSON.parse(jsonMatch[0]);
-            console.log(`AI fallback returned ${nearbyCities.length} nearby cities`);
-          }
+      try {
+        const text = await callClaude("You are a travel expert. Return only valid JSON, no markdown.", fallbackPrompt, { model: SONNET });
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          nearbyCities = JSON.parse(jsonMatch[0]);
+          console.log(`Claude fallback returned ${nearbyCities.length} nearby cities`);
         }
+      } catch (err) {
+        console.warn("Claude fallback failed:", err);
       }
     }
 

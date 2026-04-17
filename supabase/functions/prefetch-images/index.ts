@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { callClaude, HAIKU } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,37 +21,15 @@ interface PrefetchRequest {
 // Mirrors the approach used by the hero-collage edge function so prefetch
 // queries hit Google Places with a real, searchable place name.
 async function getIconicLandmark(city: string, country: string): Promise<string> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) return `${city} landmark`;
-
   try {
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
-          },
-          {
-            role: "user",
-            content: `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
-          },
-        ],
-      }),
-    });
-
-    if (!resp.ok) return `${city} landmark`;
-    const data = await resp.json();
-    const raw = data.choices?.[0]?.message?.content?.trim();
-    if (!raw || raw.length > 80) return `${city} landmark`;
-    return raw.replace(/^\d+[\.\)]\s*/, "").trim();
+    const raw = await callClaude(
+      "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
+      `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
+      { model: HAIKU },
+    );
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed.length > 80) return `${city} landmark`;
+    return trimmed.replace(/^\d+[\.\)]\s*/, "").trim();
   } catch {
     return `${city} landmark`;
   }

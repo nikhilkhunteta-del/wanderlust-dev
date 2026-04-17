@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, extractJson, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,9 +15,6 @@ serve(async (req) => {
 
   try {
     const { ranked, profile, mode } = await req.json();
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const topInterests = Object.entries(profile.interestScores || {})
       .sort(([, a]: any, [, b]: any) => b - a)
@@ -80,42 +78,8 @@ Return ONLY valid JSON:
 }`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemMsg },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.4,
-      }),
-    });
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("AI error:", response.status, err);
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "{}";
-    const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
-    const verdict = JSON.parse(cleaned);
+    const text = await callClaude(systemMsg, prompt, { model: SONNET, temperature: 0.4 });
+    const verdict = extractJson(text);
 
     return new Response(JSON.stringify(verdict), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

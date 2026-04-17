@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,10 +51,8 @@ serve(async (req) => {
 
   try {
     const requestData = (await req.json()) as SeasonalHighlightsRequest;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
     if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY is not configured");
 
     const { city, country, travelMonth, userInterests = [], travelCompanions = "", styleTags = [] } = requestData;
@@ -231,42 +230,9 @@ ORDER events: interest matches first, then unmissable, then other verified event
 
 Write a single opening sentence (max 25 words) capturing what makes ${monthName} in ${city} feel special.`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: aiSystemPrompt },
-          { role: "user", content: aiUserPrompt },
-        ],
-      }),
-    });
+    const aiText = await callClaude(aiSystemPrompt, aiUserPrompt, { model: SONNET });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errorText);
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI gateway returned ${aiResponse.status}`);
-    }
-
-    const aiResult = await aiResponse.json();
-    const content = aiResult.choices?.[0]?.message?.content;
-    if (!content) throw new Error("No content in AI response");
-
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonMatch = aiText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("Could not parse JSON from AI response");
 
     const parsed = JSON.parse(jsonMatch[0]);

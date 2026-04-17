@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,12 +80,6 @@ serve(async (req) => {
 
   try {
     const { profile, excludedCities, previouslyRecommendedCities } = (await req.json()) as { profile: TravelProfile; excludedCities?: string[]; previouslyRecommendedCities?: string[] };
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     console.log("Generating recommendations for profile:", JSON.stringify(profile, null, 2));
 
     const topInterests = Object.entries(profile.interestScores)
@@ -220,66 +215,26 @@ STYLE TAGS (inferred travel personality traits e.g. "cultural-explorer", "thrill
 IMPORTANT: For "off-beaten-path" or "surprise" discovery styles, prioritise cities with lower mainstream tourist footfall over world-famous hotspots.
 Remember: Return EXACTLY 3 cities from different countries, matched by interests, experience style, and discovery preference. The response MUST contain exactly 3 objects in the recommendations array.${excludedLine}${previousCitiesLine}`;
 
-    console.log("Sending prompt to AI gateway...");
+    console.log("Sending prompt to Claude...");
 
-    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
     const MAX_ATTEMPTS = 3;
     let recommendations: CityRecommendation[] | null = null;
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      for (const model of models) {
-        console.log(`Attempt ${attempt + 1}, trying model: ${model}`);
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            response_format: { type: "json_object" },
-            max_tokens: 2048,
-          }),
+      console.log(`Attempt ${attempt + 1}`);
+      try {
+        const content = await callClaude(systemPrompt, userPrompt, {
+          model: SONNET,
+          maxTokens: 2048,
         });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`AI gateway error with ${model}:`, response.status, errorText);
-
-          if (response.status === 429) {
-            return new Response(
-              JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-              { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-          if (response.status === 402) {
-            return new Response(
-              JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-              { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-          continue;
-        }
-
-        const aiResponse = await response.json();
-        console.log("AI response received from", model);
-
-        const content = aiResponse.choices?.[0]?.message?.content;
-        if (!content) {
-          console.error(`Attempt ${attempt + 1}/${model}: No content in AI response`);
-          continue;
-        }
-
+        console.log("AI response received");
         recommendations = extractRecommendations(content);
         if (recommendations) break;
+        console.warn(`Attempt ${attempt + 1} failed to produce 3 recommendations, retrying...`);
+      } catch (err) {
+        console.error(`Attempt ${attempt + 1} error:`, err);
+        if (attempt === MAX_ATTEMPTS - 1) throw err;
       }
-
-      if (recommendations) break;
-      console.warn(`Attempt ${attempt + 1} failed to produce 3 recommendations, retrying...`);
     }
 
     if (!recommendations) {
