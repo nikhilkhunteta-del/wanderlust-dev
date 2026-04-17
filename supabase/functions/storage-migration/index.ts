@@ -140,10 +140,10 @@ Deno.serve(async (req: Request) => {
         results.push({ file: filename, bucket: "festivals", status: "fetch_failed", error: `HTTP ${resp.status}` });
         continue;
       }
-      const blob = await resp.blob();
+      const body = await resp.arrayBuffer();
       const { error: uploadErr } = await supabase.storage
         .from("festivals")
-        .upload(filename, blob, {
+        .upload(filename, body, {
           contentType: contentTypeFor(filename),
           upsert: true,
         });
@@ -168,10 +168,10 @@ Deno.serve(async (req: Request) => {
         results.push({ file: storagePath, bucket: "travel-images", status: "fetch_failed", error: `HTTP ${resp.status}` });
         continue;
       }
-      const blob = await resp.blob();
+      const body = await resp.arrayBuffer();
       const { error: uploadErr } = await supabase.storage
         .from("travel-images")
-        .upload(storagePath, blob, {
+        .upload(storagePath, body, {
           contentType: contentTypeFor(filename),
           upsert: true,
         });
