@@ -1,11 +1,15 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const CACHE_TTL_DAYS = 30;
+const FUNCTION_NAME = "flight-insights";
 
 function buildGoogleFlightsUrl(
   departureCity: string,
@@ -18,19 +22,19 @@ function buildGoogleFlightsUrl(
     sep: "09", oct: "10", nov: "11", dec: "12",
     flexible: "01",
   };
-  
+
   const monthNum = monthMap[travelMonth.toLowerCase()] || "01";
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
   const targetYear = currentMonth > parseInt(monthNum) ? year + 1 : year;
-  
+
   const departDate = `${targetYear}-${monthNum}-15`;
   const returnDate = `${targetYear}-${monthNum}-22`;
-  
+
   const origin = encodeURIComponent(departureCity);
   const destination = encodeURIComponent(destinationCity);
-  
+
   return `https://www.google.com/travel/flights?q=Flights%20from%20${origin}%20to%20${destination}%20on%20${departDate}%20through%20${returnDate}`;
 }
 
@@ -49,6 +53,33 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Cache key: route + month (pricing estimates are not user-personalised)
+    const cacheKey = `${departureCity.toLowerCase()}:${destinationCity.toLowerCase()}:${(travelMonth || "flexible").toLowerCase()}`;
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // --- Cache check ---
+    const { data: cached } = await supabase
+      .from("ai_content_cache")
+      .select("data_json")
+      .eq("function_name", FUNCTION_NAME)
+      .eq("cache_key", cacheKey)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (cached?.data_json) {
+      console.log("Cache hit for flight-insights:", cacheKey);
+      // Recompute the booking URL so dates are always current
+      const result = { ...cached.data_json as Record<string, unknown> };
+      result.googleFlightsUrl = buildGoogleFlightsUrl(departureCity, destinationCity, travelMonth);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log(`Generating flight insights: ${departureCity} → ${destinationCity}, ${destinationCountry} in ${travelMonth}`);
@@ -182,18 +213,35 @@ Return ONLY valid JSON, no markdown or explanation.`;
       throw new Error("No content in AI response");
     }
 
-    // Parse JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error("Could not parse JSON from AI response");
     }
 
     const flightData = JSON.parse(jsonMatch[0]);
-    
-    // Add Google Flights URL
-    flightData.googleFlightsUrl = buildGoogleFlightsUrl(departureCity, destinationCity, travelMonth);
 
     console.log(`Flight insights generated for ${departureCity} → ${destinationCity}`);
+
+    // --- Cache the AI data (without the URL, which is recomputed on every serve) ---
+    try {
+      const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("ai_content_cache").upsert(
+        {
+          function_name: FUNCTION_NAME,
+          cache_key: cacheKey,
+          data_json: flightData,
+          fetched_at: new Date().toISOString(),
+          expires_at: expiresAt,
+        },
+        { onConflict: "function_name,cache_key" }
+      );
+      console.log("Cached flight-insights:", cacheKey);
+    } catch (cacheErr) {
+      console.warn("Failed to cache flight-insights:", cacheErr);
+    }
+
+    // Add Google Flights URL after caching (date-dependent, recomputed each time)
+    flightData.googleFlightsUrl = buildGoogleFlightsUrl(departureCity, destinationCity, travelMonth);
 
     return new Response(JSON.stringify(flightData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

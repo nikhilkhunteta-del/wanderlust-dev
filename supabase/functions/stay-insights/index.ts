@@ -1,11 +1,15 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const CACHE_TTL_DAYS = 30;
+const FUNCTION_NAME = "stay-insights";
 
 const MONTH_NAMES: Record<string, string> = {
   jan: "January", feb: "February", mar: "March", apr: "April",
@@ -188,12 +192,36 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Cache key: destination + month + companions type (main factors affecting content)
+    const companionsKey = (groupType || travelCompanions || "any").toLowerCase();
+    const cacheKey = `${city.toLowerCase()}:${resolvedCountry.toLowerCase()}:${(travelMonth || "flexible").toLowerCase()}:${companionsKey}`;
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // --- Cache check ---
+    const { data: cached } = await supabase
+      .from("ai_content_cache")
+      .select("data_json")
+      .eq("function_name", FUNCTION_NAME)
+      .eq("cache_key", cacheKey)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (cached?.data_json) {
+      console.log("Cache hit for stay-insights:", cacheKey);
+      return new Response(JSON.stringify(cached.data_json), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     console.log(`Generating stay insights for ${city}, ${resolvedCountry} in ${travelMonth}`);
 
     const monthName = MONTH_NAMES[travelMonth?.toLowerCase()] || travelMonth || "your travel dates";
     const travellerCurrency = getTravellerCurrency(departureCity);
 
-    // Determine local currency via a simple mapping
     const COUNTRY_CURRENCY: Record<string, string> = {
       india: "INR", japan: "JPY", "united kingdom": "GBP", usa: "USD",
       "united states": "USD", thailand: "THB", morocco: "MAD",
@@ -213,7 +241,6 @@ serve(async (req) => {
     };
     const localCurrency = COUNTRY_CURRENCY[resolvedCountry.toLowerCase()] || "USD";
 
-    // Build traveller profile context
     const profileParts: string[] = [];
     if (groupType || travelCompanions) {
       profileParts.push(`travelling ${groupType === "solo" ? "solo" : `as ${groupType || travelCompanions}`}`);
@@ -294,7 +321,6 @@ serve(async (req) => {
       }
     }
 
-    // Build booking URL
     const monthMap: Record<string, string> = {
       jan: "01", feb: "02", mar: "03", apr: "04",
       may: "05", jun: "06", jul: "07", aug: "08",
@@ -330,6 +356,24 @@ serve(async (req) => {
     };
 
     console.log(`Successfully generated stay insights for ${city}`);
+
+    // --- Cache the full result ---
+    try {
+      const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("ai_content_cache").upsert(
+        {
+          function_name: FUNCTION_NAME,
+          cache_key: cacheKey,
+          data_json: result,
+          fetched_at: new Date().toISOString(),
+          expires_at: expiresAt,
+        },
+        { onConflict: "function_name,cache_key" }
+      );
+      console.log("Cached stay-insights:", cacheKey);
+    } catch (cacheErr) {
+      console.warn("Failed to cache stay-insights:", cacheErr);
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

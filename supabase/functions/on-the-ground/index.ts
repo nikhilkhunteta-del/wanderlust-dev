@@ -8,7 +8,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const GROUND_CACHE_TTL_HOURS = 3;
+const GROUND_CACHE_TTL_HOURS = 30 * 24; // 30 days
 
 // --- Helpers ---
 
