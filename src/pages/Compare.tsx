@@ -30,7 +30,6 @@ const Compare = () => {
   const state = location.state as CompareState | undefined;
   const [spiderPulse, setSpiderPulse] = useState(false);
   const [helpDecisions, setHelpDecisions] = useState<{ city: string; reason: string }[] | null>(null);
-  const [isLoadingHelp, setIsLoadingHelp] = useState(false);
 
   useEffect(() => {
     if (!state?.cities || !state?.profile) {
@@ -58,33 +57,6 @@ const Compare = () => {
     setTimeout(() => setSpiderPulse(false), 300);
   }, []);
 
-  const handleHelpDecide = async () => {
-    if (!ranked.length || isLoadingHelp) return;
-    setIsLoadingHelp(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("compare-cities", {
-        body: {
-          ranked: ranked.map((r) => ({
-            city: r.city.city,
-            score: r.weightedTotal,
-            personalMatch: r.personalMatch.score,
-            weatherFit: r.weatherFit.score,
-            gettingThere: r.gettingThere.score,
-            safety: r.safety.score,
-          })),
-          profile,
-          mode: "help-decide",
-        },
-      });
-      if (error) throw error;
-      setHelpDecisions(data?.decisions || null);
-    } catch (err) {
-      console.error("Help me decide error:", err);
-    } finally {
-      setIsLoadingHelp(false);
-    }
-  };
-
   // Fetch AI verdict once all data is loaded
   const { data: verdict, isLoading: isLoadingVerdict } = useQuery({
     queryKey: ["compare-verdict", ranked.map((r) => r.city.city).join(","), ranked.map((r) => r.weightedTotal.toFixed(1)).join(",")],
@@ -108,6 +80,11 @@ const Compare = () => {
     enabled: allLoaded && ranked.length === 3,
     staleTime: 5 * 60 * 1000,
   });
+
+  const handleHelpDecide = () => {
+    if (!verdict?.decisions) return;
+    setHelpDecisions(verdict.decisions);
+  };
 
   const handleAxisClick = (dim: string, citySlug: string) => {
     const AXIS_TO_TAB: Record<string, string> = {
@@ -226,10 +203,10 @@ const Compare = () => {
                 {!helpDecisions && (
                   <Button
                     onClick={handleHelpDecide}
-                    disabled={isLoadingHelp}
+                    disabled={isLoadingVerdict || !verdict?.decisions}
                     className="gap-2 gradient-sunset text-primary-foreground border-0 shadow-lg shadow-primary/25"
                   >
-                    {isLoadingHelp ? (
+                    {isLoadingVerdict ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Thinking…
