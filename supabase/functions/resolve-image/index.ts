@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { callClaude, HAIKU } from "../_shared/ai.ts";
+import { getIconicLandmark } from "../_shared/landmarks.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -90,26 +91,6 @@ function buildSearchQuery(req: ResolveImageRequest): string {
 function buildHeroFallbackQuery(city: string, country: string): string {
   return `${city} ${country} famous monument architecture`;
 }
-
-// Ask the AI to identify the single most iconic, recognisable landmark for a city.
-// Used for city_hero queries when no explicit entityName is provided so Google Places
-// receives a real place name (e.g. "Nyhavn Copenhagen") instead of an abstract
-// descriptor like "{City} cityscape" which Google Places cannot resolve.
-async function getIconicLandmarkForCity(city: string, country: string): Promise<string | null> {
-  try {
-    const raw = await callClaude(
-      "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation, no quotes.",
-      `What is the single most visually iconic, most-photographed landmark or location in ${city}, ${country}? Name one specific real place that Google Maps would recognise.`,
-      { model: HAIKU }
-    );
-    const trimmed = raw.trim();
-    if (!trimmed || trimmed.length > 80) return null;
-    return trimmed.replace(/^\d+[\.\)]\s*/, "").replace(/^["']|["']$/g, "").trim();
-  } catch {
-    return null;
-  }
-}
-
 
 // Keywords that indicate chaotic/undesirable street-level imagery
 const CHAOTIC_IMAGE_KEYWORDS = [
@@ -1360,7 +1341,7 @@ serve(async (req) => {
       // for a real, recognisable landmark name and search for that instead.
       let landmark = request.entityName;
       if (!landmark) {
-        const aiLandmark = await getIconicLandmarkForCity(request.city, request.country);
+        const aiLandmark = await getIconicLandmark(request.city, request.country);
         if (aiLandmark) {
           landmark = aiLandmark;
           console.log(`[city_hero] AI iconic landmark for ${request.city}: "${landmark}"`);
