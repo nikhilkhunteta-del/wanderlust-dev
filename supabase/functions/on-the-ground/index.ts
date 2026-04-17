@@ -474,15 +474,15 @@ serve(async (req) => {
         safetyGuidance,
       };
 
-      try {
-        const expiresAt = new Date(Date.now() + STABLE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
-        await supabase.from("ai_content_cache").upsert(
-          { function_name: "on-the-ground-stable", cache_key: stableCacheKey, data_json: stableData, fetched_at: now, expires_at: expiresAt },
-          { onConflict: "function_name,cache_key" }
-        );
+      const stableExpiresAt = new Date(Date.now() + STABLE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      const { error: stableCacheErr } = await supabase.from("ai_content_cache").upsert(
+        { function_name: "on-the-ground-stable", cache_key: stableCacheKey, data_json: stableData, fetched_at: now, expires_at: stableExpiresAt },
+        { onConflict: "function_name,cache_key" }
+      );
+      if (stableCacheErr) {
+        console.error("Cache write failed for on-the-ground-stable:", stableCacheErr.message, stableCacheErr.code);
+      } else {
         console.log(`Stable data cached for ${city}`);
-      } catch (cacheErr) {
-        console.warn("Failed to cache stable data:", cacheErr);
       }
     }
 
@@ -508,15 +508,15 @@ serve(async (req) => {
         currentIssues: formatIssues(disruptions),
       };
 
-      try {
-        const expiresAt = new Date(Date.now() + LIVE_TTL_HOURS * 60 * 60 * 1000).toISOString();
-        await supabase.from("ai_content_cache").upsert(
-          { function_name: "on-the-ground-live", cache_key: liveCacheKey, data_json: liveData, fetched_at: now, expires_at: expiresAt },
-          { onConflict: "function_name,cache_key" }
-        );
+      const liveExpiresAt = new Date(Date.now() + LIVE_TTL_HOURS * 60 * 60 * 1000).toISOString();
+      const { error: liveCacheErr } = await supabase.from("ai_content_cache").upsert(
+        { function_name: "on-the-ground-live", cache_key: liveCacheKey, data_json: liveData, fetched_at: now, expires_at: liveExpiresAt },
+        { onConflict: "function_name,cache_key" }
+      );
+      if (liveCacheErr) {
+        console.error("Cache write failed for on-the-ground-live:", liveCacheErr.message, liveCacheErr.code);
+      } else {
         console.log(`Live data cached for ${city}`);
-      } catch (cacheErr) {
-        console.warn("Failed to cache live data:", cacheErr);
       }
     }
 
