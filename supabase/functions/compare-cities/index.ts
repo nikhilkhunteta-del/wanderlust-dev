@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { ranked, profile, mode } = await req.json();
+    const { ranked, profile } = await req.json();
 
     const topInterests = Object.entries(profile.interestScores || {})
       .sort(([, a]: any, [, b]: any) => b - a)
@@ -33,26 +33,9 @@ Rankings (best to worst) with actual numeric scores:
 2. ${ranked[1].city} (weighted total: ${ranked[1].score.toFixed(1)}) — personalMatch: ${ranked[1].personalMatch}, weather: ${ranked[1].weatherFit}, gettingThere: ${ranked[1].gettingThere}, safety: ${ranked[1].safety}
 3. ${ranked[2].city} (weighted total: ${ranked[2].score.toFixed(1)}) — personalMatch: ${ranked[2].personalMatch}, weather: ${ranked[2].weatherFit}, gettingThere: ${ranked[2].gettingThere}, safety: ${ranked[2].safety}`;
 
-    let prompt: string;
-    let systemMsg: string;
+    const systemMsg = "You are a travel comparison analyst and decisive travel advisor. Return ONLY valid JSON. Be specific — quantified verdicts, concrete reasoning, personal decisions.";
 
-    if (mode === "help-decide") {
-      systemMsg = "You are a decisive travel advisor. Return ONLY valid JSON. Be specific and personal.";
-      prompt = `${travellerContext}
-
-For each of the three cities, write ONE compelling sentence explaining the single strongest reason to choose that city OVER the other two for THIS specific traveller. Be concrete — reference the traveller's interests, month, or party type. Each sentence should make the reader think "that's the one."
-
-Return ONLY valid JSON:
-{
-  "decisions": [
-    {"city": "${ranked[0].city}", "reason": "One sentence — the single strongest reason to choose this city over the other two."},
-    {"city": "${ranked[1].city}", "reason": "One sentence — the single strongest reason to choose this city over the other two."},
-    {"city": "${ranked[2].city}", "reason": "One sentence — the single strongest reason to choose this city over the other two."}
-  ]
-}`;
-    } else {
-      systemMsg = "You are a travel comparison analyst. Return ONLY valid JSON. Be specific and quantified — never vague.";
-      prompt = `You are a travel comparison analyst producing a verdict comparing three cities for a specific traveller.
+    const prompt = `You are comparing three cities for a specific traveller.
 
 ${travellerContext}
 
@@ -74,9 +57,13 @@ Return ONLY valid JSON:
   "whyNot": [
     {"city": "${ranked[1].city}", "reason": "One specific sentence explaining the dimensional gap vs the winner. Reference actual scores. Only use 'lower/weaker' for gaps >= 1.5 points."},
     {"city": "${ranked[2].city}", "reason": "One specific sentence explaining the dimensional gap vs the winner. Reference actual scores. Only use 'lower/weaker' for gaps >= 1.5 points."}
+  ],
+  "decisions": [
+    {"city": "${ranked[0].city}", "reason": "One compelling sentence — the single strongest reason to choose this city over the other two for THIS specific traveller. Reference their interests, month, or party type."},
+    {"city": "${ranked[1].city}", "reason": "One compelling sentence — the single strongest reason to choose this city over the other two for THIS specific traveller. Reference their interests, month, or party type."},
+    {"city": "${ranked[2].city}", "reason": "One compelling sentence — the single strongest reason to choose this city over the other two for THIS specific traveller. Reference their interests, month, or party type."}
   ]
 }`;
-    }
 
     const text = await callClaude(systemMsg, prompt, { model: SONNET, temperature: 0.4 });
     const verdict = extractJson(text);
@@ -88,7 +75,7 @@ Return ONLY valid JSON:
     console.error("Error in compare-cities:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
