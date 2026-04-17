@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useResolvedImage } from "@/hooks/useResolvedImage";
+import { useImageState } from "@/hooks/useImageState";
 import { ResolveImageRequest, ResolvedImage as ResolvedImageType } from "@/types/imageSystem";
 
 interface ResolvedImageProps {
@@ -12,10 +12,6 @@ interface ResolvedImageProps {
   priority?: boolean;
 }
 
-/**
- * Image component that uses the multi-source image resolution system
- * with blur skeleton placeholder and proper attribution
- */
 export function ResolvedImage({
   request,
   alt,
@@ -25,17 +21,8 @@ export function ResolvedImage({
   priority = false,
 }: ResolvedImageProps) {
   const { data: image, isLoading, isError } = useResolvedImage(request, { fallbackCategory });
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const { src, loaded, onLoad, onError } = useImageState(image?.url, image?.smallUrl);
 
-  useEffect(() => {
-    if (image?.url) {
-      setImageLoaded(false);
-      setImageSrc(image.url);
-    }
-  }, [image?.url]);
-
-  // Loading state with blur skeleton
   if (isLoading || !image) {
     return (
       <div className={cn("relative overflow-hidden bg-muted", className)}>
@@ -45,7 +32,6 @@ export function ResolvedImage({
     );
   }
 
-  // Error state - show muted background (no AI art)
   if (isError && !image) {
     return (
       <div className={cn("relative overflow-hidden bg-muted", className)}>
@@ -56,13 +42,11 @@ export function ResolvedImage({
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      {/* Blur placeholder while image loads */}
-      {!imageLoaded && (
+      {!loaded && (
         <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-muted-foreground/5 to-muted" />
       )}
-      
-      {/* Thumbnail blur background for perceived speed */}
-      {image.thumbUrl && !imageLoaded && (
+
+      {image.thumbUrl && !loaded && (
         <img
           src={image.thumbUrl}
           alt=""
@@ -70,30 +54,23 @@ export function ResolvedImage({
           aria-hidden="true"
         />
       )}
-      
-      {/* Main image */}
-      {imageSrc && (
+
+      {src && (
         <img
-          src={imageSrc}
+          src={src}
           alt={alt}
           className={cn(
             "w-full h-full object-cover transition-opacity duration-300",
-            imageLoaded ? "opacity-100" : "opacity-0"
+            loaded ? "opacity-100" : "opacity-0"
           )}
           style={{ objectPosition: "center 40%" }}
           loading={priority ? "eager" : "lazy"}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => {
-            // Try smaller size on error
-            if (imageSrc === image.url && image.smallUrl) {
-              setImageSrc(image.smallUrl);
-            }
-          }}
+          onLoad={onLoad}
+          onError={onError}
         />
       )}
-      
-      {/* Attribution overlay */}
-      {showAttribution && image.attributionRequired && image.photographer && imageLoaded && (
+
+      {showAttribution && image.attributionRequired && image.photographer && loaded && (
         <ImageAttribution image={image} />
       )}
     </div>
@@ -105,7 +82,7 @@ interface ImageAttributionProps {
 }
 
 function ImageAttribution({ image }: ImageAttributionProps) {
-  const sourceLabel = image.source === 'unsplash' ? 'Unsplash' 
+  const sourceLabel = image.source === 'unsplash' ? 'Unsplash'
     : image.source === 'pexels' ? 'Pexels'
     : image.source === 'wikimedia' ? 'Wikimedia'
     : image.source === 'google_places' ? 'Google'
@@ -126,7 +103,7 @@ function ImageAttribution({ image }: ImageAttributionProps) {
 }
 
 /**
- * Simpler image component for when you already have a ResolvedImage object
+ * Simpler image component for when you already have a ResolvedImage object.
  */
 interface DirectResolvedImageProps {
   image: ResolvedImageType | null;
@@ -143,15 +120,7 @@ export function DirectResolvedImage({
   showAttribution = false,
   priority = false,
 }: DirectResolvedImageProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (image?.url) {
-      setImageLoaded(false);
-      setImageSrc(image.url);
-    }
-  }, [image?.url]);
+  const { src, loaded, onLoad, onError } = useImageState(image?.url, image?.smallUrl);
 
   if (!image) {
     return (
@@ -163,11 +132,11 @@ export function DirectResolvedImage({
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      {!imageLoaded && (
+      {!loaded && (
         <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-muted-foreground/5 to-muted" />
       )}
-      
-      {image.thumbUrl && !imageLoaded && (
+
+      {image.thumbUrl && !loaded && (
         <img
           src={image.thumbUrl}
           alt=""
@@ -175,27 +144,23 @@ export function DirectResolvedImage({
           aria-hidden="true"
         />
       )}
-      
-      {imageSrc && (
+
+      {src && (
         <img
-          src={imageSrc}
+          src={src}
           alt={alt}
           className={cn(
             "w-full h-full object-cover transition-opacity duration-300",
-            imageLoaded ? "opacity-100" : "opacity-0"
+            loaded ? "opacity-100" : "opacity-0"
           )}
           style={{ objectPosition: "center 40%" }}
           loading={priority ? "eager" : "lazy"}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => {
-            if (imageSrc === image.url && image.smallUrl) {
-              setImageSrc(image.smallUrl);
-            }
-          }}
+          onLoad={onLoad}
+          onError={onError}
         />
       )}
-      
-      {showAttribution && image.attributionRequired && image.photographer && imageLoaded && (
+
+      {showAttribution && image.attributionRequired && image.photographer && loaded && (
         <ImageAttribution image={image} />
       )}
     </div>

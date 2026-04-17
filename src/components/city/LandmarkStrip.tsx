@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLandmarkStrip, LandmarkStripImage } from "@/hooks/useLandmarkStrip";
+import { useImageState } from "@/hooks/useImageState";
 
 const INTEREST_LENS: Record<string, string> = {
   "nature-outdoors": "nature lover's lens",
@@ -112,8 +113,7 @@ export const LandmarkStrip = ({ city, country, places, primaryInterest }: Landma
 
 // ── Individual card ───────────────────────────────────────
 function StripCard({ image }: { image: LandmarkStripImage }) {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const { loaded, failed, onLoad, onError } = useImageState(image.url);
 
   const displayName = image.placeName || image.landmark || "";
 
@@ -135,8 +135,8 @@ function StripCard({ image }: { image: LandmarkStripImage }) {
               loaded ? "opacity-100" : "opacity-0"
             )}
             loading="lazy"
-            onLoad={() => setLoaded(true)}
-            onError={() => setFailed(true)}
+            onLoad={onLoad}
+            onError={onError}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
