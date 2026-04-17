@@ -1,39 +1,13 @@
 import { useMemo, useState, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  useCityHighlights,
-  useCityWeather,
-  useFlightInsights,
-  useOnTheGround,
-  useSeasonalHighlights,
-  useStayInsights,
-} from "./useCityData";
+import { useBatchCityData } from "./useCityData";
+import { BatchCityParams } from "@/lib/batchCityData";
 import { CityRecommendation } from "@/types/recommendations";
 import { TravelProfile } from "@/types/travelProfile";
 import {
   CityScores,
-  DimensionScore,
   DimensionWeights,
   DEFAULT_WEIGHTS,
-  ComparisonVerdict,
 } from "@/types/comparison";
-import { CityHighlightsRequest } from "@/types/cityHighlights";
-
-function buildHighlightsRequest(city: CityRecommendation, profile: TravelProfile): CityHighlightsRequest {
-  return {
-    city: city.city,
-    country: city.country,
-    rationale: city.rationale,
-    userInterests: Object.entries(profile.interestScores)
-      .filter(([_, s]) => s > 0)
-      .map(([k]) => k),
-    adventureTypes: profile.adventureTypes,
-    travelMonth: profile.travelMonth,
-    styleTags: profile.styleTags,
-    travelCompanions: profile.travelCompanions,
-    groupType: profile.groupType,
-  };
-}
 
 // --- Raw value extractors (not scores yet) ---
 
@@ -112,61 +86,40 @@ export function useComparisonData(
 ) {
   const [weights, setWeights] = useState<DimensionWeights>({ ...DEFAULT_WEIGHTS });
 
-  // Build requests
-  const requests = cities.map((c) => buildHighlightsRequest(c, profile));
-  const flightRequests = cities.map((c) =>
-    profile.departureCity
-      ? {
-          departureCity: profile.departureCity,
-          destinationCity: c.city,
-          destinationCountry: c.country,
-          travelMonth: profile.travelMonth,
-        }
-      : null
-  );
-
   const interests = Object.entries(profile.interestScores)
     .filter(([_, s]) => s > 0)
     .map(([k]) => k);
 
-  // Fetch all data for all 3 cities
-  const h0 = useCityHighlights(requests[0] ?? null);
-  const h1 = useCityHighlights(requests[1] ?? null);
-  const h2 = useCityHighlights(requests[2] ?? null);
+  const batchParams: BatchCityParams[] = cities.map((c) => ({
+    city: c.city,
+    country: c.country,
+    rationale: c.rationale,
+    userInterests: interests,
+    adventureTypes: profile.adventureTypes,
+    travelMonth: profile.travelMonth,
+    styleTags: profile.styleTags,
+    travelCompanions: profile.travelCompanions,
+    groupType: profile.groupType,
+    departureCity: profile.departureCity,
+    tripDuration: profile.tripDuration,
+  }));
 
-  const w0 = useCityWeather(cities[0]?.city ?? "", cities[0]?.country ?? "", profile.travelMonth);
-  const w1 = useCityWeather(cities[1]?.city ?? "", cities[1]?.country ?? "", profile.travelMonth);
-  const w2 = useCityWeather(cities[2]?.city ?? "", cities[2]?.country ?? "", profile.travelMonth);
+  const { data: batchData, isLoading } = useBatchCityData(batchParams, cities.length > 0);
 
-  const f0 = useFlightInsights(flightRequests[0]);
-  const f1 = useFlightInsights(flightRequests[1]);
-  const f2 = useFlightInsights(flightRequests[2]);
+  // Reshape batch results into {data} accessors so scoring logic below is unchanged
+  const highlights = cities.map((_, i) => ({ data: batchData?.results?.[i]?.highlights ?? null }));
+  const weather    = cities.map((_, i) => ({ data: batchData?.results?.[i]?.weather ?? null }));
+  const flights    = cities.map((_, i) => ({ data: batchData?.results?.[i]?.flights ?? null }));
+  const ground     = cities.map((_, i) => ({ data: batchData?.results?.[i]?.onTheGround ?? null }));
+  const seasonal   = cities.map((_, i) => ({ data: batchData?.results?.[i]?.seasonal ?? null }));
+  const stays      = cities.map((_, i) => ({ data: batchData?.results?.[i]?.stays ?? null }));
 
-  const g0 = useOnTheGround(cities[0]?.city ?? "", cities[0]?.country ?? "", profile.travelMonth);
-  const g1 = useOnTheGround(cities[1]?.city ?? "", cities[1]?.country ?? "", profile.travelMonth);
-  const g2 = useOnTheGround(cities[2]?.city ?? "", cities[2]?.country ?? "", profile.travelMonth);
-
-  const s0 = useSeasonalHighlights(cities[0]?.city ?? "", cities[0]?.country ?? "", profile.travelMonth, interests, profile.travelCompanions, profile.styleTags);
-  const s1 = useSeasonalHighlights(cities[1]?.city ?? "", cities[1]?.country ?? "", profile.travelMonth, interests, profile.travelCompanions, profile.styleTags);
-  const s2 = useSeasonalHighlights(cities[2]?.city ?? "", cities[2]?.country ?? "", profile.travelMonth, interests, profile.travelCompanions, profile.styleTags);
-
-  const st0 = useStayInsights(cities[0]?.city ?? "", cities[0]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, 0.5);
-  const st1 = useStayInsights(cities[1]?.city ?? "", cities[1]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, 0.5);
-  const st2 = useStayInsights(cities[2]?.city ?? "", cities[2]?.country ?? "", profile.travelMonth, profile.departureCity, profile.travelCompanions, profile.groupType, profile.tripDuration, profile.styleTags, 0.5);
-
-  const highlights = [h0, h1, h2];
-  const weather = [w0, w1, w2];
-  const flights = [f0, f1, f2];
-  const ground = [g0, g1, g2];
-  const seasonal = [s0, s1, s2];
-  const stays = [st0, st1, st2];
-
-  const isLoading = [...highlights, ...weather, ...flights, ...ground, ...seasonal, ...stays].some(
-    (q) => q.isLoading
-  );
-
-  const allLoaded = cities.every((_, i) => 
-    highlights[i].data && weather[i].data && ground[i].data && seasonal[i].data && stays[i].data
+  const allLoaded = !isLoading && !!batchData && cities.every((_, i) =>
+    batchData.results?.[i]?.highlights &&
+    batchData.results?.[i]?.weather &&
+    batchData.results?.[i]?.onTheGround &&
+    batchData.results?.[i]?.seasonal &&
+    batchData.results?.[i]?.stays
   );
 
   const cityScores = useMemo<CityScores[]>(() => {
@@ -204,41 +157,41 @@ export function useComparisonData(
     });
 
     // Step 2: Normalize each dimension across all 3 cities
-    const normMatch = normalizeAcrossCities(rawMatch);
+    const normMatch   = normalizeAcrossCities(rawMatch);
     const normWeather = normalizeAcrossCities(rawWeather);
-    const normFlight = normalizeAcrossCities(rawFlight);
-    const normSafety = normalizeAcrossCities(rawSafety);
+    const normFlight  = normalizeAcrossCities(rawFlight);
+    const normSafety  = normalizeAcrossCities(rawSafety);
     const normSeasonal = normalizeAcrossCities(rawSeasonal, 2);
-    const normAccom = normalizeAcrossCities(rawAccom);
+    const normAccom   = normalizeAcrossCities(rawAccom);
 
     // Step 3: Build scored objects
     return cities.map((city, i) => {
-      const h = highlights[i].data;
-      const w = weather[i].data;
-      const f = flights[i].data;
-      const g = ground[i].data;
-      const s = seasonal[i].data;
+      const h  = highlights[i].data;
+      const w  = weather[i].data;
+      const f  = flights[i].data;
+      const g  = ground[i].data;
+      const s  = seasonal[i].data;
       const st = stays[i].data;
 
       const scores: CityScores = {
         city,
-        personalMatch: { score: normMatch[i], summary: h?.matchStatement?.split('.')[0] ?? "Data loading" },
-        weatherFit: { score: normWeather[i], summary: w?.verdict?.split('.')[0] ?? "Data loading" },
-        gettingThere: { score: normFlight[i], summary: f ? `From ${f.priceSnapshot.currency}${f.priceSnapshot.lowPrice}` : "No departure city" },
-        safety: { score: normSafety[i], summary: g?.verdict?.split('.')[0] ?? "Data loading" },
-        seasonalEvents: { score: normSeasonal[i], summary: s ? `${matchedCounts[i]} events matching your interests` : "Data loading" },
-        accommodationValue: { score: normAccom[i], summary: st?.overview?.split('.')[0] ?? "Data loading" },
+        personalMatch:       { score: normMatch[i],    summary: h?.matchStatement?.split('.')[0] ?? "Data loading" },
+        weatherFit:          { score: normWeather[i],  summary: w?.verdict?.split('.')[0] ?? "Data loading" },
+        gettingThere:        { score: normFlight[i],   summary: f ? `From ${f.priceSnapshot.currency}${f.priceSnapshot.lowPrice}` : "No departure city" },
+        safety:              { score: normSafety[i],   summary: g?.verdict?.split('.')[0] ?? "Data loading" },
+        seasonalEvents:      { score: normSeasonal[i], summary: s ? `${matchedCounts[i]} events matching your interests` : "Data loading" },
+        accommodationValue:  { score: normAccom[i],    summary: st?.overview?.split('.')[0] ?? "Data loading" },
         weightedTotal: 0,
       };
 
       const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
       scores.weightedTotal =
-        (scores.personalMatch.score * weights.personalMatch +
-          scores.weatherFit.score * weights.weatherFit +
-          scores.gettingThere.score * weights.gettingThere +
-          scores.safety.score * weights.safety +
-          scores.seasonalEvents.score * weights.seasonalEvents +
-          scores.accommodationValue.score * weights.accommodationValue) /
+        (scores.personalMatch.score      * weights.personalMatch +
+         scores.weatherFit.score         * weights.weatherFit +
+         scores.gettingThere.score       * weights.gettingThere +
+         scores.safety.score             * weights.safety +
+         scores.seasonalEvents.score     * weights.seasonalEvents +
+         scores.accommodationValue.score * weights.accommodationValue) /
         totalWeight;
 
       return scores;
