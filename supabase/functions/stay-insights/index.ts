@@ -321,21 +321,21 @@ serve(async (req) => {
     console.log(`Successfully generated stay insights for ${city}`);
 
     // --- Cache the full result ---
-    try {
-      const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
-      await supabase.from("ai_content_cache").upsert(
-        {
-          function_name: FUNCTION_NAME,
-          cache_key: cacheKey,
-          data_json: result,
-          fetched_at: new Date().toISOString(),
-          expires_at: expiresAt,
-        },
-        { onConflict: "function_name,cache_key" }
-      );
+    const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const { error: cacheErr } = await supabase.from("ai_content_cache").upsert(
+      {
+        function_name: FUNCTION_NAME,
+        cache_key: cacheKey,
+        data_json: result,
+        fetched_at: new Date().toISOString(),
+        expires_at: expiresAt,
+      },
+      { onConflict: "function_name,cache_key" }
+    );
+    if (cacheErr) {
+      console.error("Cache write failed for stay-insights:", cacheErr.message, cacheErr.code);
+    } else {
       console.log("Cached stay-insights:", cacheKey);
-    } catch (cacheErr) {
-      console.warn("Failed to cache stay-insights:", cacheErr);
     }
 
     return new Response(JSON.stringify(result), {

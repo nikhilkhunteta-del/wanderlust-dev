@@ -178,21 +178,21 @@ Return ONLY valid JSON, no markdown or explanation.`;
     console.log(`Flight insights generated for ${departureCity} → ${destinationCity}`);
 
     // --- Cache the AI data (without the URL, which is recomputed on every serve) ---
-    try {
-      const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
-      await supabase.from("ai_content_cache").upsert(
-        {
-          function_name: FUNCTION_NAME,
-          cache_key: cacheKey,
-          data_json: flightData,
-          fetched_at: new Date().toISOString(),
-          expires_at: expiresAt,
-        },
-        { onConflict: "function_name,cache_key" }
-      );
+    const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const { error: cacheErr } = await supabase.from("ai_content_cache").upsert(
+      {
+        function_name: FUNCTION_NAME,
+        cache_key: cacheKey,
+        data_json: flightData,
+        fetched_at: new Date().toISOString(),
+        expires_at: expiresAt,
+      },
+      { onConflict: "function_name,cache_key" }
+    );
+    if (cacheErr) {
+      console.error("Cache write failed for flight-insights:", cacheErr.message, cacheErr.code);
+    } else {
       console.log("Cached flight-insights:", cacheKey);
-    } catch (cacheErr) {
-      console.warn("Failed to cache flight-insights:", cacheErr);
     }
 
     // Add Google Flights URL after caching (date-dependent, recomputed each time)
