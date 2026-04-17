@@ -11,6 +11,7 @@ import { getFlightInsights } from "@/lib/flightInsights";
 import { getStayInsights } from "@/lib/stayInsights";
 import { getCityItinerary } from "@/lib/itinerary";
 import { getMultiCityItinerary } from "@/lib/multiCity";
+import { getBatchCityData, BatchCityParams } from "@/lib/batchCityData";
 import { CityHighlightsRequest } from "@/types/cityHighlights";
 import { FlightInsightsRequest } from "@/types/flightInsights";
 import { ItineraryRequest, CityItinerary } from "@/types/itinerary";
@@ -149,6 +150,20 @@ export function useMultiCityItinerary(request: MultiCityItineraryRequest | null)
     ],
     queryFn: () => getMultiCityItinerary(request!),
     enabled: !!request,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  });
+}
+
+export function useBatchCityData(cities: BatchCityParams[], enabled = true) {
+  return useQuery({
+    queryKey: [
+      "batch-city-data",
+      cities.map((c) => `${c.city}:${c.country}`).join(","),
+      cities[0]?.travelMonth,
+    ],
+    queryFn: () => getBatchCityData(cities),
+    enabled: enabled && cities.length > 0,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   });
