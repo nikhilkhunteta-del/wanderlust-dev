@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useHeroCollage } from "@/hooks/useHeroCollage";
+import { useImageState } from "@/hooks/useImageState";
 
 interface HighlightsHeroProps {
   city: string;
@@ -19,8 +19,7 @@ export const HighlightsHero = ({
 }: HighlightsHeroProps) => {
   const { data } = useHeroCollage(city, country, interests);
   const heroImage = data?.images?.[0] ?? null;
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const { loaded, failed, onLoad, onError } = useImageState(heroImage?.url);
 
   return (
     <section className="relative w-full overflow-hidden h-[70vh] md:h-[100vh]">
@@ -46,8 +45,8 @@ export const HighlightsHero = ({
               loaded ? "opacity-100" : "opacity-0"
             )}
             loading="eager"
-            onLoad={() => setLoaded(true)}
-            onError={() => setFailed(true)}
+            onLoad={onLoad}
+            onError={onError}
           />
         </>
       ) : (
