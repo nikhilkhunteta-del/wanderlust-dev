@@ -68,3 +68,4 @@ Every image in the app must make a user want to travel somewhere. No still lifes
 - Keep changes small and focused — one thing at a time
 - After every change, tell me what was changed and what to check on the live Vercel URL
 - Challenge assumptions if something seems off — but explain why in simple terms
+- Always commit and push changes directly to the main branch — never create separate branches

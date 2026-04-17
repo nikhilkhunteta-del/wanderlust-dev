@@ -1,4 +1,8 @@
 // City Weather Edge Function - Using Open-Meteo API with multi-year averaging
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const CACHE_TTL_DAYS = 30;
+const FUNCTION_NAME = "city-weather";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,6 +39,27 @@ Deno.serve(async (req) => {
     const travelMonth = body.travelMonth || "";
     const primaryInterest = (body.primaryInterest || "").toString().toLowerCase();
     console.log(`Fetching weather data for ${city}, ${country} in ${travelMonth}`);
+
+    // --- Cache check ---
+    const cacheKey = `${city.toLowerCase()}:${country.toLowerCase()}:${travelMonth.toLowerCase()}`;
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: cached } = await supabase
+      .from("ai_content_cache")
+      .select("data_json")
+      .eq("function_name", FUNCTION_NAME)
+      .eq("cache_key", cacheKey)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (cached?.data_json) {
+      console.log("Cache hit for city-weather:", cacheKey);
+      return new Response(JSON.stringify(cached.data_json), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Step 1: Geocode
     const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=5&language=en&format=json`;
@@ -194,6 +219,24 @@ Deno.serve(async (req) => {
     };
 
     console.log(`Weather data processed: avgHigh=${avgHighTemp}°C, rating=${monthRanking.rating}`);
+
+    // --- Cache the result ---
+    try {
+      const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("ai_content_cache").upsert(
+        {
+          function_name: FUNCTION_NAME,
+          cache_key: cacheKey,
+          data_json: result,
+          fetched_at: new Date().toISOString(),
+          expires_at: expiresAt,
+        },
+        { onConflict: "function_name,cache_key" }
+      );
+      console.log("Cached city-weather:", cacheKey);
+    } catch (cacheErr) {
+      console.warn("Failed to cache city-weather:", cacheErr);
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

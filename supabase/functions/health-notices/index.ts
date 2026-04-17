@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,18 +8,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const CACHE_TTL_DAYS = 7;
+const FUNCTION_NAME = "health-notices";
+
 async function scrapeCdcPage(country: string): Promise<string | null> {
   const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
-  
+
   if (!FIRECRAWL_API_KEY) {
     console.warn("FIRECRAWL_API_KEY not configured, skipping CDC scrape");
     return null;
   }
 
-  // Build CDC URL from country name
   const countrySlug = country.toLowerCase().replace(/\s+/g, "-");
   const cdcUrl = `https://wwwnc.cdc.gov/travel/destinations/traveler/none/${countrySlug}`;
-  
+
   console.log(`Scraping CDC page: ${cdcUrl}`);
 
   try {
@@ -43,7 +46,7 @@ async function scrapeCdcPage(country: string): Promise<string | null> {
 
     const data = await response.json();
     const markdown = data.data?.markdown || "";
-    
+
     console.log(`CDC scrape successful, content length: ${markdown.length} characters`);
     return markdown;
   } catch (error) {
@@ -71,6 +74,30 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Health data is not personalised — cache by city + country only
+    const cacheKey = `${city.toLowerCase()}:${resolvedCountry.toLowerCase()}`;
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // --- Cache check ---
+    const { data: cached } = await supabase
+      .from("ai_content_cache")
+      .select("data_json")
+      .eq("function_name", FUNCTION_NAME)
+      .eq("cache_key", cacheKey)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (cached?.data_json) {
+      console.log("Cache hit for health-notices:", cacheKey);
+      return new Response(JSON.stringify(cached.data_json), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     console.log(`Fetching health notices for ${city}, ${resolvedCountry} in ${travelMonth}`);
 
     // Step 1: Try to scrape real CDC data
@@ -79,7 +106,7 @@ serve(async (req) => {
 
     // Step 2: Build prompt based on whether we have real CDC data
     let prompt: string;
-    
+
     if (hasCdcData) {
       console.log("Using real CDC data for health notices");
       prompt = `You are a travel health information analyst. Analyze this REAL CDC travel health page data for ${resolvedCountry} and extract health information for travelers visiting ${city} in ${travelMonth || "any month"}.
@@ -235,11 +262,9 @@ Be factual and neutral. No alarmist language. No personalized medical advice.`;
       throw new Error("No content in AI response");
     }
 
-    // Parse the JSON response
     const cleanedContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const healthData = JSON.parse(cleanedContent);
 
-    // Add metadata
     healthData.lastUpdated = new Date().toISOString().split("T")[0];
     healthData.dataSource = hasCdcData ? "CDC (real-time)" : "AI-generated";
 
@@ -248,6 +273,24 @@ Be factual and neutral. No alarmist language. No personalized medical advice.`;
       noticesCount: healthData.currentNotices?.length || 0,
       dataSource: healthData.dataSource,
     });
+
+    // --- Cache the result ---
+    try {
+      const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("ai_content_cache").upsert(
+        {
+          function_name: FUNCTION_NAME,
+          cache_key: cacheKey,
+          data_json: healthData,
+          fetched_at: new Date().toISOString(),
+          expires_at: expiresAt,
+        },
+        { onConflict: "function_name,cache_key" }
+      );
+      console.log("Cached health-notices:", cacheKey);
+    } catch (cacheErr) {
+      console.warn("Failed to cache health-notices:", cacheErr);
+    }
 
     return new Response(JSON.stringify(healthData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

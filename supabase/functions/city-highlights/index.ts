@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const CACHE_TTL_DAYS = 30;
+const FUNCTION_NAME = "city-highlights";
 
 const INTEREST_LABELS: Record<string, string> = {
   "culture-history": "Culture & History",
@@ -63,9 +67,37 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating highlights for:", requestData.city, requestData.country);
+    const { city, country, userInterests, travelMonth, travelCompanions } = requestData;
 
-    const systemPrompt = `You are a travel content curator creating personalized city highlights for travelers. 
+    // Cache key captures the main personalisation axes that materially affect content
+    const sortedInterests = [...(userInterests || [])].sort().join(",") || "any";
+    const companions = (travelCompanions || "any").toLowerCase();
+    const cacheKey = `${city.toLowerCase()}:${country.toLowerCase()}:${sortedInterests}:${(travelMonth || "flexible").toLowerCase()}:${companions}`;
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // --- Cache check ---
+    const { data: cached } = await supabase
+      .from("ai_content_cache")
+      .select("data_json")
+      .eq("function_name", FUNCTION_NAME)
+      .eq("cache_key", cacheKey)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (cached?.data_json) {
+      console.log("Cache hit for city-highlights:", cacheKey);
+      return new Response(JSON.stringify(cached.data_json), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("Generating highlights for:", city, country);
+
+    const systemPrompt = `You are a travel content curator creating personalized city highlights for travelers.
 
 Your task is to create emotionally resonant, curated content that helps travelers connect with a destination based on their specific interests.
 
@@ -164,7 +196,7 @@ Generate:
 
     for (const model of models) {
       console.log(`Trying model: ${model}`);
-      
+
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -289,6 +321,24 @@ Generate:
     const parsed = extractJsonFromResponse(content) as CityHighlights;
 
     console.log("Highlights parsed successfully");
+
+    // --- Cache the result ---
+    try {
+      const expiresAt = new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("ai_content_cache").upsert(
+        {
+          function_name: FUNCTION_NAME,
+          cache_key: cacheKey,
+          data_json: parsed,
+          fetched_at: new Date().toISOString(),
+          expires_at: expiresAt,
+        },
+        { onConflict: "function_name,cache_key" }
+      );
+      console.log("Cached city-highlights:", cacheKey);
+    } catch (cacheErr) {
+      console.warn("Failed to cache city-highlights:", cacheErr);
+    }
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

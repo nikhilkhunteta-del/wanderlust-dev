@@ -41,7 +41,7 @@ function getAdjacentMonths(monthKey: string): { prev: string; next: string } {
   };
 }
 
-const CACHE_TTL_HOURS = 12;
+const CACHE_TTL_HOURS = 30 * 24; // 30 days
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
