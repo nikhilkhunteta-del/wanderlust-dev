@@ -137,11 +137,21 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
     [preferences.interests]
   );
 
-  // Filter cultural moments by user's Q1 interests
+  // Used only to decide whether to show Q3 at all — step is skipped if no interests match
   const filteredMoments = useMemo(
     () => allCulturalMoments.filter((m) =>
       m.triggeredBy.some((t) => preferences.interests.includes(t))
     ),
+    [preferences.interests]
+  );
+
+  // All moments, sorted so interest-matched ones appear first within each section
+  const sortedMoments = useMemo(
+    () => [...allCulturalMoments].sort((a, b) => {
+      const aMatch = a.triggeredBy.some((t) => preferences.interests.includes(t)) ? 0 : 1;
+      const bMatch = b.triggeredBy.some((t) => preferences.interests.includes(t)) ? 0 : 1;
+      return aMatch - bMatch;
+    }),
     [preferences.interests]
   );
 
@@ -306,7 +316,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
         if (currentQuestion.id === 'culturalMoments') {
           return (
             <CulturalMomentsQuestion
-              moments={filteredMoments}
+              moments={sortedMoments}
               selected={value as string[]}
               travelMonth={preferences.travelMonth}
               onChange={updatePreference}
