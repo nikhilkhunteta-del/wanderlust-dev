@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,12 +35,6 @@ serve(async (req) => {
 
   try {
     const requestData = (await req.json()) as ItineraryRequest;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     const isPerDayRegeneration = !!requestData.regenerateDay;
     console.log(
       isPerDayRegeneration
@@ -152,44 +147,7 @@ Respond with ONLY valid JSON for a single day:
   ]
 }`;
 
-      const singleDayModels = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-      let response: Response | null = null;
-      for (const model of singleDayModels) {
-        console.log("Trying model:", model);
-        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model,
-            messages: [{ role: "user", content: singleDayPrompt }],
-          }),
-        });
-        if (response.ok) break;
-        const errorText = await response.text();
-        console.error(`AI gateway error with ${model}:`, response.status, errorText);
-        if (response.status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
-      if (!response || !response.ok) {
-        throw new Error("AI gateway returned 500");
-      }
-
-      const aiResponse = await response.json();
-      const content = aiResponse.choices?.[0]?.message?.content;
-      if (!content) throw new Error("No content in AI response");
+      const content = await callClaude("", singleDayPrompt, { model: SONNET });
 
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error("Could not parse JSON from AI response");
@@ -329,53 +287,10 @@ ${mustDoNote}${focusNote}${freeTimeNote}
 
 Create a ${requestData.tripDuration}-day plan with Morning, Afternoon, and Evening for each day. Include specific meal recommendations as activities, transition times between activities, neighbourhood context, realistic pacing estimates, seasonal highlights for ${requestData.travelMonth}, day trip suggestions, and extension ideas. Make it locally authentic with real coordinates.`;
 
-    console.log("Sending prompt to AI gateway...");
+    console.log("Sending prompt to Claude...");
 
-    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-    let response: Response | null = null;
-    for (const model of models) {
-      console.log("Trying model:", model);
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      });
-      if (response.ok) break;
-      const errorText = await response.text();
-      console.error(`AI gateway error with ${model}:`, response.status, errorText);
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-    if (!response || !response.ok) {
-      throw new Error("AI gateway returned 500");
-    }
-
-    const aiResponse = await response.json();
+    const content = await callClaude(systemPrompt, userPrompt, { model: SONNET });
     console.log("AI response received");
-
-    const content = aiResponse.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content in AI response");
-    }
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {

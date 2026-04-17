@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, HAIKU } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -453,7 +454,6 @@ interface Synthesis {
 }
 
 async function generateSynthesis(
-  lovableKey: string,
   originCity: string,
   destinationCity: string,
   travelMonth: string,
@@ -523,30 +523,13 @@ Generate exactly these ten outputs — all must be specific to this exact route 
 
 Return as a clean JSON object with these exact ten keys. No markdown.`;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: "You are a flight analyst API. Return only valid JSON with exactly the eight requested keys. Be specific to the route — never generic." },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.3,
-      }),
-    });
+    const rawContent = await callClaude(
+      "You are a flight analyst API. Return only valid JSON with exactly the eight requested keys. Be specific to the route — never generic.",
+      prompt,
+      { model: HAIKU, temperature: 0.3 }
+    );
 
-    if (!resp.ok) {
-      console.error("Lovable AI synthesis error:", resp.status);
-      return fallback;
-    }
-
-    const data = await resp.json();
-    const content = data.choices?.[0]?.message?.content || "";
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return fallback;
 
     const parsed = JSON.parse(jsonMatch[0]);
@@ -648,7 +631,6 @@ serve(async (req) => {
     const SERPAPI_KEY = Deno.env.get("SERPAPI_KEY");
     if (!SERPAPI_KEY) throw new Error("SERPAPI_KEY is not configured");
     const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     const monthNum = parseMonth(travelMonth);
     const year = parseInt(travelYear) || new Date().getFullYear();
@@ -928,24 +910,11 @@ serve(async (req) => {
     console.log("Phase 3: AI synthesis");
 
     // Use dedicated feasibility pricing for synthesis — never one-way derived data
-    const synthesis = LOVABLE_API_KEY
-      ? await generateSynthesis(
-          LOVABLE_API_KEY, originCity, destinationCity, monthName, travelYear || year.toString(),
-          feasibilityPricing, cheapestOrigin, primaryOrigin, weeklyPricing, routeIntelligence, currency,
-          PERPLEXITY_API_KEY || null,
-        )
-      : {
-          priceVerdict: `Flights from ${originCity} to ${destinationCity} start around ${getCurrencySymbol(currency)}${feasibilityPricing.lowestPrice ? Math.round(feasibilityPricing.lowestPrice / passengers) : "N/A"} per person.`,
-          priceTrend: null,
-          bookingTiming: "Book 6-8 weeks ahead for best prices.",
-          bestWeekReason: bestWeek ? `${bestWeek.week} offers the lowest fares.` : "Check weekly variations.",
-          insight_route: `${originCity} to ${destinationCity} is typically served with connections.`,
-          insight_flexibility: `Compare ${originCity} airports for savings.`,
-          insight_timing: `Flying midweek on this route can often save 10-15% compared to weekend departures.`,
-          insight_hiddencosts: null,
-          carbonComparison: null,
-          originTransferNote: null,
-        };
+    const synthesis = await generateSynthesis(
+      originCity, destinationCity, monthName, travelYear || year.toString(),
+      feasibilityPricing, cheapestOrigin, primaryOrigin, weeklyPricing, routeIntelligence, currency,
+      PERPLEXITY_API_KEY || null,
+    );
 
     // Strip markdown from all AI/Perplexity text fields
     const cleanSynthesis = {

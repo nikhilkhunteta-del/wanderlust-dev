@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -189,9 +190,6 @@ serve(async (req) => {
     }
 
     const resolvedCountry = country || city;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     // Cache key: destination + month + companions type (main factors affecting content)
     const companionsKey = (groupType || travelCompanions || "any").toLowerCase();
     const cacheKey = `${city.toLowerCase()}:${resolvedCountry.toLowerCase()}:${(travelMonth || "flexible").toLowerCase()}:${companionsKey}`;
@@ -256,54 +254,19 @@ serve(async (req) => {
 
     const prompt = buildPrompt(city, resolvedCountry, monthName, travellerCurrency, localCurrency, profileContext);
 
-    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-    let response: Response | null = null;
-    for (const model of models) {
-      console.log("Trying model:", model);
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: "You are a travel accommodation expert. Respond only with valid JSON." },
-            { role: "user", content: prompt },
-          ],
-          ...(model.startsWith("google/") ? { temperature: 0.7 } : {}),
-        }),
-      });
-      if (response.ok) break;
-      const errorText = await response.text();
-      console.error(`AI gateway error with ${model}:`, response.status, errorText);
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-    if (!response || !response.ok) throw new Error("AI gateway returned 500");
-
-    const aiData = await response.json();
-    const content = aiData.choices?.[0]?.message?.content;
-    if (!content) throw new Error("No content in AI response");
+    const rawText = await callClaude(
+      "You are a travel accommodation expert. Respond only with valid JSON.",
+      prompt,
+      { model: SONNET, temperature: 0.7 },
+    );
 
     let insights;
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error("Could not parse JSON from AI response");
       insights = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
+    } catch {
+      console.error("Failed to parse AI response:", rawText);
       throw new Error("Failed to parse stay insights");
     }
 

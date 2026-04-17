@@ -1,4 +1,4 @@
-project_id = "lxmzswwvpiuwfetqpbeu"
+project_id = "jfevevpldnllgarhpgxr"
 
 [functions.travel-advisory]
 verify_jwt = false
@@ -43,4 +43,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.hero-collage]
+verify_jwt = false
+
+[functions.storage-migration]
 verify_jwt = false

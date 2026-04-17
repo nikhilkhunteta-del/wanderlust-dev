@@ -32,7 +32,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//ice-snow-festival-harbin.png",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//ice-snow-festival-harbin.png",
       credit: "Erica Li",
       unsplashLink: "",
       source: "ai" as const,
@@ -50,7 +50,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//jaipur-literature-festival.png",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//jaipur-literature-festival.png",
       credit: "Sneha Chakraborty",
       unsplashLink: "",
       source: "ai" as const,
@@ -68,7 +68,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Sinulog Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Sinulog Festival.jpg",
       credit: "Chloe Evans",
       unsplashLink: "",
       source: "pexels" as const,
@@ -86,7 +86,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//timkat.jpeg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//timkat.jpeg",
       credit: "Wikimedia",
       unsplashLink: "",
       source: "wikimedia" as const,
@@ -104,7 +104,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Up Helly Aa.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Up Helly Aa.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -122,7 +122,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "food-culinary"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Pongal.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Pongal.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -141,7 +141,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//kite festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//kite festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -178,7 +178,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["january"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Ati-Atihan Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Ati-Atihan Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -215,7 +215,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//venice-carnival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//venice-carnival.jpg",
       credit: "Hasmik Ghazaryan Olson",
       unsplashLink: "",
       source: "pexels" as const,
@@ -234,7 +234,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february", "march"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Rio Carnival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Rio Carnival.jpg",
       credit: "Karla Vidal",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -254,7 +254,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Lantern Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Lantern Festival.jpg",
       credit: "Nat Chen",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -273,7 +273,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Ivrea Orange Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Ivrea Orange Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -291,7 +291,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Sapporo Snow Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Sapporo Snow Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -310,7 +310,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "nature-outdoors", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Quebec Winter Carnival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Quebec Winter Carnival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -328,7 +328,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Carnival of Oruro.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Carnival of Oruro.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -348,7 +348,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Carnaval de Barranquilla.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Carnaval de Barranquilla.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -367,7 +367,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["february"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Tapati Rapa Nui.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Tapati Rapa Nui.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -385,7 +385,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["march"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//holi-india.png",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//holi-india.png",
       credit: "",
       unsplashLink: "",
       source: "ai" as const,
@@ -422,7 +422,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["march"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//St Patrick's Day.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//St Patrick's Day.jpg",
       credit: "Sophie Popplewell",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -440,7 +440,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["march"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Nowruz.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Nowruz.jpg",
       credit: "Fayegh Shakibayi",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -457,7 +457,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["march"],
     triggeredBy: ["arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Cape Town Jazz Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Cape Town Jazz Festival.jpg",
       credit: "Josh Wright",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -474,7 +474,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["march"],
     triggeredBy: ["culture-history", "wellness-slow-travel"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Nyepi.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Nyepi.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -531,7 +531,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["april"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Songkran-Festival-with-Aleenta-Phuket.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Songkran-Festival-with-Aleenta-Phuket.jpg",
       credit: "Mandy H",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -548,7 +548,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["april", "may"],
     triggeredBy: ["nature-outdoors", "wellness-slow-travel"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Tulip Keukenhof.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Tulip Keukenhof.jpg",
       credit: "Marnee Wohlfert",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -565,7 +565,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["april"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Feria de Abril.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Feria de Abril.jpg",
       credit: "Anastasiia Nelen",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -582,7 +582,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["march", "april"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Paro-Tshechu-Festival-Tour.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Paro-Tshechu-Festival-Tour.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -601,7 +601,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["april"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Anzac Day Dawn Service.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Anzac Day Dawn Service.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -620,7 +620,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["may"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Cannes Film Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Cannes Film Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -637,7 +637,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["may"],
     triggeredBy: ["nature-outdoors", "wellness-slow-travel"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Chelsea Flower Show.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Chelsea Flower Show.jpg",
       credit: "Div Manickam",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -655,7 +655,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["may"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Vesak Day.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Vesak Day.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -674,7 +674,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["may"],
     triggeredBy: ["active-sport", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Monaco Grand Prix.jpeg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Monaco Grand Prix.jpeg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -693,7 +693,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["may"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Rocket Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Rocket Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -711,7 +711,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["may"],
     triggeredBy: ["culture-history", "wellness-slow-travel"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Waisak at Borobudur.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Waisak at Borobudur.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -748,7 +748,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["june"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Inti-Raymi-in-Cusco.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Inti-Raymi-in-Cusco.jpg",
       credit: "Snowscat",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -766,7 +766,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["june"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//midsommar festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//midsommar festival.jpg",
       credit: "Andreas Lindgren",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -784,7 +784,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["june"],
     triggeredBy: ["culture-history", "active-sport"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Dragon-Boat-Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Dragon-Boat-Festival.jpg",
       credit: "Joshua J. Cotten",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -821,7 +821,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["june"],
     triggeredBy: ["culture-history", "arts-music-nightlife", "food-culinary"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Festa de Sao Joao.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Festa de Sao Joao.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -839,7 +839,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["june"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//White Nights Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//White Nights Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -857,7 +857,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["june", "july"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Hemis Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Hemis Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -893,7 +893,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["july"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Bastille Day.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Bastille Day.jpg",
       credit: "Nivenn Lanos",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -911,7 +911,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["july"],
     triggeredBy: ["culture-history", "active-sport"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Calgary Stampede.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Calgary Stampede.jpg",
       credit: "Bryton Udy",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -928,7 +928,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["july"],
     triggeredBy: ["culture-history", "active-sport"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Naadam Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Naadam Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -946,7 +946,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["july"],
     triggeredBy: ["arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Tomorrowland.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Tomorrowland.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -965,7 +965,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["july"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Festa del Redentore.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Festa del Redentore.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -983,7 +983,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["june", "july"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Phi Ta Khon.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Phi Ta Khon.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1002,7 +1002,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Obon Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Obon Festival.jpg",
       credit: "Jaturawit T.",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1020,7 +1020,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["july", "august"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Il Palio.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Il Palio.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1039,7 +1039,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//La Tomatina.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//La Tomatina.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1057,7 +1057,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Edinburgh Fringe Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Edinburgh Fringe Festival.jpg",
       credit: "Filiz Elaerts",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1076,7 +1076,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Notting Hill Carnival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Notting Hill Carnival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1094,7 +1094,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august"],
     triggeredBy: ["arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Burning Man.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Burning Man.jpg",
       credit: "Carlo",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1112,7 +1112,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august", "september"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Ganesh Chaturthi.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Ganesh Chaturthi.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1131,7 +1131,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//festa_gracia_gracia_festival_barcelona.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//festa_gracia_gracia_festival_barcelona.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1149,7 +1149,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august", "september"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Venice Film Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Venice Film Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1167,7 +1167,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august", "september"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Onam.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Onam.jpg",
       credit: "Anantha Krishnan",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1184,7 +1184,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["september"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Gerewol-Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Gerewol-Festival.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1220,7 +1220,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["september", "october"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Mid-Autumn Moon Festival.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Mid-Autumn Moon Festival.jpg",
       credit: "あま あわれ",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1237,7 +1237,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["september"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//La Merce.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//La Merce.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1255,7 +1255,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["september"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Festival of San Gennaro.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Festival of San Gennaro.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1273,7 +1273,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["july"],
     triggeredBy: ["arts-music-nightlife", "beach-coastal"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Mud_Fest_2008_(2679028799).jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Mud_Fest_2008_(2679028799).jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1329,7 +1329,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["october"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//halloween-salem.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//halloween-salem.jpg",
       credit: "David Trinks",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1347,7 +1347,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["october"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Garba-Ahmedabad.png",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Garba-Ahmedabad.png",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1366,7 +1366,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["october"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//The-Dance-of-Dhunuchi.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//The-Dance-of-Dhunuchi.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1403,7 +1403,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["november"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Day of the Dead.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Day of the Dead.jpg",
       credit: "Eric Prouzet",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1421,7 +1421,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["november"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Loi Krathong.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Loi Krathong.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1458,7 +1458,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["november"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//guy-fawkes-lewes.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//guy-fawkes-lewes.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1476,7 +1476,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["november"],
     triggeredBy: ["culture-history", "nature-outdoors"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//surin-elephant-roundup.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//surin-elephant-roundup.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1494,7 +1494,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["november"],
     triggeredBy: ["food-culinary", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//beaujolais-nouveau-beaune.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//beaujolais-nouveau-beaune.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1513,7 +1513,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["december"],
     triggeredBy: ["culture-history", "food-culinary"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Christmas Markets.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Christmas Markets.jpg",
       credit: "Alexis Brandner",
       unsplashLink: "",
       source: "pexels" as const,
@@ -1531,7 +1531,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["december"],
     triggeredBy: ["arts-music-nightlife", "culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//new-years-eve-sydney.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//new-years-eve-sydney.jpg",
       credit: "Jayden Lynch",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1550,7 +1550,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["december"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Krampusnacht.jpeg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Krampusnacht.jpeg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1568,7 +1568,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["december"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Hogmanay.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Hogmanay.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1586,7 +1586,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["december"],
     triggeredBy: ["culture-history"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Las Posadas.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Las Posadas.jpg",
       credit: "",
       unsplashLink: "",
       source: "wikimedia" as const,
@@ -1604,7 +1604,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["december"],
     triggeredBy: ["culture-history", "wellness-slow-travel"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Winter Solstice at Stonehenge.jpg", // TODO: replace with direct image URL — current URL was a webpage not an image
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Winter Solstice at Stonehenge.jpg", // TODO: replace with direct image URL — current URL was a webpage not an image
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1680,7 +1680,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["april"],
     triggeredBy: ["arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Coachella.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Coachella.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1699,7 +1699,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["april"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Kings-day.jpg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Kings-day.jpg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1717,7 +1717,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["may"],
     triggeredBy: ["culture-history", "arts-music-nightlife"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Norway.jpeg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Norway.jpeg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,
@@ -1735,7 +1735,7 @@ export const culturalMoments: CulturalMoment[] = [
     months: ["august"],
     triggeredBy: ["culture-history", "food-culinary"],
     image: {
-      url: "https://lxmzswwvpiuwfetqpbeu.supabase.co/storage/v1/object/public/festivals//Melon Day.jpeg",
+      url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Melon Day.jpeg",
       credit: "",
       unsplashLink: "",
       source: "unsplash" as const,

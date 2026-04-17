@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { callClaude, HAIKU } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,34 +96,15 @@ function buildHeroFallbackQuery(city: string, country: string): string {
 // receives a real place name (e.g. "Nyhavn Copenhagen") instead of an abstract
 // descriptor like "{City} cityscape" which Google Places cannot resolve.
 async function getIconicLandmarkForCity(city: string, country: string): Promise<string | null> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) return null;
   try {
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content: "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation, no quotes.",
-          },
-          {
-            role: "user",
-            content: `What is the single most visually iconic, most-photographed landmark or location in ${city}, ${country}? Name one specific real place that Google Maps would recognise.`,
-          },
-        ],
-      }),
-    });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    const raw = data.choices?.[0]?.message?.content?.trim();
-    if (!raw || raw.length > 80) return null;
-    return raw.replace(/^\d+[\.\)]\s*/, "").replace(/^["']|["']$/g, "").trim();
+    const raw = await callClaude(
+      "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation, no quotes.",
+      `What is the single most visually iconic, most-photographed landmark or location in ${city}, ${country}? Name one specific real place that Google Maps would recognise.`,
+      { model: HAIKU }
+    );
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed.length > 80) return null;
+    return trimmed.replace(/^\d+[\.\)]\s*/, "").replace(/^["']|["']$/g, "").trim();
   } catch {
     return null;
   }

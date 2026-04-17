@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, SONNET } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,12 +62,6 @@ serve(async (req) => {
 
   try {
     const requestData = (await req.json()) as CityHighlightsRequest;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     const { city, country, userInterests, travelMonth, travelCompanions } = requestData;
 
     // Cache key captures the main personalisation axes that materially affect content
@@ -187,67 +182,9 @@ Generate:
 7. 5 vibe tags specific enough to ONLY make sense for ${requestData.city}. Capture contrast where it genuinely exists. Avoid generic descriptors like 'cultural immersion', 'historical depth', 'relaxed pace' — these apply to dozens of cities. Each chip should make someone who has visited ${requestData.city} nod in recognition.
 8. A hero image search query for the city`;
 
-    console.log("Sending prompt to AI gateway...");
+    console.log("Sending prompt to Claude...");
 
-    // Try with primary model, fallback to stable model if needed
-    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-    let content: string | null = null;
-    let lastError: string | null = null;
-
-    for (const model of models) {
-      console.log(`Trying model: ${model}`);
-
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`AI gateway error with ${model}:`, response.status, errorText);
-
-        if (response.status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        lastError = `AI gateway returned ${response.status}`;
-        continue;
-      }
-
-      const aiResponse = await response.json();
-      console.log(`AI response received from ${model}`);
-
-      content = aiResponse.choices?.[0]?.message?.content;
-      if (content) {
-        break;
-      } else {
-        console.warn(`No content from ${model}, trying next model...`);
-        lastError = "No content in AI response";
-      }
-    }
-
-    if (!content) {
-      throw new Error(lastError || "No content in AI response after trying all models");
-    }
+    const content = await callClaude(systemPrompt, userPrompt, { model: SONNET });
 
     // Robust JSON extraction and repair from LLM output
     function extractJsonFromResponse(response: string): unknown {

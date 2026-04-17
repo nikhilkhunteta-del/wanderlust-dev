@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, extractJson, HAIKU } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -68,11 +69,6 @@ serve(async (req) => {
     }
 
     const resolvedCountry = country || city;
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
 
     // Health data is not personalised — cache by city + country only
     const cacheKey = `${city.toLowerCase()}:${resolvedCountry.toLowerCase()}`;
@@ -216,54 +212,12 @@ Be factual and neutral. No alarmist language. No personalized medical advice.`;
 
     prompt += "\n\nReturn ONLY valid JSON, no markdown or explanation.";
 
-    const models = ["google/gemini-2.5-flash", "google/gemini-2.5-flash-lite", "openai/gpt-5-mini"];
-    let response: Response | null = null;
-    for (const model of models) {
-      console.log("Trying model:", model);
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: "You are a travel health data API. Return only valid JSON. When provided with real CDC data, extract actual notices and alerts accurately." },
-            { role: "user", content: prompt },
-          ],
-          ...(model.startsWith("google/") ? { temperature: 0.3 } : {}),
-        }),
-      });
-      if (response.ok) break;
-      const errorText = await response.text();
-      console.error(`AI gateway error with ${model}:`, response.status, errorText);
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-    if (!response || !response.ok) {
-      throw new Error("AI Gateway error: 500");
-    }
-
-    const aiData = await response.json();
-    const content = aiData.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No content in AI response");
-    }
-
-    const cleanedContent = content.replace(/```json\n?|\n?```/g, "").trim();
-    const healthData = JSON.parse(cleanedContent);
+    const text = await callClaude(
+      "You are a travel health data API. Return only valid JSON. When provided with real CDC data, extract actual notices and alerts accurately.",
+      prompt,
+      { model: HAIKU, temperature: 0.3 },
+    );
+    const healthData = extractJson(text) as any;
 
     healthData.lastUpdated = new Date().toISOString().split("T")[0];
     healthData.dataSource = hasCdcData ? "CDC (real-time)" : "AI-generated";
