@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callClaude, SONNET } from "../_shared/ai.ts";
+import { getIconicLandmark } from "../_shared/landmarks.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,22 +43,6 @@ const INTEREST_PLACE_FRAMING: Record<string, string> = {
   "wellness-slow-travel": "parks, lakeside areas, quiet neighbourhoods, and peaceful gardens",
 };
 
-// Use AI to identify the single most iconic landmark for a city (hero image)
-async function getIconicLandmark(city: string, country: string): Promise<string> {
-  try {
-    const raw = await callClaude(
-      "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
-      `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
-      { model: SONNET },
-    );
-    const trimmed = raw.trim();
-    if (!trimmed || trimmed.length > 80) return `${city} landmark`;
-    return trimmed.replace(/^\d+[\.\)]\s*/, "").trim();
-  } catch {
-    return `${city} landmark`;
-  }
-}
-
 // Use AI to generate 6 visually compelling places relevant to the user's primary interest
 async function getInterestPlaces(city: string, country: string, primaryInterest: string): Promise<string[]> {
   const framing = INTEREST_PLACE_FRAMING[primaryInterest] || INTEREST_PLACE_FRAMING["culture-history"];
@@ -88,10 +73,11 @@ async function getInterestPlaces(city: string, country: string, primaryInterest:
 
 // Build 3 search queries for the asymmetric collage
 async function buildQueries(city: string, country: string, primaryInterest: string): Promise<{ queries: string[]; landmark: string; places: string[] }> {
-  const [landmark, places] = await Promise.all([
+  const [landmarkResult, places] = await Promise.all([
     getIconicLandmark(city, country),
     getInterestPlaces(city, country, primaryInterest),
   ]);
+  const landmark = landmarkResult ?? `${city} landmark`;
 
   return {
     queries: [

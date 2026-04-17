@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { callClaude, HAIKU } from "../_shared/ai.ts";
+import { getIconicLandmark } from "../_shared/landmarks.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,24 +15,6 @@ interface PrefetchRequest {
     country: string;
   }>;
   userInterests?: string[];
-}
-
-// Ask the AI to identify the single most iconic landmark for a city.
-// Mirrors the approach used by the hero-collage edge function so prefetch
-// queries hit Google Places with a real, searchable place name.
-async function getIconicLandmark(city: string, country: string): Promise<string> {
-  try {
-    const raw = await callClaude(
-      "You are a travel expert. Reply with ONLY the name of the landmark, nothing else. No numbering, no explanation.",
-      `What is the single most iconic, most-photographed landmark or sight in ${city}, ${country}? Name one specific place.`,
-      { model: HAIKU },
-    );
-    const trimmed = raw.trim();
-    if (!trimmed || trimmed.length > 80) return `${city} landmark`;
-    return trimmed.replace(/^\d+[\.\)]\s*/, "").trim();
-  } catch {
-    return `${city} landmark`;
-  }
 }
 
 serve(async (req) => {
@@ -63,7 +45,7 @@ serve(async (req) => {
       const { city, country } = cityInfo;
 
       try {
-        const landmark = await getIconicLandmark(city, country);
+        const landmark = await getIconicLandmark(city, country) ?? `${city} landmark`;
         console.log(`[${city}] iconic landmark: "${landmark}"`);
 
         const response = await supabase.functions.invoke("resolve-image", {
