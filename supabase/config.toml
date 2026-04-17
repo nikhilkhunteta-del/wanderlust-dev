@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.hero-collage]
 verify_jwt = false
+
+[functions.storage-migration]
+verify_jwt = false
