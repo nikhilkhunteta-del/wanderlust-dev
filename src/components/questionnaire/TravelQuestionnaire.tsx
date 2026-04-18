@@ -14,8 +14,10 @@ import { WhenAndHowLongQuestion } from './WhenAndHowLongQuestion';
 import { TextInputQuestion } from './TextInputQuestion';
 import { TransitionCard } from './TransitionCard';
 import { CulturalMomentsQuestion } from './CulturalMomentsQuestion';
+import { BucketListQuestion } from './BucketListQuestion';
 import { TravelPreferences, buildDynamicQuestions } from '@/types/questionnaire';
 import { culturalMoments as allCulturalMoments } from '@/data/culturalMoments';
+import { bucketListActivities } from '@/data/bucketListActivities';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
@@ -325,13 +327,22 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
             />
           );
         }
+        if (currentQuestion.id === 'adventureExperiences') {
+          return (
+            <BucketListQuestion
+              activities={bucketListActivities}
+              selected={value as string[]}
+              onChange={updatePreference}
+              onSkip={handleSkipQ2}
+            />
+          );
+        }
         return (
           <MultiSelectQuestion
             options={currentQuestion.options!}
             selected={value as string[]}
             onChange={updatePreference}
             grouped={currentQuestion.grouped}
-            onSkip={currentQuestion.id === 'adventureExperiences' ? handleSkipQ2 : undefined}
           />
         );
       case 'single-select': {
