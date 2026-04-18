@@ -1,5 +1,4 @@
-import { useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useLandmarkStrip, LandmarkStripImage } from "@/hooks/useLandmarkStrip";
 import { useImageState } from "@/hooks/useImageState";
@@ -24,150 +23,92 @@ interface LandmarkStripProps {
 
 export const LandmarkStrip = ({ city, country, places, primaryInterest }: LandmarkStripProps) => {
   const { data: images, isLoading } = useLandmarkStrip(city, country, places);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const validImages = (images ?? []).filter(
     (img): img is LandmarkStripImage => img !== null
   );
 
+  useEffect(() => {
+    if (validImages.length < 2) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((i) => (i + 1) % validImages.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [validImages.length]);
+
   if (isLoading) {
     return (
       <section>
-        <div className="flex overflow-hidden">
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="flex-shrink-0 w-full md:w-1/2 bg-muted animate-pulse"
-              style={{ height: 500 }}
-            />
-          ))}
-        </div>
+        <div className="h-64 md:h-96 lg:h-[500px] w-full bg-muted animate-pulse" />
       </section>
     );
   }
 
   if (validImages.length < 2) return null;
 
-  const updateScrollButtons = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-  };
-
-  const scroll = (direction: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const cardWidth = el.querySelector("[data-strip-card]")?.clientWidth ?? el.clientWidth / 2;
-    const gap = 12;
-    el.scrollBy({
-      left: direction === "left" ? -(cardWidth + gap) : cardWidth + gap,
-      behavior: "smooth",
-    });
-    setTimeout(updateScrollButtons, 350);
-  };
-
   return (
-    <section className="relative group">
+    <section>
       <h2 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-4 px-4 md:px-6">
         {city} through a {INTEREST_LENS[primaryInterest || "culture-history"] || "traveller's lens"}
       </h2>
-      {/* Scroll container */}
-      <div
-        ref={scrollRef}
-        onScroll={updateScrollButtons}
-        className="flex overflow-x-auto scroll-smooth snap-x snap-mandatory hide-scrollbar"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none", gap: 12 }}
-      >
+      <div className="relative w-full h-64 md:h-96 lg:h-[500px] overflow-hidden bg-muted">
         {validImages.map((img, idx) => (
-          <StripCard key={idx} image={img} />
+          <SlideImage key={img.url} image={img} active={idx === currentIndex} />
         ))}
       </div>
-
-      {/* Left arrow */}
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll("left")}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
-          aria-label="Scroll left"
-        >
-          <ChevronLeft className="w-5 h-5 text-foreground" />
-        </button>
-      )}
-
-      {/* Right arrow */}
-      {canScrollRight && validImages.length > 2 && (
-        <button
-          onClick={() => scroll("right")}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm border border-border rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
-          aria-label="Scroll right"
-        >
-          <ChevronRight className="w-5 h-5 text-foreground" />
-        </button>
-      )}
     </section>
   );
 };
 
-// ── Individual card ───────────────────────────────────────
-function StripCard({ image }: { image: LandmarkStripImage }) {
+// ── Individual slide ──────────────────────────────────────
+function SlideImage({ image, active }: { image: LandmarkStripImage; active: boolean }) {
   const { loaded, failed, onLoad, onError } = useImageState(image.url);
-
   const displayName = image.placeName || image.landmark || "";
 
   return (
     <div
-      data-strip-card
-      className="flex-shrink-0 w-full md:w-1/2 snap-start"
+      className="absolute inset-0 transition-opacity duration-1000"
+      style={{ opacity: active ? 1 : 0 }}
     >
-      <div className="relative overflow-hidden bg-muted" style={{ height: 500 }}>
-        {!loaded && !failed && (
-          <div className="absolute inset-0 animate-pulse bg-muted" />
-        )}
-        {!failed ? (
-          <img
-            src={image.url}
-            alt={displayName}
-            className={cn(
-              "w-full h-full object-cover transition-opacity duration-500",
-              loaded ? "opacity-100" : "opacity-0"
-            )}
-            loading="lazy"
-            onLoad={onLoad}
-            onError={onError}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <span className="text-muted-foreground text-sm">{displayName}</span>
-          </div>
-        )}
+      {!failed ? (
+        <img
+          src={image.url}
+          alt={displayName}
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-500",
+            loaded ? "opacity-100" : "opacity-0"
+          )}
+          loading="lazy"
+          onLoad={onLoad}
+          onError={onError}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <span className="text-muted-foreground text-sm">{displayName}</span>
+        </div>
+      )}
 
-        {/* Photographer attribution */}
-        {image.photographer && loaded && (
-          <a
-            href={`${image.photographerUrl}?utm_source=travel_app&utm_medium=referral`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute top-2 right-2 text-[9px] text-white/60 hover:text-white bg-black/30 hover:bg-black/50 px-1.5 py-0.5 rounded transition-colors backdrop-blur-sm"
-          >
-            📷 {image.photographer}
-          </a>
-        )}
-      </div>
+      {/* Name overlay */}
+      {displayName && (
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
+          <p className="absolute bottom-4 left-4 text-white text-sm font-medium tracking-wide drop-shadow">
+            {displayName}
+          </p>
+        </div>
+      )}
 
-      {/* Place name */}
-      <p
-        className="mt-2 px-3 text-muted-foreground"
-        style={{
-          fontSize: 12,
-          fontVariant: "small-caps",
-          letterSpacing: "0.05em",
-        }}
-      >
-        {displayName}
-      </p>
+      {/* Photographer attribution */}
+      {image.photographer && loaded && (
+        <a
+          href={`${image.photographerUrl}?utm_source=travel_app&utm_medium=referral`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute top-2 right-2 text-[9px] text-white/60 hover:text-white bg-black/30 hover:bg-black/50 px-1.5 py-0.5 rounded transition-colors backdrop-blur-sm"
+        >
+          📷 {image.photographer}
+        </a>
+      )}
     </div>
   );
 }
