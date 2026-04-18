@@ -256,7 +256,7 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
     );
     const adventureQ: QuestionConfig = {
       id: 'adventureExperiences',
-      questionText: 'The things you keep saying you'll do one day.',
+      questionText: 'The things you keep saying you\'ll do one day.',
       subtitle: 'Pick the experiences that have lived rent-free in your head.',
       inputType: 'multi-select',
       grouped: true,
