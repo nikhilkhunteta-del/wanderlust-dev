@@ -166,7 +166,7 @@ export function shouldShowFoodQuestion(q1Selections: string[]): boolean {
 export const QUESTIONS: QuestionConfig[] = [
   {
     id: 'interests',
-    questionText: 'What experiences excite you most?',
+    questionText: 'What kind of traveller are you?',
     subtitle: "We'll use this to shape places you'll truly love.",
     inputType: 'multi-select',
     options: [
@@ -239,8 +239,8 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
   // Insert cultural moments question (Q3) if any moments match
   const culturalQ: QuestionConfig = {
     id: 'culturalMoments',
-    questionText: "Are there moments you've always wanted to witness?",
-    subtitle: 'Once-in-a-lifetime events that could define your whole trip.',
+    questionText: 'Is there a moment you want to be part of?',
+    subtitle: 'These are the events people rearrange their lives to attend.',
     inputType: 'multi-select',
     options: [], // handled by custom renderer
     defaultValue: [],
@@ -256,8 +256,8 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
     );
     const adventureQ: QuestionConfig = {
       id: 'adventureExperiences',
-      questionText: 'Which experiences call to you?',
-      subtitle: "Pick the adventures that make your heart race — or skip ahead.",
+      questionText: 'The things you keep saying you\'ll do one day.',
+      subtitle: 'Pick the experiences that have lived rent-free in your head.',
       inputType: 'multi-select',
       grouped: true,
       options,
