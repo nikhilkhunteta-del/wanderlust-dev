@@ -2,6 +2,16 @@ import { cn } from "@/lib/utils";
 import { useHeroCollage } from "@/hooks/useHeroCollage";
 import { useImageState } from "@/hooks/useImageState";
 
+const kenBurnsStyle = (
+  <style>{`
+    @keyframes kenBurns {
+      0%   { transform: scale(1.0) translate(0%, 0%); }
+      50%  { transform: scale(1.1) translate(-1.5%, -1%); }
+      100% { transform: scale(1.0) translate(0%, 0%); }
+    }
+  `}</style>
+);
+
 interface HighlightsHeroProps {
   city: string;
   country: string;
@@ -23,6 +33,7 @@ export const HighlightsHero = ({
 
   return (
     <section className="relative w-full overflow-hidden h-[70vh] md:h-[100vh]">
+      {kenBurnsStyle}
       {/* Background: image or gradient fallback */}
       {heroImage && !failed ? (
         <>
@@ -44,6 +55,7 @@ export const HighlightsHero = ({
               "absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-500",
               loaded ? "opacity-100" : "opacity-0"
             )}
+            style={loaded ? { animation: "kenBurns 13s ease-in-out infinite" } : undefined}
             loading="eager"
             onLoad={onLoad}
             onError={onError}
