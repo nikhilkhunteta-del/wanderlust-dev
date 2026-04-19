@@ -271,8 +271,8 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
   // Insert iconic sights question (Q5)
   const iconicSightsQ: QuestionConfig = {
     id: 'iconicSights',
-    questionText: 'What would you love to see?',
-    subtitle: "The ones you'll still be talking about in ten years.",
+    questionText: 'Is there a sight you\u2019d rearrange your life to see?',
+    subtitle: "The world\u2019s most extraordinary places, waiting for the right moment.",
     inputType: 'multi-select',
     options: [],
     defaultValue: [],
