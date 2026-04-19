@@ -80,7 +80,7 @@ export const BucketListQuestion = ({
         onClick={() => toggle(activity.value)}
         whileTap={{ scale: 0.97 }}
         className={cn(
-          'flex flex-col rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-80 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-card shadow-sm hover:shadow-lg',
+          'flex flex-col h-full rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-80 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-card shadow-sm hover:shadow-lg',
           isSelected
             ? 'border-[3px] border-primary shadow-lg shadow-primary/20'
             : 'border border-border/40 hover:border-border/60'
@@ -111,7 +111,7 @@ export const BucketListQuestion = ({
         </div>
 
         {/* Text */}
-        <div className="flex flex-col gap-1 px-4 py-3">
+        <div className="flex flex-col flex-1 gap-1 px-4 py-3">
           <div className="flex items-start justify-between gap-2">
             <p className="text-[15px] font-semibold leading-tight text-foreground">
               {activity.label}
@@ -160,7 +160,7 @@ export const BucketListQuestion = ({
             <Carousel opts={{ align: 'start', loop: false }} className="w-full">
               <CarouselContent className="-ml-4">
                 {grouped[catId].map((activity) => (
-                  <CarouselItem key={activity.value} className="pl-4 basis-auto">
+                  <CarouselItem key={activity.value} className="pl-4 basis-auto h-full">
                     {renderCard(activity)}
                   </CarouselItem>
                 ))}
