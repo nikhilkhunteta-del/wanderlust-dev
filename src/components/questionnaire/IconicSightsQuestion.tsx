@@ -70,7 +70,7 @@ export const IconicSightsQuestion = ({
         onClick={() => toggle(sight.value)}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'relative w-full h-[calc(100vh-200px)] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
+          'relative w-full h-[calc(100vh-130px)] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
           isSelected
             ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
             : 'ring-1 ring-white/10'
@@ -105,11 +105,11 @@ export const IconicSightsQuestion = ({
 
         {/* Text overlay — sits on gradient */}
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-12 z-10 text-left">
-          <p className="text-2xl font-bold text-white leading-tight">
+          <p className="text-4xl font-bold text-white leading-tight">
             {sight.label}
           </p>
-          <p className="text-sm text-white/70 mt-1">{sight.location}</p>
-          <p className="text-sm text-white/80 mt-2 leading-relaxed line-clamp-2">
+          <p className="text-base text-white/70 mt-1">{sight.location}</p>
+          <p className="text-base text-white/80 mt-2 leading-relaxed line-clamp-2">
             {sight.description}
           </p>
           {sight.wikiUrl && (
@@ -118,7 +118,7 @@ export const IconicSightsQuestion = ({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="inline-block text-xs font-medium text-white/70 hover:text-white transition-colors mt-2 underline underline-offset-2"
+              className="inline-block text-sm font-medium text-white/70 hover:text-white transition-colors mt-2 underline underline-offset-2"
             >
               Learn more ↗
             </a>
