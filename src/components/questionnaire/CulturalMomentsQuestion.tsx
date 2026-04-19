@@ -102,6 +102,106 @@ export const CulturalMomentsQuestion = ({
 
   const currentMonthLabel = MONTH_FULL_TO_LABEL[fullMonth] || travelMonth;
 
+  const renderFullBleedCard = (moment: CulturalMoment) => {
+    const isSelected = selected.includes(moment.value);
+    const hasError = imageErrors.has(moment.value);
+    const hasConflict = monthConflict === moment.value;
+
+    return (
+      <div key={moment.value}>
+        <motion.button
+          type="button"
+          onClick={() => toggleMoment(moment.value, false)}
+          whileTap={{ scale: 0.98 }}
+          className={cn(
+            'relative w-full aspect-[16/9] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
+            isSelected
+              ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
+              : 'ring-1 ring-white/10'
+          )}
+        >
+          {!hasError ? (
+            <img
+              src={moment.image.url}
+              alt={moment.label}
+              className="object-cover object-center w-full h-full absolute inset-0"
+              loading="lazy"
+              onError={() => handleImageError(moment.value)}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-muted" />
+          )}
+
+          {/* Dark gradient overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/80 to-transparent" />
+
+          {/* Checkmark */}
+          {isSelected && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute top-3 left-3 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md z-20"
+            >
+              <Check className="w-4 h-4 text-primary-foreground" />
+            </motion.div>
+          )}
+
+          {/* Text overlay */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-12 z-10 text-left">
+            <p className="text-3xl font-bold text-white leading-tight">{moment.label}</p>
+            <p className="text-base text-white/70 mt-1">{moment.location}</p>
+            <p className="text-sm text-white/80 mt-2 leading-relaxed line-clamp-2">
+              {moment.description}
+            </p>
+            {moment.wikiUrl && (
+              <a
+                href={moment.wikiUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-block text-xs font-medium text-white/70 hover:text-white transition-colors mt-2 underline underline-offset-2"
+              >
+                Learn more ↗
+              </a>
+            )}
+          </div>
+        </motion.button>
+
+        {/* Month conflict prompt */}
+        {hasConflict && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-2 rounded-lg bg-card border border-border p-3 text-left space-y-2"
+          >
+            <p className="text-xs text-foreground leading-relaxed">
+              <span className="font-semibold">{moment.label}</span> falls in{' '}
+              <span className="font-semibold">{MONTH_FULL_TO_LABEL[moment.months[0]]}</span>.
+              Would you like to adjust your travel window?
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleConfirmMonthChange(moment)}
+                className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              >
+                Yes, change to {MONTH_FULL_TO_LABEL[moment.months[0]]}
+              </button>
+              <button
+                type="button"
+                onClick={handleKeepMonth}
+                className="text-xs px-3 py-1.5 rounded-md bg-muted text-muted-foreground font-medium hover:bg-muted/80 transition-colors"
+              >
+                No, keep {currentMonthLabel}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </div>
+    );
+  };
+
   const renderCard = (moment: CulturalMoment, isOutOfWindowCard: boolean) => {
     const isSelected = selected.includes(moment.value);
     const hasError = imageErrors.has(moment.value);
@@ -227,25 +327,17 @@ export const CulturalMomentsQuestion = ({
               In your travel window
             </p>
           )}
-          <div className="relative">
-            <Carousel
-              opts={{ align: 'start', loop: false }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-4">
+          <Carousel opts={{ align: 'start', loop: false }} className="w-full">
+              <CarouselContent className="-ml-3">
                 {inWindow.map((m) => (
-                  <CarouselItem
-                    key={m.value}
-                    className="pl-4 basis-[70%] sm:basis-1/3"
-                  >
-                    {renderCard(m, false)}
+                  <CarouselItem key={m.value} className="pl-3 basis-[92%]">
+                    {renderFullBleedCard(m)}
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
-              <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
+              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
+              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
             </Carousel>
-          </div>
         </div>
       )}
 
