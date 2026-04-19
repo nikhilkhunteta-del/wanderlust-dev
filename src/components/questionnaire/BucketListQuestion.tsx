@@ -11,6 +11,18 @@ import {
   CarouselNext,
 } from '@/components/ui/carousel';
 
+const CATEGORY_ORDER = [
+  'water-ocean',
+  'adrenaline',
+  'sky-heights',
+  'wildlife-safari',
+  'landscapes-journeys',
+  'ice-snow',
+  'scenic-rail',
+  'road-trips',
+  'cultural-immersion',
+] as const;
+
 const CATEGORY_LABELS: Record<string, string> = {
   'water-ocean': 'Water & Ocean',
   'adrenaline': 'Adrenaline',
@@ -27,12 +39,6 @@ const INTENSITY_LABEL: Record<string, string> = {
   low: 'Relaxed',
   medium: 'Moderate',
   high: 'Intense',
-};
-
-const INTENSITY_STYLE: Record<string, string> = {
-  low: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-  medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  high: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
 };
 
 interface BucketListQuestionProps {
@@ -56,8 +62,6 @@ export const BucketListQuestion = ({
     return acc;
   }, {});
 
-  const categories = Object.keys(grouped);
-
   const toggle = (value: string) => {
     if (selected.includes(value)) {
       onChange(selected.filter((v) => v !== value));
@@ -78,66 +82,56 @@ export const BucketListQuestion = ({
         key={activity.value}
         type="button"
         onClick={() => toggle(activity.value)}
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.98 }}
         className={cn(
-          'flex flex-col h-full rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 w-80 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-card shadow-sm hover:shadow-lg',
+          'relative w-full aspect-[16/9] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
           isSelected
-            ? 'border-[3px] border-primary shadow-lg shadow-primary/20'
-            : 'border border-border/40 hover:border-border/60'
+            ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
+            : 'ring-1 ring-white/10'
         )}
       >
-        {/* Image — aspect-video (16:9) */}
-        <div className="relative w-full flex-none aspect-video overflow-hidden">
-          {!hasError ? (
-            <img
-              src={activity.image.url}
-              alt={activity.label}
-              className="w-full h-full object-cover object-center"
-              loading="lazy"
-              onError={() => handleImageError(activity.value)}
-            />
-          ) : (
-            <div className="w-full h-full bg-muted" />
-          )}
-          {isSelected && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md z-20"
-            >
-              <Check className="w-4 h-4 text-primary-foreground" />
-            </motion.div>
-          )}
-        </div>
+        {!hasError ? (
+          <img
+            src={activity.image.url}
+            alt={activity.label}
+            className="object-cover object-center w-full h-full absolute inset-0"
+            loading="lazy"
+            onError={() => handleImageError(activity.value)}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-muted" />
+        )}
 
-        {/* Text */}
-        <div className="flex flex-col flex-1 gap-1 px-4 py-3">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-[15px] font-semibold leading-tight text-foreground">
-              {activity.label}
-            </p>
-            <span
-              className={cn(
-                'flex-none shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap',
-                INTENSITY_STYLE[activity.intensity]
-              )}
-            >
-              {INTENSITY_LABEL[activity.intensity]}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground line-clamp-2">{activity.description}</p>
-          {activity.bookingNote && (
-            <p className="text-[11px] text-muted-foreground/70 italic line-clamp-1">
-              {activity.bookingNote}
-            </p>
-          )}
+        {/* Dark gradient overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/80 to-transparent" />
+
+        {/* Checkmark */}
+        {isSelected && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="absolute top-3 left-3 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md z-20"
+          >
+            <Check className="w-4 h-4 text-primary-foreground" />
+          </motion.div>
+        )}
+
+        {/* Text overlay — sits on gradient */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-12 z-10 text-left">
+          <p className="text-2xl font-bold text-white leading-tight">
+            {activity.label}
+          </p>
+          <p className="text-sm text-white/70 mt-1">{INTENSITY_LABEL[activity.intensity]}</p>
+          <p className="text-sm text-white/80 mt-2 leading-relaxed line-clamp-2">
+            {activity.description}
+          </p>
           {activity.wikiUrl && (
             <a
               href={activity.wikiUrl}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-[11px] font-medium text-primary hover:text-primary/80 transition-colors mt-0.5"
+              className="inline-block text-xs font-medium text-white/70 hover:text-white transition-colors mt-2 underline underline-offset-2"
             >
               Learn more ↗
             </a>
@@ -148,31 +142,45 @@ export const BucketListQuestion = ({
   };
 
   return (
-    <div className="space-y-8 w-full">
-      <p className="text-xs text-muted-foreground text-center">Select as many as you like</p>
+    <div className="space-y-7 w-full">
+      {/* Counter */}
+      <div className="flex items-center justify-between px-1">
+        <p className="text-xs text-muted-foreground">Select as many as you like</p>
+        {selected.length > 0 && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-xs font-semibold text-primary"
+          >
+            {selected.length} selected
+          </motion.span>
+        )}
+      </div>
 
-      {categories.map((catId) => (
-        <div key={catId} className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
-            {CATEGORY_LABELS[catId] || catId}
-          </p>
-          <div className="relative">
+      {CATEGORY_ORDER.map((catId) => {
+        const items = grouped[catId];
+        if (!items || items.length === 0) return null;
+        return (
+          <div key={catId} className="space-y-3 pt-4">
+            <p className="text-xl font-bold text-foreground px-1">
+              {CATEGORY_LABELS[catId]}
+            </p>
             <Carousel opts={{ align: 'start', loop: false }} className="w-full">
-              <CarouselContent className="-ml-4">
-                {grouped[catId].map((activity) => (
-                  <CarouselItem key={activity.value} className="pl-4 basis-auto h-full">
+              <CarouselContent className="-ml-3">
+                {items.map((activity) => (
+                  <CarouselItem key={activity.value} className="pl-3 basis-[88%]">
                     {renderCard(activity)}
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
-              <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background shadow-md" />
+              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
+              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
             </Carousel>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
-      <div className="flex justify-center pt-2">
+      <div className="flex justify-center pt-1">
         <button
           type="button"
           onClick={onSkip}
