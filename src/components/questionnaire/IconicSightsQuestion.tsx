@@ -90,7 +90,7 @@ export const IconicSightsQuestion = ({
         )}
 
         {/* Dark gradient overlay — covers bottom half comfortably */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 via-40% to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 via-25% to-transparent" />
 
         {/* Checkmark */}
         {isSelected && (
