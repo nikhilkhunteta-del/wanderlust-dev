@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { BucketListActivity } from '@/data/bucketListActivities';
 import { cn } from '@/lib/utils';
 import {
@@ -55,6 +55,10 @@ export const BucketListQuestion = ({
   onSkip,
 }: BucketListQuestionProps) => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const [openCategory, setOpenCategory] = useState<string>('water-ocean');
+
+  const toggleCategory = (catId: string) =>
+    setOpenCategory((prev) => (prev === catId ? '' : catId));
 
   const grouped = activities.reduce<Record<string, BucketListActivity[]>>((acc, act) => {
     if (!acc[act.category]) acc[act.category] = [];
@@ -142,7 +146,7 @@ export const BucketListQuestion = ({
   };
 
   return (
-    <div className="space-y-7 w-full">
+    <div className="space-y-2 w-full">
       {/* Counter */}
       <div className="flex items-center justify-between px-1">
         <p className="text-xs text-muted-foreground">Select as many as you like</p>
@@ -160,22 +164,42 @@ export const BucketListQuestion = ({
       {CATEGORY_ORDER.map((catId) => {
         const items = grouped[catId];
         if (!items || items.length === 0) return null;
+        const isOpen = openCategory === catId;
         return (
-          <div key={catId} className="space-y-3 pt-4">
-            <p className="text-xl font-bold text-foreground px-1">
-              {CATEGORY_LABELS[catId]}
-            </p>
-            <Carousel opts={{ align: 'start', loop: false }} className="w-full">
-              <CarouselContent className="-ml-3">
-                {items.map((activity) => (
-                  <CarouselItem key={activity.value} className="pl-3 basis-[88%]">
-                    {renderCard(activity)}
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
-              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
-            </Carousel>
+          <div key={catId} className="border border-border/40 rounded-2xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleCategory(catId)}
+              className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-muted/40 transition-colors"
+            >
+              <span className="text-xl font-bold text-foreground">
+                {CATEGORY_LABELS[catId]}
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  · {items.length} {items.length === 1 ? 'activity' : 'activities'}
+                </span>
+              </span>
+              <ChevronDown
+                className={cn(
+                  'w-5 h-5 text-muted-foreground transition-transform duration-200 shrink-0',
+                  isOpen && 'rotate-180'
+                )}
+              />
+            </button>
+            {isOpen && (
+              <div className="pb-4">
+                <Carousel opts={{ align: 'start', loop: false }} className="w-full">
+                  <CarouselContent className="-ml-3">
+                    {items.map((activity) => (
+                      <CarouselItem key={activity.value} className="pl-3 basis-[88%]">
+                        {renderCard(activity)}
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
+                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
+                </Carousel>
+              </div>
+            )}
           </div>
         );
       })}
