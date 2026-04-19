@@ -7,6 +7,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
 } from '@/components/ui/carousel';
 
 const CATEGORY_ORDER = [
@@ -68,7 +70,7 @@ export const IconicSightsQuestion = ({
         onClick={() => toggle(sight.value)}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aspect-[3/4] sm:aspect-video block',
+          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aspect-video block',
           isSelected
             ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
             : 'ring-1 ring-white/10'
@@ -88,7 +90,7 @@ export const IconicSightsQuestion = ({
         )}
 
         {/* Dark gradient overlay — bottom ~70% */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 via-30% to-transparent" />
 
         {/* Checkmark */}
         {isSelected && (
@@ -158,6 +160,8 @@ export const IconicSightsQuestion = ({
                   </CarouselItem>
                 ))}
               </CarouselContent>
+              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
+              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
             </Carousel>
           </div>
         );
