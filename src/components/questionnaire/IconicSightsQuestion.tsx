@@ -70,7 +70,7 @@ export const IconicSightsQuestion = ({
         onClick={() => toggle(sight.value)}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
+          'relative w-full h-[calc(100vh-200px)] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
           isSelected
             ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
             : 'ring-1 ring-white/10'
@@ -81,7 +81,7 @@ export const IconicSightsQuestion = ({
           <img
             src={sight.image.url}
             alt={sight.label}
-            className="w-full object-contain block"
+            className="object-cover object-top w-full h-full absolute inset-0"
             loading="lazy"
             onError={() => handleImageError(sight.value)}
           />
@@ -89,8 +89,8 @@ export const IconicSightsQuestion = ({
           <div className="h-48 bg-muted" />
         )}
 
-        {/* Dark gradient overlay — covers bottom half comfortably */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 via-25% to-transparent" />
+        {/* Dark gradient overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/80 to-transparent" />
 
         {/* Checkmark */}
         {isSelected && (
@@ -105,11 +105,11 @@ export const IconicSightsQuestion = ({
 
         {/* Text overlay — sits on gradient */}
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-12 z-10 text-left">
-          <p className="text-white text-2xl font-bold leading-tight">
+          <p className="text-2xl font-bold text-white leading-tight">
             {sight.label}
           </p>
-          <p className="text-white/60 text-base mt-1">{sight.location}</p>
-          <p className="text-white/80 text-sm mt-2 leading-relaxed line-clamp-2">
+          <p className="text-sm text-white/70 mt-1">{sight.location}</p>
+          <p className="text-sm text-white/80 mt-2 leading-relaxed line-clamp-2">
             {sight.description}
           </p>
           {sight.wikiUrl && (
