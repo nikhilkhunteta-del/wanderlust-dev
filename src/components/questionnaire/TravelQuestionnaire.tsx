@@ -15,9 +15,11 @@ import { TextInputQuestion } from './TextInputQuestion';
 import { TransitionCard } from './TransitionCard';
 import { CulturalMomentsQuestion } from './CulturalMomentsQuestion';
 import { BucketListQuestion } from './BucketListQuestion';
+import { IconicSightsQuestion } from './IconicSightsQuestion';
 import { TravelPreferences, buildDynamicQuestions } from '@/types/questionnaire';
 import { culturalMoments as allCulturalMoments } from '@/data/culturalMoments';
 import { bucketListActivities } from '@/data/bucketListActivities';
+import { iconicSights } from '@/data/iconicSights';
 import { buildTravelProfile } from '@/lib/profileBuilder';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +30,7 @@ const initialPreferences: TravelPreferences = {
   primaryInterest: '',
   culturalMoments: [],
   adventureExperiences: [],
+  iconicSights: [],
   foodDepth: '',
   departureCity: '',
   travelMonth: '',
@@ -185,6 +188,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
   const canProceed = () => {
     // Cultural moments allows empty (user uses skip link instead)
     if (currentQuestion.id === 'culturalMoments') return true;
+    if (currentQuestion.id === 'iconicSights') return true;
     // Combined month + duration step: both must be selected
     if (currentQuestion.id === 'whenAndHowLong') {
       return preferences.travelMonth !== '' && preferences.tripDuration !== '';
@@ -263,6 +267,12 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
     setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
   };
 
+  const handleSkipIconicSights = () => {
+    setPreferences((prev) => ({ ...prev, iconicSights: [] }));
+    setDirection(1);
+    setCurrentStep((prev) => Math.min(prev + 1, activeQuestions.length - 1));
+  };
+
   const renderQuestion = () => {
     const value = preferences[currentQuestion.id];
 
@@ -334,6 +344,16 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
               selected={value as string[]}
               onChange={updatePreference}
               onSkip={handleSkipQ2}
+            />
+          );
+        }
+        if (currentQuestion.id === 'iconicSights') {
+          return (
+            <IconicSightsQuestion
+              sights={iconicSights}
+              selected={value as string[]}
+              onChange={updatePreference}
+              onSkip={handleSkipIconicSights}
             />
           );
         }

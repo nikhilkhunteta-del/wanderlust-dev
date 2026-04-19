@@ -3,6 +3,7 @@ export interface TravelPreferences {
   primaryInterest: string;
   culturalMoments: string[];
   adventureExperiences: string[];
+  iconicSights: string[];
   foodDepth: string;
   departureCity: string;
   travelMonth: string;
@@ -264,7 +265,19 @@ export function buildDynamicQuestions(interests: string[]): QuestionConfig[] {
       defaultValue: [],
     };
     baseQuestions.splice(insertIndex, 0, adventureQ);
+    insertIndex++;
   }
+
+  // Insert iconic sights question (Q5)
+  const iconicSightsQ: QuestionConfig = {
+    id: 'iconicSights',
+    questionText: 'What would you love to see?',
+    subtitle: "The ones you'll still be talking about in ten years.",
+    inputType: 'multi-select',
+    options: [],
+    defaultValue: [],
+  };
+  baseQuestions.splice(insertIndex, 0, iconicSightsQ);
 
   return baseQuestions;
 }
