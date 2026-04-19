@@ -7,6 +7,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
 } from '@/components/ui/carousel';
 
 const CATEGORY_ORDER = [
@@ -158,6 +160,8 @@ export const IconicSightsQuestion = ({
                   </CarouselItem>
                 ))}
               </CarouselContent>
+              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
+              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/40 border border-white/20 text-white backdrop-blur-sm hidden md:flex shadow-md" />
             </Carousel>
           </div>
         );
