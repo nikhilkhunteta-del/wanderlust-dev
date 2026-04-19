@@ -70,7 +70,7 @@ export const IconicSightsQuestion = ({
         onClick={() => toggle(sight.value)}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'relative w-full h-[calc(100vh-130px)] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
+          'relative w-full h-[calc(100vh-110px)] rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
           isSelected
             ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
             : 'ring-1 ring-white/10'
