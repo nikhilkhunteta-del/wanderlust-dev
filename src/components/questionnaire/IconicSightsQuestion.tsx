@@ -81,7 +81,7 @@ export const IconicSightsQuestion = ({
           <img
             src={sight.image.url}
             alt={sight.label}
-            className="object-cover object-top w-full h-full absolute inset-0"
+            className="object-cover object-center w-full h-full absolute inset-0"
             loading="lazy"
             onError={() => handleImageError(sight.value)}
           />
