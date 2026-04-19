@@ -70,7 +70,7 @@ export const IconicSightsQuestion = ({
         onClick={() => toggle(sight.value)}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aspect-video block',
+          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aspect-video max-h-[60vh] block',
           isSelected
             ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
             : 'ring-1 ring-white/10'
@@ -89,8 +89,8 @@ export const IconicSightsQuestion = ({
           <div className="absolute inset-0 bg-muted" />
         )}
 
-        {/* Dark gradient overlay — bottom ~70% */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 via-30% to-transparent" />
+        {/* Dark gradient overlay — covers bottom half comfortably */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 via-40% to-transparent" />
 
         {/* Checkmark */}
         {isSelected && (
@@ -104,12 +104,12 @@ export const IconicSightsQuestion = ({
         )}
 
         {/* Text overlay — sits on gradient */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-8 z-10 text-left">
-          <p className="text-white font-semibold text-[17px] leading-snug">
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-12 z-10 text-left">
+          <p className="text-white text-2xl font-bold leading-tight">
             {sight.label}
           </p>
-          <p className="text-white/60 text-[13px] mt-0.5">{sight.location}</p>
-          <p className="text-white/80 text-[12px] mt-1.5 leading-relaxed line-clamp-2">
+          <p className="text-white/60 text-base mt-1">{sight.location}</p>
+          <p className="text-white/80 text-sm mt-2 leading-relaxed line-clamp-2">
             {sight.description}
           </p>
           {sight.wikiUrl && (
@@ -118,7 +118,7 @@ export const IconicSightsQuestion = ({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="inline-block text-[11px] font-medium text-primary-foreground/80 hover:text-white transition-colors mt-1.5 underline underline-offset-2"
+              className="inline-block text-xs font-medium text-white/70 hover:text-white transition-colors mt-2 underline underline-offset-2"
             >
               Learn more ↗
             </a>
@@ -148,8 +148,8 @@ export const IconicSightsQuestion = ({
         const items = grouped[catId];
         if (!items || items.length === 0) return null;
         return (
-          <div key={catId} className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+          <div key={catId} className="space-y-3 pt-4">
+            <p className="text-xl font-bold text-foreground px-1">
               {CATEGORY_LABELS[catId]}
             </p>
             <Carousel opts={{ align: 'start', loop: false }} className="w-full">
