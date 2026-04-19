@@ -178,6 +178,10 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
     };
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentQuestion?.id]);
+
   const updatePreference = (value: string | string[] | number) => {
     setPreferences((prev) => ({
       ...prev,
