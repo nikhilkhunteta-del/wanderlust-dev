@@ -70,23 +70,23 @@ export const IconicSightsQuestion = ({
         onClick={() => toggle(sight.value)}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aspect-video max-h-[60vh] block',
+          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block',
           isSelected
             ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
             : 'ring-1 ring-white/10'
         )}
       >
-        {/* Full-bleed image */}
+        {/* Image at natural proportions — no cropping */}
         {!hasError ? (
           <img
             src={sight.image.url}
             alt={sight.label}
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="w-full object-contain block"
             loading="lazy"
             onError={() => handleImageError(sight.value)}
           />
         ) : (
-          <div className="absolute inset-0 bg-muted" />
+          <div className="h-48 bg-muted" />
         )}
 
         {/* Dark gradient overlay — covers bottom half comfortably */}
