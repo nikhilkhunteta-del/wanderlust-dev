@@ -70,7 +70,7 @@ export const IconicSightsQuestion = ({
         onClick={() => toggle(sight.value)}
         whileTap={{ scale: 0.98 }}
         className={cn(
-          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aspect-video max-h-[60vh] block',
+          'relative w-full rounded-2xl overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary aspect-video max-h-[80vh] block',
           isSelected
             ? 'ring-[3px] ring-primary shadow-lg shadow-primary/20'
             : 'ring-1 ring-white/10'
@@ -90,7 +90,7 @@ export const IconicSightsQuestion = ({
         )}
 
         {/* Dark gradient overlay — covers bottom half comfortably */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 via-40% to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 via-25% to-transparent" />
 
         {/* Checkmark */}
         {isSelected && (
