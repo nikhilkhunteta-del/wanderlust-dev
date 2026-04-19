@@ -13,13 +13,13 @@ import {
 
 const CATEGORY_ORDER = [
   'water-ocean',
-  'adrenaline',
-  'sky-heights',
   'wildlife-safari',
-  'landscapes-journeys',
+  'sky-heights',
   'ice-snow',
+  'landscapes-journeys',
   'scenic-rail',
   'road-trips',
+  'adrenaline',
   'cultural-immersion',
 ] as const;
 
