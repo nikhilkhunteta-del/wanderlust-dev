@@ -4,14 +4,12 @@ import { useLandmarkStrip, LandmarkStripImage } from "@/hooks/useLandmarkStrip";
 import { useImageState } from "@/hooks/useImageState";
 
 const INTEREST_LENS: Record<string, string> = {
-  "nature-outdoors": "nature lover's lens",
-  "beach-coastal": "coastal lens",
-  "culture-history": "historical lens",
-  "food-culinary": "culinary lens",
-  "arts-music-nightlife": "creative lens",
-  "active-sport": "adventurer's lens",
-  "shopping-markets": "local's lens",
-  "wellness-slow-travel": "slower lens",
+  "culture-experiences": "cultural lens",
+  "sun-rest": "coastal lens",
+  "nature-adventure": "adventurer's lens",
+  "food-nightlife": "foodie's lens",
+  "wellness": "slower lens",
+  "celebration": "celebrant's lens",
 };
 
 interface LandmarkStripProps {
@@ -50,7 +48,7 @@ export const LandmarkStrip = ({ city, country, places, primaryInterest }: Landma
   return (
     <section>
       <h2 className="text-xl md:text-2xl font-display font-semibold text-foreground mb-4 px-4 md:px-6">
-        {city} through a {INTEREST_LENS[primaryInterest || "culture-history"] || "traveller's lens"}
+        {city} through a {INTEREST_LENS[primaryInterest || "culture-experiences"] || "traveller's lens"}
       </h2>
       <div className="relative w-full h-64 md:h-96 lg:h-[500px] overflow-hidden bg-muted">
         {validImages.map((img, idx) => (

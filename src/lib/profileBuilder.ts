@@ -17,8 +17,8 @@ const COMPANION_LABELS: Record<string, string> = {
 };
 
 const INTEREST_KEYS: (keyof InterestScores)[] = [
-  'culture-history', 'nature-outdoors', 'beach-coastal', 'food-culinary',
-  'arts-music-nightlife', 'active-sport', 'shopping-markets', 'wellness-slow-travel',
+  'culture-experiences', 'sun-rest', 'nature-adventure',
+  'food-nightlife', 'wellness', 'celebration',
 ];
 
 export function normalizeInterestScores(interests: string[]): InterestScores {
@@ -41,13 +41,13 @@ export function inferStyleTags(preferences: TravelPreferences): TravelStyleTag[]
   const tags: TravelStyleTag[] = [];
   const { interests, adventureExperiences, travelCompanions } = preferences;
 
-  if (interests.includes('culture-history')) tags.push('culture-focused');
-  if (interests.includes('nature-outdoors')) tags.push('nature-lover');
-  if (interests.includes('beach-coastal')) tags.push('beach-seeker');
-  if (interests.includes('food-culinary')) tags.push('foodie');
-  if (interests.includes('arts-music-nightlife')) tags.push('nightlife-seeker');
-  if (interests.includes('active-sport')) tags.push('active-explorer');
-  if (interests.includes('wellness-slow-travel')) tags.push('wellness-oriented');
+  if (interests.includes('culture-experiences')) tags.push('culture-focused');
+  if (interests.includes('nature-adventure')) tags.push('nature-lover');
+  if (interests.includes('sun-rest')) tags.push('beach-seeker');
+  if (interests.includes('food-nightlife')) tags.push('foodie');
+  if (interests.includes('food-nightlife')) tags.push('nightlife-seeker');
+  if (interests.includes('nature-adventure')) tags.push('active-explorer');
+  if (interests.includes('wellness')) tags.push('wellness-oriented');
 
   const activeAdventures = adventureExperiences.filter((exp) => exp !== 'none');
   if (activeAdventures.length >= 3) {
@@ -98,8 +98,8 @@ function mapToGroupType(companion: string): GroupType {
 }
 
 function mapToNovelty(novelty: string): NoveltyPreference {
-  const valid: NoveltyPreference[] = ['classics', 'mix', 'off-beaten-path', 'surprise'];
-  return valid.includes(novelty as NoveltyPreference) ? (novelty as NoveltyPreference) : 'mix';
+  const valid: NoveltyPreference[] = ['classics', 'off-beaten-path', 'surprise'];
+  return valid.includes(novelty as NoveltyPreference) ? (novelty as NoveltyPreference) : 'classics';
 }
 
 export function buildTravelProfile(preferences: TravelPreferences): TravelProfile {

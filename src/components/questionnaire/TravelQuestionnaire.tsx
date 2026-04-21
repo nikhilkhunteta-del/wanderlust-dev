@@ -326,6 +326,8 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
               onChange={updatePreference}
               primaryInterest={preferences.primaryInterest}
               onPrimaryChange={(val) => setPreferences(prev => ({ ...prev, primaryInterest: val }))}
+              discoveryStyle={preferences.noveltyPreference}
+              onDiscoveryChange={(val) => setPreferences(prev => ({ ...prev, noveltyPreference: val }))}
             />
           );
         }
@@ -370,9 +372,7 @@ export const TravelQuestionnaire = ({ savedPreferences, previousCities }: Travel
           />
         );
       case 'single-select': {
-        const variant = (currentQuestion.id === 'travelCompanions' || currentQuestion.id === 'noveltyPreference')
-          ? 'card-grid'
-          : 'default';
+        const variant = currentQuestion.id === 'travelCompanions' ? 'card-grid' : 'default';
         return (
           <SingleSelectQuestion
             options={currentQuestion.options!}

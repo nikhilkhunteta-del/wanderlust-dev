@@ -1,12 +1,10 @@
 export interface InterestScores {
-  'culture-history': number;
-  'nature-outdoors': number;
-  'beach-coastal': number;
-  'food-culinary': number;
-  'arts-music-nightlife': number;
-  'active-sport': number;
-  'shopping-markets': number;
-  'wellness-slow-travel': number;
+  'culture-experiences': number;
+  'sun-rest': number;
+  'nature-adventure': number;
+  'food-nightlife': number;
+  'wellness': number;
+  'celebration': number;
 }
 
 export type TravelStyleTag =
@@ -25,7 +23,7 @@ export type TravelStyleTag =
 
 export type GroupType = 'solo' | 'couple' | 'family' | 'friends' | 'group';
 
-export type NoveltyPreference = 'classics' | 'mix' | 'off-beaten-path' | 'surprise';
+export type NoveltyPreference = 'classics' | 'off-beaten-path' | 'surprise';
 
 export interface TravelProfile {
   interestScores: InterestScores;

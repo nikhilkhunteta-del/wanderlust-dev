@@ -15,14 +15,12 @@ const COMPANION_LABELS: Record<string, string> = {
 };
 
 const INTEREST_LABELS: Record<string, string> = {
-  'culture-history': 'culture & history',
-  'nature-outdoors': 'nature',
-  'beach-coastal': 'beaches',
-  'food-culinary': 'incredible food',
-  'arts-music-nightlife': 'arts & nightlife',
-  'active-sport': 'active adventures',
-  'shopping-markets': 'markets & shopping',
-  'wellness-slow-travel': 'wellness & slow travel',
+  'culture-experiences': 'culture & experiences',
+  'sun-rest': 'sun & rest',
+  'nature-adventure': 'nature & adventure',
+  'food-nightlife': 'food & nightlife',
+  'wellness': 'wellness',
+  'celebration': 'celebration',
 };
 
 const NOVELTY_LABELS: Record<string, string> = {

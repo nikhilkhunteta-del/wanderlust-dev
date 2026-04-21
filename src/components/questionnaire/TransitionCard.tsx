@@ -7,14 +7,12 @@ interface TransitionCardProps {
 }
 
 const INTEREST_LABELS: Record<string, string> = {
-  'culture-history': 'Culture & History',
-  'nature-outdoors': 'Nature & Outdoors',
-  'beach-coastal': 'Beach & Coastal',
-  'food-culinary': 'Food & Culinary',
-  'arts-music-nightlife': 'Arts, Music & Nightlife',
-  'active-sport': 'Active & Sport',
-  'shopping-markets': 'Shopping & Markets',
-  'wellness-slow-travel': 'Wellness & Slow Travel',
+  'culture-experiences': 'Culture & Experiences',
+  'sun-rest': 'Sun & Rest',
+  'nature-adventure': 'Nature & Adventure',
+  'food-nightlife': 'Food & Nightlife',
+  'wellness': 'Wellness',
+  'celebration': 'Celebration',
 };
 
 export const TransitionCard = ({ interests, message }: TransitionCardProps) => {

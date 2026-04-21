@@ -17,18 +17,24 @@ interface InterestGridQuestionProps {
   maxSelections?: number;
   primaryInterest?: string;
   onPrimaryChange?: (value: string) => void;
+  discoveryStyle?: string;
+  onDiscoveryChange?: (value: string) => void;
 }
 
 const INTEREST_LABELS: Record<string, string> = {
-  'culture-history': 'Culture & History',
-  'nature-outdoors': 'Nature & Outdoors',
-  'beach-coastal': 'Beach & Coastal',
-  'food-culinary': 'Food & Culinary',
-  'arts-music-nightlife': 'Arts, Music & Nightlife',
-  'active-sport': 'Active & Sport',
-  'shopping-markets': 'Shopping & Markets',
-  'wellness-slow-travel': 'Wellness & Slow Travel',
+  'culture-experiences': 'Culture & Experiences',
+  'sun-rest': 'Sun & Rest',
+  'nature-adventure': 'Nature & Adventure',
+  'food-nightlife': 'Food & Nightlife',
+  'wellness': 'Wellness',
+  'celebration': 'Celebration',
 };
+
+const DISCOVERY_OPTIONS = [
+  { value: 'classics', label: 'Stick to the classics' },
+  { value: 'off-beaten-path', label: 'Open to hidden gems' },
+  { value: 'surprise', label: 'Surprise me completely' },
+];
 
 export const InterestGridQuestion = ({
   options,
@@ -37,6 +43,8 @@ export const InterestGridQuestion = ({
   maxSelections = 4,
   primaryInterest,
   onPrimaryChange,
+  discoveryStyle,
+  onDiscoveryChange,
 }: InterestGridQuestionProps) => {
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const fetchedRef = useRef(false);
@@ -145,6 +153,38 @@ export const InterestGridQuestion = ({
                 )}
               >
                 {INTEREST_LABELS[val] || val}
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Discovery style toggle */}
+      {onDiscoveryChange && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.05 }}
+          className="pt-3 border-t border-border/30"
+        >
+          <p className="text-sm text-muted-foreground text-center mb-3">
+            How do you like to discover?
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {DISCOVERY_OPTIONS.map((opt) => (
+              <motion.button
+                key={opt.value}
+                type="button"
+                onClick={() => onDiscoveryChange(opt.value)}
+                whileTap={{ scale: 0.97 }}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-150 cursor-pointer border',
+                  discoveryStyle === opt.value
+                    ? 'border-primary bg-[hsl(var(--primary)/0.1)] text-primary'
+                    : 'border-border/50 bg-card text-muted-foreground hover:border-border'
+                )}
+              >
+                {opt.label}
               </motion.button>
             ))}
           </div>
