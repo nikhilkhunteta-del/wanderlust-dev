@@ -5,14 +5,12 @@ import { ResolvedImage } from "@/components/shared/ResolvedImage";
 import { stripMarkdown } from "@/lib/stripMarkdown";
 
 const TAG_LABELS: Record<string, string> = {
-  'culture-history': 'Culture & History',
-  'nature-outdoors': 'Nature & Outdoors',
-  'beach-coastal': 'Beach & Coastal',
-  'food-culinary': 'Food & Culinary',
-  'arts-music-nightlife': 'Arts, Music & Nightlife',
-  'active-sport': 'Active & Sport',
-  'shopping-markets': 'Shopping & Markets',
-  'wellness-slow-travel': 'Wellness & Slow Travel',
+  'culture-experiences': 'Culture & Experiences',
+  'sun-rest': 'Sun & Rest',
+  'nature-adventure': 'Nature & Adventure',
+  'food-nightlife': 'Food & Nightlife',
+  'wellness': 'Wellness',
+  'celebration': 'Celebration',
 };
 
 const humanizeTag = (tag: string): string => {
@@ -31,14 +29,12 @@ interface DestinationCardProps {
 // Tightly-related secondary interests — only used when AI explicitly tagged the city
 // with one of these AND the user did not already select it.
 const RELATED_INTERESTS: Record<string, string[]> = {
-  'active-sport': ['nature-outdoors'],
-  'nature-outdoors': ['active-sport'],
-  'beach-coastal': ['wellness-slow-travel'],
-  'culture-history': ['arts-music-nightlife'],
-  'arts-music-nightlife': ['culture-history'],
-  'food-culinary': ['culture-history'],
-  'shopping-markets': ['food-culinary'],
-  'wellness-slow-travel': ['nature-outdoors'],
+  'nature-adventure': ['culture-experiences'],
+  'culture-experiences': ['nature-adventure'],
+  'sun-rest': ['wellness'],
+  'food-nightlife': ['culture-experiences'],
+  'wellness': ['sun-rest'],
+  'celebration': ['sun-rest'],
 };
 
 // Show only the user's selected interests that the AI tagged for this city,

@@ -18,7 +18,7 @@ function buildDefaultProfile(cityName: string): TravelProfile {
   const now = new Date();
   const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
   return {
-    interestScores: { 'culture-history': 0.5, 'nature-outdoors': 0.3, 'beach-coastal': 0.3, 'food-culinary': 0.5, 'arts-music-nightlife': 0.2, 'active-sport': 0.2, 'shopping-markets': 0.2, 'wellness-slow-travel': 0.2 },
+    interestScores: { 'culture-experiences': 0.5, 'sun-rest': 0.3, 'nature-adventure': 0.3, 'food-nightlife': 0.5, 'wellness': 0.2, 'celebration': 0 },
     primaryInterest: '',
     adventureLevel: 0.3,
     adventureTypes: [],
@@ -29,7 +29,7 @@ function buildDefaultProfile(cityName: string): TravelProfile {
     departureCity: "",
     travelCompanions: "",
     groupType: "solo",
-    noveltyPreference: "mix",
+    noveltyPreference: "classics",
     foodDepth: "",
     styleTags: [],
     summary: `Exploring ${cityName}`,

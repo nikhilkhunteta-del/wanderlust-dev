@@ -30,7 +30,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Harbin",
     country: "China",
     months: ["january"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//ice-snow-festival-harbin.png",
       credit: "Erica Li",
@@ -48,7 +48,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Jaipur",
     country: "India",
     months: ["january"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//jaipur-literature-festival.png",
       credit: "Sneha Chakraborty",
@@ -66,7 +66,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Cebu",
     country: "Philippines",
     months: ["january"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Sinulog Festival.jpg",
       credit: "Chloe Evans",
@@ -84,7 +84,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Lalibela",
     country: "Ethiopia",
     months: ["january"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//timkat.jpeg",
       credit: "Wikimedia",
@@ -102,7 +102,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Lerwick",
     country: "UK",
     months: ["january"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Up Helly Aa.jpg",
       credit: "",
@@ -120,7 +120,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Madurai",
     country: "India",
     months: ["january"],
-    triggeredBy: ["culture-history", "food-culinary"],
+    triggeredBy: ["culture-experiences", "food-nightlife"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Pongal.jpg",
       credit: "",
@@ -139,7 +139,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Ahmedabad",
     country: "India",
     months: ["january"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//kite festival.jpg",
       credit: "",
@@ -157,7 +157,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Kuala Lumpur",
     country: "Malaysia",
     months: ["january", "february"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://images.unsplash.com/photo-1675575275900-c802f6fb5b2a?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "",
@@ -176,7 +176,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Kalibo",
     country: "Philippines",
     months: ["january"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Ati-Atihan Festival.jpg",
       credit: "",
@@ -194,7 +194,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Hong Kong",
     country: "Hong Kong",
     months: ["january", "february"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://images.unsplash.com/photo-1738911394006-ea7fd711ea67",
       credit: "Miu Chi Gigi",
@@ -213,7 +213,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Venice",
     country: "Italy",
     months: ["february"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//venice-carnival.jpg",
       credit: "Hasmik Ghazaryan Olson",
@@ -232,7 +232,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Rio de Janeiro",
     country: "Brazil",
     months: ["february", "march"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Rio Carnival.jpg",
       credit: "Karla Vidal",
@@ -252,7 +252,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Taipei",
     country: "Taiwan",
     months: ["february"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Lantern Festival.jpg",
       credit: "Nat Chen",
@@ -271,7 +271,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Turin",
     country: "Italy",
     months: ["february"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Ivrea Orange Festival.jpg",
       credit: "",
@@ -289,7 +289,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Sapporo",
     country: "Japan",
     months: ["february"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Sapporo Snow Festival.jpg",
       credit: "",
@@ -308,7 +308,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Quebec City",
     country: "Canada",
     months: ["february"],
-    triggeredBy: ["culture-history", "nature-outdoors", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "nature-adventure", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Quebec Winter Carnival.jpg",
       credit: "",
@@ -326,7 +326,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Oruro",
     country: "Bolivia",
     months: ["february"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Carnival of Oruro.jpg",
       credit: "",
@@ -346,7 +346,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Barranquilla",
     country: "Colombia",
     months: ["february"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Carnaval de Barranquilla.jpg",
       credit: "",
@@ -365,7 +365,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Hanga Roa",
     country: "Chile",
     months: ["february"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Tapati Rapa Nui.jpg",
       credit: "",
@@ -383,7 +383,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Jaipur",
     country: "India",
     months: ["march"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//holi-india.png",
       credit: "",
@@ -401,7 +401,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Kyoto",
     country: "Japan",
     months: ["march", "april"],
-    triggeredBy: ["culture-history", "nature-outdoors", "wellness-slow-travel"],
+    triggeredBy: ["culture-experiences", "nature-adventure", "wellness"],
     image: {
       url: "https://plus.unsplash.com/premium_photo-1661878091370-4ccb8763756a?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "PJH",
@@ -420,7 +420,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Dublin",
     country: "Ireland",
     months: ["march"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//St Patrick's Day.jpg",
       credit: "Sophie Popplewell",
@@ -438,7 +438,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Isfahan",
     country: "Iran",
     months: ["march"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Nowruz.jpg",
       credit: "Fayegh Shakibayi",
@@ -455,7 +455,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Cape Town",
     country: "South Africa",
     months: ["march"],
-    triggeredBy: ["arts-music-nightlife"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Cape Town Jazz Festival.jpg",
       credit: "Josh Wright",
@@ -472,7 +472,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Ubud",
     country: "Indonesia",
     months: ["march"],
-    triggeredBy: ["culture-history", "wellness-slow-travel"],
+    triggeredBy: ["culture-experiences", "wellness"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Nyepi.jpg",
       credit: "",
@@ -491,7 +491,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Seville",
     country: "Spain",
     months: ["march", "april"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://images.pexels.com/photos/2910085/pexels-photo-2910085.jpeg",
       credit: "Farnaz Kohankhaki",
@@ -510,7 +510,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Seoul",
     country: "South Korea",
     months: ["april"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://images.pexels.com/photos/4198572/pexels-photo-4198572.jpeg",
       credit: "",
@@ -529,7 +529,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Chiang Mai",
     country: "Thailand",
     months: ["april"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Songkran-Festival-with-Aleenta-Phuket.jpg",
       credit: "Mandy H",
@@ -546,7 +546,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Amsterdam",
     country: "Netherlands",
     months: ["april", "may"],
-    triggeredBy: ["nature-outdoors", "wellness-slow-travel"],
+    triggeredBy: ["nature-adventure", "wellness"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Tulip Keukenhof.jpg",
       credit: "Marnee Wohlfert",
@@ -563,7 +563,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Seville",
     country: "Spain",
     months: ["april"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Feria de Abril.jpg",
       credit: "Anastasiia Nelen",
@@ -580,7 +580,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Paro",
     country: "Bhutan",
     months: ["march", "april"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Paro-Tshechu-Festival-Tour.jpg",
       credit: "",
@@ -599,7 +599,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Çanakkale",
     country: "Turkey",
     months: ["april"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Anzac Day Dawn Service.jpg",
       credit: "",
@@ -618,7 +618,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Nice",
     country: "France",
     months: ["may"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Cannes Film Festival.jpg",
       credit: "",
@@ -635,7 +635,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "London",
     country: "UK",
     months: ["may"],
-    triggeredBy: ["nature-outdoors", "wellness-slow-travel"],
+    triggeredBy: ["nature-adventure", "wellness"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Chelsea Flower Show.jpg",
       credit: "Div Manickam",
@@ -653,7 +653,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Kandy",
     country: "Sri Lanka",
     months: ["may"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Vesak Day.jpg",
       credit: "",
@@ -672,7 +672,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Monaco",
     country: "Monaco",
     months: ["may"],
-    triggeredBy: ["active-sport", "arts-music-nightlife"],
+    triggeredBy: ["nature-adventure", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Monaco Grand Prix.jpeg",
       credit: "",
@@ -691,7 +691,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Yasothon",
     country: "Thailand",
     months: ["may"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Rocket Festival.jpg",
       credit: "",
@@ -709,7 +709,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Yogyakarta",
     country: "Indonesia",
     months: ["may"],
-    triggeredBy: ["culture-history", "wellness-slow-travel"],
+    triggeredBy: ["culture-experiences", "wellness"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Waisak at Borobudur.jpg",
       credit: "",
@@ -728,7 +728,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Tromsø",
     country: "Norway",
     months: ["june"],
-    triggeredBy: ["nature-outdoors", "wellness-slow-travel"],
+    triggeredBy: ["nature-adventure", "wellness"],
     image: {
       url: "https://images.unsplash.com/photo-1594220937195-fb2ed1c8d7e5?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "Kuno Schweizer",
@@ -746,7 +746,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Cusco",
     country: "Peru",
     months: ["june"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Inti-Raymi-in-Cusco.jpg",
       credit: "Snowscat",
@@ -764,7 +764,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Stockholm",
     country: "Sweden",
     months: ["june"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//midsommar festival.jpg",
       credit: "Andreas Lindgren",
@@ -782,7 +782,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Hong Kong",
     country: "Hong Kong",
     months: ["june"],
-    triggeredBy: ["culture-history", "active-sport"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Dragon-Boat-Festival.jpg",
       credit: "Joshua J. Cotten",
@@ -800,7 +800,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Bristol",
     country: "UK",
     months: ["june"],
-    triggeredBy: ["arts-music-nightlife"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://images.pexels.com/photos/34248845/pexels-photo-34248845.jpeg",
       credit: "",
@@ -819,7 +819,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Porto",
     country: "Portugal",
     months: ["june"],
-    triggeredBy: ["culture-history", "arts-music-nightlife", "food-culinary"],
+    triggeredBy: ["culture-experiences", "culture-experiences", "food-nightlife"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Festa de Sao Joao.jpg",
       credit: "",
@@ -837,7 +837,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Saint Petersburg",
     country: "Russia",
     months: ["june"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//White Nights Festival.jpg",
       credit: "",
@@ -855,7 +855,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Leh",
     country: "India",
     months: ["june", "july"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Hemis Festival.jpg",
       credit: "",
@@ -874,7 +874,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Pamplona",
     country: "Spain",
     months: ["july"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://images.unsplash.com/photo-1533549985351-6c106c453155",
       credit: "San Fermin Pamplona",
@@ -891,7 +891,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Paris",
     country: "France",
     months: ["july"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Bastille Day.jpg",
       credit: "Nivenn Lanos",
@@ -909,7 +909,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Calgary",
     country: "Canada",
     months: ["july"],
-    triggeredBy: ["culture-history", "active-sport"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Calgary Stampede.jpg",
       credit: "Bryton Udy",
@@ -926,7 +926,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Ulaanbaatar",
     country: "Mongolia",
     months: ["july"],
-    triggeredBy: ["culture-history", "active-sport"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Naadam Festival.jpg",
       credit: "",
@@ -944,7 +944,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Antwerp",
     country: "Belgium",
     months: ["july"],
-    triggeredBy: ["arts-music-nightlife"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Tomorrowland.jpg",
       credit: "",
@@ -963,7 +963,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Venice",
     country: "Italy",
     months: ["july"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Festa del Redentore.jpg",
       credit: "",
@@ -981,7 +981,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Loei",
     country: "Thailand",
     months: ["june", "july"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Phi Ta Khon.jpg",
       credit: "",
@@ -1000,7 +1000,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Kyoto",
     country: "Japan",
     months: ["august"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Obon Festival.jpg",
       credit: "Jaturawit T.",
@@ -1018,7 +1018,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Florence",
     country: "Italy",
     months: ["july", "august"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Il Palio.jpg",
       credit: "",
@@ -1037,7 +1037,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Valencia",
     country: "Spain",
     months: ["august"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//La Tomatina.jpg",
       credit: "",
@@ -1055,7 +1055,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Edinburgh",
     country: "Scotland",
     months: ["august"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Edinburgh Fringe Festival.jpg",
       credit: "Filiz Elaerts",
@@ -1074,7 +1074,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "London",
     country: "UK",
     months: ["august"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Notting Hill Carnival.jpg",
       credit: "",
@@ -1092,7 +1092,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Las Vegas",
     country: "USA",
     months: ["august"],
-    triggeredBy: ["arts-music-nightlife"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Burning Man.jpg",
       credit: "Carlo",
@@ -1110,7 +1110,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Mumbai",
     country: "India",
     months: ["august", "september"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Ganesh Chaturthi.jpg",
       credit: "",
@@ -1129,7 +1129,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Barcelona",
     country: "Spain",
     months: ["august"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//festa_gracia_gracia_festival_barcelona.jpg",
       credit: "",
@@ -1147,7 +1147,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Venice",
     country: "Italy",
     months: ["august", "september"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Venice Film Festival.jpg",
       credit: "",
@@ -1165,7 +1165,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Kochi",
     country: "India",
     months: ["august", "september"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Onam.jpg",
       credit: "Anantha Krishnan",
@@ -1182,7 +1182,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Agadez",
     country: "Niger",
     months: ["september"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Gerewol-Festival.jpg",
       credit: "",
@@ -1200,7 +1200,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Munich",
     country: "Germany",
     months: ["september", "october"],
-    triggeredBy: ["culture-history", "arts-music-nightlife", "food-culinary"],
+    triggeredBy: ["culture-experiences", "culture-experiences", "food-nightlife"],
     image: {
       url: "https://plus.unsplash.com/premium_photo-1695908428130-a57db9377014?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "Manoa Angelo",
@@ -1218,7 +1218,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Hong Kong",
     country: "Hong Kong",
     months: ["september", "october"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Mid-Autumn Moon Festival.jpg",
       credit: "あま あわれ",
@@ -1235,7 +1235,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Barcelona",
     country: "Spain",
     months: ["september"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//La Merce.jpg",
       credit: "",
@@ -1253,7 +1253,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Naples",
     country: "Italy",
     months: ["september"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Festival of San Gennaro.jpg",
       credit: "",
@@ -1271,7 +1271,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Seoul",
     country: "South Korea",
     months: ["july"],
-    triggeredBy: ["arts-music-nightlife", "beach-coastal"],
+    triggeredBy: ["culture-experiences", "sun-rest"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Mud_Fest_2008_(2679028799).jpg",
       credit: "",
@@ -1289,7 +1289,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Albuquerque",
     country: "USA",
     months: ["october"],
-    triggeredBy: ["nature-outdoors", "active-sport"],
+    triggeredBy: ["nature-adventure", "nature-adventure"],
     image: {
       url: "https://images.unsplash.com/photo-1599246078860-0f8cc12ebf9a?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "E Hillsley",
@@ -1308,7 +1308,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Jaipur",
     country: "India",
     months: ["october", "november"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://images.pexels.com/photos/1580085/pexels-photo-1580085.jpeg",
       credit: "Dibakar Roy",
@@ -1327,7 +1327,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Boston",
     country: "USA",
     months: ["october"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//halloween-salem.jpg",
       credit: "David Trinks",
@@ -1345,7 +1345,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Ahmedabad",
     country: "India",
     months: ["october"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Garba-Ahmedabad.png",
       credit: "",
@@ -1364,7 +1364,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Kolkata",
     country: "India",
     months: ["october"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//The-Dance-of-Dhunuchi.jpg",
       credit: "",
@@ -1383,7 +1383,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Bacolod",
     country: "Philippines",
     months: ["october"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://images.pexels.com/photos/14139911/pexels-photo-14139911.jpeg",
       credit: "",
@@ -1401,7 +1401,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Oaxaca",
     country: "Mexico",
     months: ["november"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Day of the Dead.jpg",
       credit: "Eric Prouzet",
@@ -1419,7 +1419,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Chiang Mai",
     country: "Thailand",
     months: ["november"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Loi Krathong.jpg",
       credit: "",
@@ -1438,7 +1438,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Jaipur",
     country: "India",
     months: ["november"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://images.pexels.com/photos/1707965/pexels-photo-1707965.jpeg",
       credit: "Siddharth Singh",
@@ -1456,7 +1456,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Brighton",
     country: "UK",
     months: ["november"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//guy-fawkes-lewes.jpg",
       credit: "",
@@ -1474,7 +1474,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Surin",
     country: "Thailand",
     months: ["november"],
-    triggeredBy: ["culture-history", "nature-outdoors"],
+    triggeredBy: ["culture-experiences", "nature-adventure"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//surin-elephant-roundup.jpg",
       credit: "",
@@ -1492,7 +1492,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Lyon",
     country: "France",
     months: ["november"],
-    triggeredBy: ["food-culinary", "culture-history"],
+    triggeredBy: ["food-nightlife", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//beaujolais-nouveau-beaune.jpg",
       credit: "",
@@ -1511,7 +1511,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Strasbourg",
     country: "France",
     months: ["december"],
-    triggeredBy: ["culture-history", "food-culinary"],
+    triggeredBy: ["culture-experiences", "food-nightlife"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Christmas Markets.jpg",
       credit: "Alexis Brandner",
@@ -1529,7 +1529,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Sydney",
     country: "Australia",
     months: ["december"],
-    triggeredBy: ["arts-music-nightlife", "culture-history"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//new-years-eve-sydney.jpg",
       credit: "Jayden Lynch",
@@ -1548,7 +1548,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Salzburg",
     country: "Austria",
     months: ["december"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Krampusnacht.jpeg",
       credit: "",
@@ -1566,7 +1566,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Edinburgh",
     country: "Scotland",
     months: ["december"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Hogmanay.jpg",
       credit: "",
@@ -1584,7 +1584,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Oaxaca",
     country: "Mexico",
     months: ["december"],
-    triggeredBy: ["culture-history"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Las Posadas.jpg",
       credit: "",
@@ -1602,7 +1602,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Bath",
     country: "UK",
     months: ["december"],
-    triggeredBy: ["culture-history", "wellness-slow-travel"],
+    triggeredBy: ["culture-experiences", "wellness"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Winter Solstice at Stonehenge.jpg", // TODO: replace with direct image URL — current URL was a webpage not an image
       credit: "",
@@ -1620,7 +1620,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Oaxaca",
     country: "Mexico",
     months: ["december"],
-    triggeredBy: ["culture-history", "food-culinary"],
+    triggeredBy: ["culture-experiences", "food-nightlife"],
     image: {
       url: "https://upload.wikimedia.org/wikipedia/commons/3/32/Rabanos2014_068.JPG",
       credit: "",
@@ -1638,7 +1638,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "New Orleans",
     country: "USA",
     months: ["february", "march"],
-    triggeredBy: ["culture-history", "arts-music-nightlife", "food-culinary"],
+    triggeredBy: ["culture-experiences", "culture-experiences", "food-nightlife"],
     image: {
       url: "https://images.unsplash.com/photo-1703145217874-47c91be335e0?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "",
@@ -1658,7 +1658,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Valencia",
     country: "Spain",
     months: ["march"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://images.unsplash.com/photo-1647693679671-26c83f9a582e?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "",
@@ -1678,7 +1678,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Los Angeles",
     country: "USA",
     months: ["april"],
-    triggeredBy: ["arts-music-nightlife"],
+    triggeredBy: ["culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Coachella.jpg",
       credit: "",
@@ -1697,7 +1697,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Amsterdam",
     country: "Netherlands",
     months: ["april"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Kings-day.jpg",
       credit: "",
@@ -1715,7 +1715,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Oslo",
     country: "Norway",
     months: ["may"],
-    triggeredBy: ["culture-history", "arts-music-nightlife"],
+    triggeredBy: ["culture-experiences", "culture-experiences"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Norway.jpeg",
       credit: "",
@@ -1733,7 +1733,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Ashgabat",
     country: "Turkmenistan",
     months: ["august"],
-    triggeredBy: ["culture-history", "food-culinary"],
+    triggeredBy: ["culture-experiences", "food-nightlife"],
     image: {
       url: "https://jfevevpldnllgarhpgxr.supabase.co/storage/v1/object/public/festivals//Melon Day.jpeg",
       credit: "",
@@ -1752,7 +1752,7 @@ export const culturalMoments: CulturalMoment[] = [
     city: "Seville",
     country: "Spain",
     months: ["august"],
-    triggeredBy: ["nature-outdoors", "culture-history"],
+    triggeredBy: ["nature-adventure", "culture-experiences"],
     image: {
       url: "https://plus.unsplash.com/premium_photo-1695186450461-777ea482f34b?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       credit: "",

@@ -38,7 +38,7 @@ export const HighlightsTab = ({
 }: HighlightsTabProps) => {
   const scrollRef = useScrollFade<HTMLDivElement>();
   const { isSaved, toggle } = useSavedExperiences(city, country);
-  const primaryInterest = profile?.primaryInterest || "culture-history";
+  const primaryInterest = profile?.primaryInterest || "culture-experiences";
   const { data: heroData } = useHeroCollage(city, country, profile?.interests ?? [], primaryInterest);
   const stripPlaces = heroData?.places ?? [];
 
@@ -77,7 +77,7 @@ export const HighlightsTab = ({
       <CityStatsStrip
         city={city}
         country={country}
-        primaryInterest={profile?.primaryInterest || "culture-history"}
+        primaryInterest={profile?.primaryInterest || "culture-experiences"}
       />
 
       {/* Main Content */}

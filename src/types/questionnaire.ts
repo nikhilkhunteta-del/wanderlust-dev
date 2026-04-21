@@ -48,7 +48,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'water-ocean',
     label: 'Water & Ocean',
     icon: '🌊',
-    triggeredBy: ['beach-coastal', 'nature-outdoors', 'active-sport'],
+    triggeredBy: ['sun-rest', 'nature-adventure'],
     experiences: [
       { value: 'scuba-diving', label: 'Scuba Diving', icon: '🤿' },
       { value: 'snorkelling', label: 'Snorkelling', icon: '🐠' },
@@ -63,7 +63,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'sky-heights',
     label: 'Sky & Heights',
     icon: '🪂',
-    triggeredBy: ['active-sport', 'nature-outdoors'],
+    triggeredBy: ['nature-adventure'],
     experiences: [
       { value: 'paragliding', label: 'Paragliding', icon: '🪂' },
       { value: 'skydiving', label: 'Skydiving', icon: '🎯' },
@@ -75,7 +75,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'mountain-land',
     label: 'Mountain & Land',
     icon: '🏔',
-    triggeredBy: ['active-sport', 'nature-outdoors'],
+    triggeredBy: ['nature-adventure'],
     experiences: [
       { value: 'hiking-trekking', label: 'Hiking & Trekking', icon: '🥾' },
       { value: 'skiing', label: 'Skiing & Snowboarding', icon: '⛷' },
@@ -88,7 +88,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'wildlife-nature',
     label: 'Wildlife & Nature',
     icon: '🦁',
-    triggeredBy: ['nature-outdoors'],
+    triggeredBy: ['nature-adventure'],
     experiences: [
       { value: 'safari', label: 'Safari', icon: '🦁' },
       { value: 'northern-lights', label: 'Northern Lights', icon: '🌌' },
@@ -102,7 +102,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'landscapes',
     label: 'Landscapes & Journeys',
     icon: '🏜',
-    triggeredBy: ['nature-outdoors', 'culture-history'],
+    triggeredBy: ['nature-adventure', 'culture-experiences'],
     experiences: [
       { value: 'desert-experience', label: 'Desert Experience', icon: '🏜' },
       { value: 'scenic-train', label: 'Scenic Train Journey', icon: '🚂' },
@@ -112,7 +112,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'culture-heritage',
     label: 'Culture & Heritage',
     icon: '🏛',
-    triggeredBy: ['culture-history'],
+    triggeredBy: ['culture-experiences'],
     experiences: [
       { value: 'unesco-sites', label: 'UNESCO Heritage Sites', icon: '🏛' },
       { value: 'museums-galleries', label: 'Museums & Galleries', icon: '🖼' },
@@ -124,7 +124,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'food-drink',
     label: 'Food & Drink',
     icon: '🍜',
-    triggeredBy: ['food-culinary'],
+    triggeredBy: ['food-nightlife'],
     experiences: [
       { value: 'street-food-tours', label: 'Street Food Tours', icon: '🍢' },
       { value: 'cooking-classes', label: 'Cooking Classes', icon: '👨‍🍳' },
@@ -136,7 +136,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
     id: 'wellness',
     label: 'Wellness & Restoration',
     icon: '🧘',
-    triggeredBy: ['wellness-slow-travel'],
+    triggeredBy: ['wellness'],
     experiences: [
       { value: 'thermal-baths', label: 'Thermal Baths & Hot Springs', icon: '♨️' },
       { value: 'yoga-retreats', label: 'Yoga & Meditation Retreats', icon: '🧘' },
@@ -150,7 +150,7 @@ export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
  * Returns null if Q2 should be skipped entirely.
  */
 export function getRelevantCategories(q1Selections: string[]): ExperienceCategory[] | null {
-  // Skip Q2 entirely if only shopping/arts-music-nightlife selected (no categories triggered)
+  // Skip Q2 entirely if only celebration/sun-rest selected (no categories triggered)
   const relevant = EXPERIENCE_CATEGORIES.filter((cat) =>
     cat.triggeredBy.some((trigger) => q1Selections.includes(trigger))
   );
@@ -167,18 +167,16 @@ export function shouldShowFoodQuestion(q1Selections: string[]): boolean {
 export const QUESTIONS: QuestionConfig[] = [
   {
     id: 'interests',
-    questionText: 'What kind of traveller are you?',
-    subtitle: "We'll use this to shape places you'll truly love.",
+    questionText: 'What is this trip for?',
+    subtitle: 'This shapes everything we recommend.',
     inputType: 'multi-select',
     options: [
-      { value: 'culture-history', label: 'Culture & History', icon: '🏛', description: 'Walk through millennia of human story. Ancient ruins, sacred temples, and living heritage that stops you in your tracks.' },
-      { value: 'nature-outdoors', label: 'Nature & Outdoors', icon: '🌿', description: 'Stand somewhere so vast and wild it makes you feel small. Forests, mountains, and wilderness on a scale that stays with you.' },
-      { value: 'beach-coastal', label: 'Beach & Coastal', icon: '🏖', description: 'That particular shade of turquoise that exists nowhere but the sea. White sand, warm water, and nothing to do but be there.' },
-      { value: 'food-culinary', label: 'Food & Culinary', icon: '🍜', description: 'Eat where the locals eat. Street stalls, night markets, and dishes you\'ll spend years trying to recreate at home.' },
-      { value: 'arts-music-nightlife', label: 'Arts, Music & Nightlife', icon: '🎭', description: 'The energy of a city after dark. Live music, rooftop bars, and the kind of night that becomes a story.' },
-      { value: 'active-sport', label: 'Active & Sport', icon: '🚴', description: 'Push yourself somewhere extraordinary. Hike, raft, climb, or ride through landscapes that make the effort worthwhile.' },
-      { value: 'shopping-markets', label: 'Shopping & Markets', icon: '🛍', description: 'Lose yourself in a labyrinth of stalls, scents, and textures. The best souvenirs are the ones you didn\'t plan to buy.' },
-      { value: 'wellness-slow-travel', label: 'Wellness & Slow Travel', icon: '🧘', description: 'Breathe out. A slower pace, restorative rituals, and the rare luxury of being fully present somewhere beautiful.' },
+      { value: 'culture-experiences', label: 'Culture & Experiences', icon: '🏛', description: 'History, art, local life. The places and moments that make you feel like you\'ve actually been somewhere.' },
+      { value: 'sun-rest', label: 'Sun & Rest', icon: '🏖', description: 'Beaches, slow pace, recharge. The kind of trip you come back from actually rested.' },
+      { value: 'nature-adventure', label: 'Nature & Adventure', icon: '🌿', description: 'Landscapes, wildlife, outdoors. Somewhere vast and wild that makes the everyday feel very far away.' },
+      { value: 'food-nightlife', label: 'Food & Nightlife', icon: '🍜', description: 'Eating, drinking, city energy. The places where the best nights start with no plan at all.' },
+      { value: 'wellness', label: 'Wellness', icon: '🧘', description: 'Spas, retreats, mindful travel. Come back lighter than you left.' },
+      { value: 'celebration', label: 'Celebration', icon: '🥂', description: 'Honeymoon, birthday, anniversary. A trip that deserves to be remembered.' },
     ],
     defaultValue: [],
   },
@@ -211,19 +209,6 @@ export const QUESTIONS: QuestionConfig[] = [
       { value: 'family', label: 'Family Trip', icon: '👨‍👩‍👧‍👦', description: 'Kids in tow, family-friendly picks' },
       { value: 'friends', label: 'Friends Trip', icon: '👯', description: 'Small group, shared adventures' },
       { value: 'group', label: 'Group Travel', icon: '🚌', description: 'Larger group, 6+ people' },
-    ],
-    defaultValue: '',
-  },
-  {
-    id: 'noveltyPreference',
-    questionText: 'How do you like to discover?',
-    subtitle: 'Helps us choose between celebrated classics and hidden gems.',
-    inputType: 'single-select',
-    options: [
-      { value: 'classics', label: 'The classics done well', icon: '🏠', description: 'Iconic destinations, done properly' },
-      { value: 'mix', label: 'A mix of known and new', icon: '🗺️', description: 'Some familiar, some surprising' },
-      { value: 'off-beaten-path', label: 'Off the beaten path', icon: '🌍', description: 'Somewhere most travellers miss' },
-      { value: 'surprise', label: 'Surprise me completely', icon: '🎲', description: 'I trust you entirely' },
     ],
     defaultValue: '',
   },
